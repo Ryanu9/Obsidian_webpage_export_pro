@@ -1,5 +1,7 @@
 # Webpage HTML Export
 
+English | [简体中文](README-zh.md)
+
 Export html from single files, canvas pages, or whole vaults. Direct access to the exported HTML files allows you to publish your digital garden anywhere. Focuses on flexibility, features, and style parity.
 Demo / docs: [docs.obsidianweb.net](https://docs.obsidianweb.net/)
 
