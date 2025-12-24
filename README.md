@@ -63,3 +63,7 @@ or if you prefer paypal:
 
 This project is tested with BrowserStack.
 [BrowserStack](https://www.browserstack.com/open-source) offers free web testing to open source projects, but does not support this project in any other way.
+
+## Features
+- image-zoom
+- 

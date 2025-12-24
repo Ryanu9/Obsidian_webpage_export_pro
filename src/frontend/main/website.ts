@@ -26,6 +26,7 @@ import {
 import { BacklinkList } from "./backlinks";
 import { Tags } from "./tags";
 import { Aliases } from "./aliases";
+import { ImageZoom } from "./image-zoom";
 
 type Constructor<T> = new () => T;
 
@@ -61,6 +62,7 @@ export class ObsidianWebsite {
 	public backlinkList: BacklinkList | undefined = undefined;
 	public tags: Tags | undefined = undefined;
 	public aliases: Aliases | undefined = undefined;
+	public imageZoom: ImageZoom | undefined = undefined;
 
 	public entryPage: string;
 
@@ -150,6 +152,9 @@ export class ObsidianWebsite {
 		this.initEvents();
 
 		FilePreviewPopover.loadPinnedPreviews();
+
+		// Initialize image zoom functionality
+		this.imageZoom = new ImageZoom(this.centerContentEl);
 
 		this.onDocumentLoad((doc) => {
 
@@ -249,6 +254,9 @@ export class ObsidianWebsite {
 					this.aliases?.hide();
 				}
 			}
+
+			// Refresh image zoom listeners for new content
+			this.imageZoom?.refresh();
 		});
 
 		// Set initial history state
@@ -325,10 +333,9 @@ export class ObsidianWebsite {
 
 		const page = await new ObsidianDocument(url).load();
 
-		if (!page)
-		{
+		if (!page) {
 			new Notice("Failed to load page. Unknown error.");
-			return;	
+			return;
 		}
 
 		// Update meta tags
@@ -580,7 +587,7 @@ export class ObsidianWebsite {
 	private set deviceSize(size: string) {
 		this._deviceSize = size;
 	}
-	
+
 	private onResize() {
 		if (!this.isResizing) {
 			this.onStartResize();
