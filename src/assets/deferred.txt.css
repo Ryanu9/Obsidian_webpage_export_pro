@@ -382,7 +382,7 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
 /* Clickable images in markdown content */
 .markdown-rendered img,
 .markdown-preview-view img {
-    cursor: zoom-in;
+    cursor: default;
     transition: opacity 0.2s ease-in-out;
 }
 
@@ -401,7 +401,7 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
     display: none;
-    cursor: zoom-out;
+    cursor: default;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
 }
@@ -426,7 +426,7 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     position: absolute;
     top: 0;
     left: 0;
-    cursor: grab;
+    cursor: default;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     border-radius: var(--radius-s, 4px);
     transform-origin: 0 0;
@@ -434,10 +434,6 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     user-select: none;
     -webkit-user-select: none;
     -webkit-user-drag: none;
-}
-
-.image-zoom-img:active {
-    cursor: grabbing;
 }
 
 /* Mobile-friendly touch target */
