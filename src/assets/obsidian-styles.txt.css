@@ -211,48 +211,146 @@ button:not(.clickable-icon) {
 	box-shadow: none;
 	background-color: transparent;
 }
+
 /* Attachment Download Styles */
 .internal-embed.file-embed {
-display: none !important;
+	display: none !important;
 }
 
 .file-embed-title {
-cursor: pointer !important;
-display: flex;
-align-items: center;
-padding: 12px 16px;
-margin: 8px 0;
-background: var(--background-secondary-alt);
-border: 1px solid var(--background-modifier-border);
-border-radius: 8px;
-transition: all 0.2s ease;
-font-weight: 500;
-font-size: 16px;
-color: var(--text-normal);
-max-width: fit-content;
+	cursor: pointer !important;
+	display: flex;
+	align-items: center;
+	padding: 12px 16px;
+	margin: 8px 0;
+	background: var(--background-secondary-alt);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	font-weight: 500;
+	font-size: 16px;
+	color: var(--text-normal);
+	max-width: fit-content;
 }
 
 .file-embed-title:hover {
-background: var(--background-modifier-hover);
-border-color: var(--interactive-accent);
-transform: translateY(-1px);
-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	background: var(--background-modifier-hover);
+	border-color: var(--interactive-accent);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .file-embed-icon {
-margin-right: 8px;
-opacity: 0.8;
-transition: opacity 0.2s ease;
-display: flex;
-align-items: center;
+	margin-right: 8px;
+	opacity: 0.8;
+	transition: opacity 0.2s ease;
+	display: flex;
+	align-items: center;
 }
 
 .file-embed-title:hover .file-embed-icon {
-opacity: 1;
+	opacity: 1;
 }
 
 .file-embed-icon svg {
-width: 18px;
-height: 18px;
-fill: var(--interactive-accent);
+	width: 18px;
+	height: 18px;
+	fill: var(--interactive-accent);
 }
+
+/*#region Footnotes */
+.footnote-highlight {
+	animation: footnote-highlight 1.2s ease-out;
+}
+
+@keyframes footnote-highlight {
+	0% {
+		background-color: rgba(255, 235, 59, 0.3);
+		box-shadow: 0 0 0 0 rgba(255, 235, 59, 0.4);
+	}
+
+	100% {
+		background-color: transparent;
+	}
+}
+
+#footnote-tooltip {
+	position: absolute;
+	z-index: 1000;
+	user-select: text;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--background-modifier-border);
+	background: var(--background-primary);
+	border-radius: 8px;
+	padding: 12px 18px;
+	max-width: 550px;
+	min-width: 350px;
+	max-height: 400px;
+	overflow-y: auto;
+	font-size: 0.95em;
+	line-height: 1.6;
+	color: var(--text-normal);
+	pointer-events: auto;
+
+	/* Ensure automatic wrapping */
+	white-space: normal;
+	word-break: break-all;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+#footnote-tooltip p {
+	margin: 0.5em 0;
+}
+
+#footnote-tooltip p:first-child {
+	margin-top: 0;
+}
+
+#footnote-tooltip p:last-child {
+	margin-bottom: 0;
+}
+
+/* Headings inside footnote should be smaller */
+#footnote-tooltip h1,
+#footnote-tooltip h2,
+#footnote-tooltip h3,
+#footnote-tooltip h4 {
+	margin-top: 0.8em;
+	margin-bottom: 0.4em;
+	font-size: 1.1em;
+}
+
+#footnote-tooltip img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 4px;
+	margin: 4px 0;
+}
+
+#footnote-tooltip pre {
+	margin: 8px 0;
+	padding: 8px;
+	border-radius: 4px;
+	font-size: 0.85em;
+	max-height: 200px;
+	overflow: auto;
+}
+
+/* Transition effect */
+#footnote-tooltip[style*="display: block"] {
+	animation: footnote-fade-in 0.15s ease-out;
+}
+
+@keyframes footnote-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(5px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/*#endregion */

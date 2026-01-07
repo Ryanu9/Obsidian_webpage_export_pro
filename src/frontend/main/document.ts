@@ -210,10 +210,20 @@ export class WebpageDocument {
 			this.canvas = new Canvas(this);
 		}
 
-		if (this.isMainDocument || this.isPreview)
+		if (this.isMainDocument || this.isPreview) {
 			LinkHandler.initializeLinks(this.documentEl ?? this.containerEl);
+			this.initFootnotes();
+		}
 
 		return this;
+	}
+
+	private initFootnotes() {
+		// Use dynamic import to load footnotes handler only when needed
+		import('./footnotes').then(({ FootnoteHandler }) => {
+			const footnoteHandler = FootnoteHandler.getInstance();
+			footnoteHandler.initializeFootnotes(this.documentEl ?? this.containerEl);
+		});
 	}
 
 	private initNewImageZoom() {

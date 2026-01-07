@@ -317,12 +317,11 @@ export class ObsidianWebsite {
 		}
 
 		// if this document is already loaded
-		if (this.document.pathname == url) {
+		if (this.document.pathname == url || this.document.pathname == url.split('#')[0]) {
 			if (header) this.document.scrollToHeader(header);
-			else {
+			else if (!url.includes('#')) {
 				new Notice("This page is already loaded.");
 			}
-
 			return this.document;
 		}
 
