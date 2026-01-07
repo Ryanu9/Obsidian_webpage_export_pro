@@ -301,3 +301,18 @@ details.settings-section[open] > summary > svg
 {
 	rotate: 90deg;
 }
+
+/* 文件夹数量显示的样式 */
+.nav-folder-count {
+    font-size: 10px;
+    background-color: var(--background-modifier-border);
+    color: var(--text-faint);
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: auto; /* 将数字推到最右侧 */
+    font-weight: normal;
+}
+/* 鼠标悬停时数字颜色变深 */
+.nav-folder-title:hover .nav-folder-count {
+    color: var(--text-muted);
+}
