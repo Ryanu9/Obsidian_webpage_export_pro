@@ -9,6 +9,7 @@ import {
 export class OutlineOptions extends InsertedFeatureOptionsWithTitle {
 	startCollapsed: boolean = false;
 	minCollapseDepth: number = 0;
+	autoCollapseDepth: number = 3;
 
 	info_startCollapsed = new FeatureSettingInfo({
 		show: true,
@@ -20,6 +21,18 @@ export class OutlineOptions extends InsertedFeatureOptionsWithTitle {
 		dropdownTypes: {
 			"1": 1,
 			"2": 2,
+			"No Collapse": 100,
+		},
+	});
+	info_autoCollapseDepth = new FeatureSettingInfo({
+		show: true,
+		description: i18n.settings.outline.info_autoCollapseDepth,
+		dropdownTypes: {
+			"1": 1,
+			"2": 2,
+			"3": 3,
+			"4": 4,
+			"5": 5,
 			"No Collapse": 100,
 		},
 	});

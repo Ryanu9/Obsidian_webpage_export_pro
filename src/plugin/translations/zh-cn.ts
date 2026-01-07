@@ -99,7 +99,8 @@ export const language: i18n =
 			title: "大纲",
 			description: "显示当前文档的标题列表。",
 			info_startCollapsed: "大纲是否开始折叠？",
-			info_minCollapseDepth: "应折叠标题的最小深度"
+			info_minCollapseDepth: "应折叠标题的最小深度",
+			info_autoCollapseDepth: "自动折叠标题的深度（例如：设为3则3级及以下的标题将折叠）"
 		},
 		graphView: {
 			title: "图形视图",

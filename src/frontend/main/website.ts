@@ -26,6 +26,7 @@ import {
 import { BacklinkList } from "./backlinks";
 import { Tags } from "./tags";
 import { Aliases } from "./aliases";
+import { TocScrollSpy } from "./toc-scrollspy";
 
 type Constructor<T> = new () => T;
 
@@ -61,6 +62,7 @@ export class ObsidianWebsite {
 	public backlinkList: BacklinkList | undefined = undefined;
 	public tags: Tags | undefined = undefined;
 	public aliases: Aliases | undefined = undefined;
+	public tocScrollSpy: TocScrollSpy | undefined = undefined;
 
 	public entryPage: string;
 
@@ -123,9 +125,12 @@ export class ObsidianWebsite {
 		this.createLoadingEl();
 
 		if (fileTreeEl) this.fileTree = new Tree(fileTreeEl);
-		if (outlineTreeEl) this.outlineTree = new Tree(outlineTreeEl, this.metadata.featureOptions.outline.minCollapseDepth);
+		if (outlineTreeEl) {
+			this.outlineTree = new Tree(outlineTreeEl, this.metadata.featureOptions.outline.minCollapseDepth);
+		}
 		if (leftSidebarEl) this.leftSidebar = new Sidebar(leftSidebarEl);
 		if (rightSidebarEl) this.rightSidebar = new Sidebar(rightSidebarEl);
+		this.tocScrollSpy = new TocScrollSpy();
 		this.search = await new Search().init();
 
 		const pathname =
@@ -249,6 +254,9 @@ export class ObsidianWebsite {
 					this.aliases?.hide();
 				}
 			}
+
+			this.tocScrollSpy?.updateHeadings();
+
 		});
 
 		// Set initial history state
