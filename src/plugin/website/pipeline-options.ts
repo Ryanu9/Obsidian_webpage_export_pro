@@ -15,8 +15,7 @@ import { MarkdownRendererOptions } from "src/plugin/render-api/api-options";
 import { RssOptions } from "src/shared/features/rss";
 import { LinkPreviewOptions } from "src/shared/features/link-preview";
 
-export class ExportPipelineOptions extends MarkdownRendererOptions
-{
+export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
 
 	/**
@@ -161,7 +160,7 @@ export class ExportPipelineOptions extends MarkdownRendererOptions
 	 * The name of the theme to use for the export.
 	 * If the theme does not exist, the default theme will be used.
 	*/
-	themeName: string =  "";
+	themeName: string = "";
 
 	/**
 	 * Make all paths and file names web style (lowercase, no spaces).
@@ -177,8 +176,36 @@ export class ExportPipelineOptions extends MarkdownRendererOptions
 	/**
 	 * Fix all links to be relative and direct to other files or media included in the export.
 	 */
+	/**
+	 * Fix all links to be relative and direct to other files or media included in the export.
+	 */
 	fixLinks: boolean = true;
-	
+
+	/**
+	 * Enable password protection for pages marked with 'locked: true'.
+	 */
+	enablePageEncryption: boolean = false;
+
+	/**
+	 * Default password for encrypted pages if not specified in frontmatter.
+	 */
+	defaultEncryptionPassword: string = "";
+
+	/**
+	 * Title text for the encryption lock screen.
+	 */
+	encryptionPromptText: string = "";
+
+	/**
+	 * Description text for the encryption lock screen.
+	 */
+	encryptionDescriptionText: string = "";
+
+	/**
+	 * Allow Giscus comments to load on encrypted pages before unlocking.
+	 */
+	enableGiscusOnEncryptedPages: boolean = false;
+
 	/**
 	 * The local path to the favicon for the site.
 	 */
@@ -222,17 +249,17 @@ export class ExportPipelineOptions extends MarkdownRendererOptions
 		// Iterate through all properties of this instance
 		for (const [propertyName, propertyValue] of Object.entries(this)) {
 			// Check if this property is a feature options instance (has featureId)
-			if (propertyValue && 
-				typeof propertyValue === 'object' && 
+			if (propertyValue &&
+				typeof propertyValue === 'object' &&
 				'featureId' in propertyValue &&
 				propertyValue.constructor !== Object) {
-				
+
 				// Get the original constructor function
-				const ConstructorClass = propertyValue.constructor as new() => any;
-				
+				const ConstructorClass = propertyValue.constructor as new () => any;
+
 				// Create a fresh instance with constructor-set defaults
 				const freshInstance = new ConstructorClass();
-				
+
 				// Apply the loaded JSON data on top of the constructor defaults
 				(this as any)[propertyName] = Object.assign(freshInstance, propertyValue);
 			}

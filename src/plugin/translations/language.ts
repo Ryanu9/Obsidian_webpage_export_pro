@@ -232,7 +232,23 @@ export interface i18n {
 			title: string;
 			description: string;
 		},
-
+		pageEncryption: {
+			title: string;
+			description: string;
+			info_enablePageEncryption: string;
+			info_defaultEncryptionPassword: string;
+			info_encryptionPromptText: string;
+			info_encryptionDescriptionText: string;
+			info_enableGiscusOnEncryptedPages: string;
+		},
+		lockScreen: {
+			title: string;
+			description: string;
+			rememberPassword: string;
+			unlock: string;
+			inputPlaceholder: string;
+			invalidPassword: string;
+		},
 	}
 }
 

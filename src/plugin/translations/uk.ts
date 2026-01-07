@@ -227,5 +227,22 @@ export const language: i18n =
 			title: "Властивість заголовка",
 			description: "Властивість для використання як заголовок документа",
 		},
+		pageEncryption: {
+			title: "Шифрування сторінок",
+			description: "Налаштування для сторінок, захищених паролем.",
+			info_enablePageEncryption: "Увімкнути шифрування для сторінок, позначених 'locked: true' у frontmatter.",
+			info_defaultEncryptionPassword: "Резервний пароль, якщо він не вказаний у frontmatter сторінки.",
+			info_encryptionPromptText: "Текст заголовка, що відображається на екрані блокування.",
+			info_encryptionDescriptionText: "Текст опису, що відображається на екрані блокування.",
+			info_enableGiscusOnEncryptedPages: "Якщо ввімкнено, коментарі Giscus завантажуватимуться навіть до розблокування сторінки. Вимкніть це, якщо коментарі містять конфіденційну інформацію.",
+		},
+		lockScreen: {
+			title: "Цей вміст зашифровано",
+			description: "Будь ласка, введіть пароль, щоб переглянути вміст",
+			rememberPassword: "Запам'ятати пароль",
+			unlock: "Розблокувати",
+			inputPlaceholder: "Введіть пароль",
+			invalidPassword: "Неправильний пароль або пошкоджені дані",
+		},
 	}
 }

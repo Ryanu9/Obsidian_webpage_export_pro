@@ -228,5 +228,22 @@ export const language: i18n =
 			title: "标题属性",
 			description: "用作文档标题的属性",
 		},
+		pageEncryption: {
+			title: "页面加密",
+			description: "密码保护页面的设置。",
+			info_enablePageEncryption: "启用对前置元数据中标记为 'locked: true' 的页面的加密。",
+			info_defaultEncryptionPassword: "如果页面前置元数据中未指定密码，则使用此后备密码。",
+			info_encryptionPromptText: "锁屏界面显示的标题文本。",
+			info_encryptionDescriptionText: "锁屏界面显示的描述文本。",
+			info_enableGiscusOnEncryptedPages: "如果启用，Giscus 评论将在页面解锁前加载。如果评论包含敏感信息，请禁用此项。",
+		},
+		lockScreen: {
+			title: "此内容已加密",
+			description: "请输入密码以查看内容",
+			rememberPassword: "记住密码",
+			unlock: "解锁",
+			inputPlaceholder: "请输入密码",
+			invalidPassword: "密码错误或数据损坏",
+		},
 	}
 }

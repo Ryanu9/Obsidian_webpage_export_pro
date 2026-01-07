@@ -229,5 +229,22 @@ export const language: i18n =
 			title: "Title Property",
 			description: "The property to use as the title of the document",
 		},
+		pageEncryption: {
+			title: "Page Encryption",
+			description: "Settings for password-protected pages.",
+			info_enablePageEncryption: "Enable encryption for pages marked with 'locked: true' in frontmatter.",
+			info_defaultEncryptionPassword: "Fallback password if none is specified in the page frontmatter.",
+			info_encryptionPromptText: "Title text shown on the lock screen.",
+			info_encryptionDescriptionText: "Description text shown on the lock screen.",
+			info_enableGiscusOnEncryptedPages: "If enabled, Giscus comments will load even before the page is unlocked. Disable this if comments contain sensitive info.",
+		},
+		lockScreen: {
+			title: "This content is encrypted",
+			description: "Please enter your password to view the content",
+			rememberPassword: "Remember password",
+			unlock: "Unlock",
+			inputPlaceholder: "Enter password",
+			invalidPassword: "Incorrect password or corrupted data",
+		},
 	}
 }

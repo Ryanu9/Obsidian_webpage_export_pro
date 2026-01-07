@@ -67,9 +67,13 @@ export class ObsidianWebsite {
 
 	public entryPage: string;
 
-	private onloadCallbacks: ((document: ObsidianDocument) => void)[] = [];
+	public onloadCallbacks: ((document: ObsidianDocument) => void)[] = [];
 	public onDocumentLoad(callback: (document: ObsidianDocument) => void) {
 		this.onloadCallbacks.push(callback);
+	}
+
+	public triggerOnDocumentLoad(doc: ObsidianDocument) {
+		this.onloadCallbacks.forEach((cb) => cb(doc));
 	}
 
 	public async init() {
@@ -289,6 +293,12 @@ export class ObsidianWebsite {
 			localThis.onResize();
 		});
 		this.onResize();
+
+		document.addEventListener('contentDecrypted', () => {
+			if (this.graphView && this.document) {
+				this.graphView.showGraph([this.document.pathname]);
+			}
+		});
 	}
 
 	public updateMetaTag(name: string, content: string) {

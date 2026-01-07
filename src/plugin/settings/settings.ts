@@ -340,6 +340,43 @@ export class SettingsPage extends PluginSettingTab {
 
 		// #endregion
 
+		// #region Page Encryption
+
+		createDivider(container);
+
+		section = createSection(container, lang.pageEncryption.title, lang.pageEncryption.description);
+
+		createToggle(section, lang.pageEncryption.info_enablePageEncryption,
+			() => Settings.exportOptions.enablePageEncryption,
+			(value) => Settings.exportOptions.enablePageEncryption = value,
+			lang.pageEncryption.info_enablePageEncryption);
+
+		createText(section, lang.pageEncryption.info_defaultEncryptionPassword,
+			() => Settings.exportOptions.defaultEncryptionPassword,
+			(value) => Settings.exportOptions.defaultEncryptionPassword = value,
+			lang.pageEncryption.info_defaultEncryptionPassword);
+
+		createText(section, lang.pageEncryption.info_encryptionPromptText,
+			() => Settings.exportOptions.encryptionPromptText,
+			(value) => Settings.exportOptions.encryptionPromptText = value,
+			lang.pageEncryption.info_encryptionPromptText,
+			undefined,
+			lang.lockScreen.title);
+
+		createText(section, lang.pageEncryption.info_encryptionDescriptionText,
+			() => Settings.exportOptions.encryptionDescriptionText,
+			(value) => Settings.exportOptions.encryptionDescriptionText = value,
+			lang.pageEncryption.info_encryptionDescriptionText,
+			undefined,
+			lang.lockScreen.description);
+
+		createToggle(section, lang.pageEncryption.info_enableGiscusOnEncryptedPages,
+			() => Settings.exportOptions.enableGiscusOnEncryptedPages,
+			(value) => Settings.exportOptions.enableGiscusOnEncryptedPages = value,
+			lang.pageEncryption.info_enableGiscusOnEncryptedPages);
+
+		// #endregion
+
 		// #region Obsidian Settings
 
 		createDivider(container);

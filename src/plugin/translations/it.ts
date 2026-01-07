@@ -222,5 +222,22 @@ export const language: i18n =
 			title: "Proprietà del Titolo",
 			description: "La proprietà da utilizzare come titolo del documento",
 		},
+		pageEncryption: {
+			title: "Crittografia Pagina",
+			description: "Impostazioni per le pagine protette da password.",
+			info_enablePageEncryption: "Abilita la crittografia per le pagine contrassegnate con 'locked: true' nel frontmatter.",
+			info_defaultEncryptionPassword: "Password di riserva se nessuna è specificata nel frontmatter della pagina.",
+			info_encryptionPromptText: "Testo del titolo mostrato nella schermata di blocco.",
+			info_encryptionDescriptionText: "Testo della descrizione mostrato nella schermata di blocco.",
+			info_enableGiscusOnEncryptedPages: "Se abilitato, i commenti di Giscus verranno caricati anche prima che la pagina venga sbloccata. Disabilita se i commenti contengono informazioni sensibili.",
+		},
+		lockScreen: {
+			title: "Questo contenuto è crittografato",
+			description: "Inserisci la password per visualizzare il contenuto",
+			rememberPassword: "Ricorda la password",
+			unlock: "Sblocca",
+			inputPlaceholder: "Inserisci la password",
+			invalidPassword: "Password errata o dati corrotti",
+		},
 	}
 };

@@ -154,15 +154,41 @@ export class WebpageDocument {
 				"text/html"
 			);
 
-			let newDocumentEl = this.sourceHtml.querySelector(".obsidian-document");
+			let newDocumentEl = this.sourceHtml.querySelector(".obsidian-document") as HTMLElement;
+			if (!newDocumentEl) newDocumentEl = this.sourceHtml.querySelector(".password-lock") as HTMLElement;
 
 			if (newDocumentEl) {
 				newDocumentEl = document.adoptNode(newDocumentEl);
-				const docEl = containerEl.querySelector(".obsidian-document");
+				const docEl = containerEl.querySelector(".obsidian-document") || containerEl.querySelector(".password-lock");
 				if (docEl) {
 					docEl.before(newDocumentEl);
 					docEl.remove();
-				} else containerEl.appendChild(newDocumentEl);
+				} else {
+					containerEl.appendChild(newDocumentEl);
+				}
+			}
+
+			// Clean up previous page's TOC observer if it exists
+			if ((window as any).__tocHideObserver) {
+				(window as any).__tocHideObserver.disconnect();
+				(window as any).__tocHideObserver = null;
+			}
+
+			// Clean up previous page's unlock scripts
+			const oldScripts = document.querySelectorAll('script[data-unlock-script]');
+			oldScripts.forEach(oldScript => oldScript.remove());
+
+			// Check for new page unlock script
+			const unlockScripts = this.sourceHtml.querySelectorAll('script[data-unlock-script]');
+			if (unlockScripts.length > 0) {
+				const fragment = document.createDocumentFragment();
+				unlockScripts.forEach(script => {
+					const newScript = document.createElement('script');
+					newScript.textContent = script.textContent;
+					newScript.setAttribute('data-unlock-script', 'true');
+					fragment.appendChild(newScript);
+				});
+				document.body.appendChild(fragment);
 			}
 
 			await this.loadChildDocuments();
@@ -198,7 +224,17 @@ export class WebpageDocument {
 		this.findElements();
 		this.postProcess();
 
-		if (this.isMainDocument || this.isPreview) {
+		// Handle encrypted page TOC visibility
+		const isLocked = document.querySelector('#password-lock-container') !== null;
+		if (isLocked) {
+			const outline = document.querySelector('#outline');
+			if (outline) {
+				(outline as HTMLElement).style.setProperty('display', 'none', 'important');
+				outline.setAttribute('data-toc-hidden', 'true');
+			}
+		}
+
+		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			this.processHeaders();
 			this.processCallouts();
 			this.processLists();
@@ -210,7 +246,7 @@ export class WebpageDocument {
 			this.canvas = new Canvas(this);
 		}
 
-		if (this.isMainDocument || this.isPreview) {
+		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			LinkHandler.initializeLinks(this.documentEl ?? this.containerEl);
 			this.initFootnotes();
 		}
@@ -390,10 +426,12 @@ export class WebpageDocument {
 	}
 
 	public processHeaders() {
+		if (!this.documentEl) return;
 		this.headers = Header.createHeaderTree(this.documentEl);
 	}
 
 	public processCallouts() {
+		if (!this.documentEl) return;
 		const calloutEls = Array.from(
 			this.documentEl.querySelectorAll(".callout")
 		);
@@ -404,6 +442,7 @@ export class WebpageDocument {
 	}
 
 	public processLists() {
+		if (!this.documentEl) return;
 		const listEls = Array.from(
 			this.documentEl.querySelectorAll(
 				":is(ul, ol):not(:is(ul, ol) :is(ul, ol))"
@@ -416,6 +455,7 @@ export class WebpageDocument {
 	}
 
 	public postProcess() {
+		if (!this.documentEl) return;
 		// make completed kanban checkboxes checked
 		this.documentEl
 			?.querySelectorAll(
@@ -438,6 +478,7 @@ export class WebpageDocument {
 	}
 
 	public async loadChildDocuments() {
+		if (!this.documentEl) return;
 		this.findElements();
 		// prevent infinite recursion
 		let parentTemp: WebpageDocument | null = this;
