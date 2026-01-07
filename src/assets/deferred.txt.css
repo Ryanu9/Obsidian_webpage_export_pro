@@ -1,5 +1,6 @@
 /* Define default values for variables */
-body {
+body
+{
     --line-width: 40em;
     --line-width-adaptive: 40em;
     --file-line-width: 40em;
@@ -9,7 +10,8 @@ body {
     --sidebar-margin: 12px;
 }
 
-:root {
+:root
+{
     background-color: #202124;
 }
 
@@ -55,7 +57,7 @@ body {
     padding-top: 4em;
     line-height: var(--line-height-tight);
     background-color: var(--background-secondary);
-    transition: background-color, border-right, border-left, box-shadow;
+    transition: background-color,border-right,border-left,box-shadow;
     transition-duration: var(--color-fade-speed);
     transition-timing-function: ease-in-out;
     position: absolute;
@@ -65,31 +67,34 @@ body {
 
 /* If the sidebar isn't collapsed the content should have the same width as it */
 .sidebar:not(.is-collapsed) .leaf-content {
-    min-width: calc(max(100%, var(--sidebar-width)) - 3px);
-    max-width: calc(max(100%, var(--sidebar-width)) - 3px);
+    min-width: calc(max(100%,var(--sidebar-width)) - 3px);
+    max-width: calc(max(100%,var(--sidebar-width)) - 3px);
 }
 
-#left-sidebar-content {
+#left-sidebar-content
+{
     left: 0;
     border-top-right-radius: var(--radius-l);
     border-bottom-right-radius: var(--radius-l);
 }
 
-#right-sidebar-content {
+#right-sidebar-content
+{
     right: 0;
     border-top-left-radius: var(--radius-l);
     border-bottom-left-radius: var(--radius-l);
 }
 
-.sidebar #right-sidebar-content,
-.sidebar #left-sidebar-content {
+.sidebar #right-sidebar-content, .sidebar #left-sidebar-content
+{
     contain: none !important;
     container-type: normal !important;
     animation: none !important;
 }
 
 /* Hide empty sidebars */
-.sidebar:has(.leaf-content:empty):has(.topbar-content:empty) {
+.sidebar:has(.leaf-content:empty):has(.topbar-content:empty)
+{
     display: none;
 }
 
@@ -111,20 +116,21 @@ body {
     width: calc(2.3em + var(--sidebar-margin) * 2);
 }
 
-.sidebar .sidebar-topbar.is-collapsed {
+.sidebar .sidebar-topbar.is-collapsed
+{
     width: 0;
 }
 
 #left-sidebar .sidebar-topbar {
     left: 0;
     flex-direction: row;
-    border-top-right-radius: var(--radius-l);
+	border-top-right-radius: var(--radius-l);
 }
 
 #right-sidebar .sidebar-topbar {
     right: 0;
     flex-direction: row-reverse;
-    border-top-left-radius: var(--radius-l);
+	border-top-left-radius: var(--radius-l);
 }
 
 #left-sidebar .topbar-content {
@@ -155,11 +161,11 @@ body {
 .clickable-icon.sidebar-collapse-icon {
     background-color: transparent;
     color: var(--icon-color-focused);
-    padding: 2px !important;
-    margin: 0 !important;
-    height: 100% !important;
+    padding: 2px!important;
+    margin: 0!important;
+    height: 100%!important;
     width: 2.3em !important;
-    margin-inline: 0.14em !important;
+    margin-inline: 0.14em!important;
     position: absolute;
 }
 
@@ -186,7 +192,8 @@ body {
     margin-bottom: 0.75em;
 }
 
-.feature-header {
+.feature-header
+{
     display: flex;
     align-items: center;
     padding-top: 0;
@@ -194,7 +201,8 @@ body {
     padding-left: 0;
 }
 
-body.floating-sidebars .sidebar {
+body.floating-sidebars .sidebar
+{
     position: absolute;
 }
 
@@ -202,37 +210,40 @@ body.floating-sidebars .sidebar {
 
 /*#region Content / Markdown Preview View */
 
-body {
+body
+{
     transition: background-color var(--color-fade-speed) ease-in-out;
 }
 
-#navbar:not(:empty) {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5em 1em;
-    width: 100%;
+#navbar:not(:empty)
+{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.5em 1em;
+	width: 100%;
 }
 
 #main {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    align-items: stretch;
-    justify-content: center;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+	align-items: stretch;
+	justify-content: center;
 }
 
 #main-horizontal {
     display: flex;
     flex-direction: row;
-    flex-grow: 1;
+	flex-grow: 1;
     width: 100%;
     align-items: stretch;
     justify-content: center;
 }
 
-#center-content {
+#center-content 
+{
     flex-basis: 100%;
     max-width: 100%;
     width: 100%;
@@ -244,13 +255,15 @@ body {
     contain: inline-size;
 }
 
-.hide {
+.hide
+{
     opacity: 0 !important;
     transition: opacity 0.2s ease-in-out;
     pointer-events: none;
 }
 
-#center-content>.obsidian-document {
+#center-content>.obsidian-document 
+{
     padding-left: 2em;
     padding-right: 1em;
     margin-bottom: 0;
@@ -269,7 +282,8 @@ body {
     contain: inline-size;
 }
 
-body #center-content>.obsidian-document>.markdown-preview-sizer {
+body #center-content>.obsidian-document>.markdown-preview-sizer 
+{
     padding-bottom: 80vh;
     width: 100%;
     max-width: var(--line-width);
@@ -278,14 +292,15 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     contain: inline-size;
 }
 
-#center-content>.obsidian-document>div {
+#center-content>.obsidian-document>div
+{
     width: 100% !important;
     transition: background-color var(--color-fade-speed) ease-in-out;
     contain: inline-size;
 }
 
 /* If the markdown view is displaying a raw file or embed then increase it's size to make everything as large as possible */
-#center-content>.obsidian-document:not([data-type='markdown']).embed {
+#center-content > .obsidian-document:not([data-type='markdown']).embed {
     display: flex;
     padding: 1em;
     height: 100%;
@@ -294,18 +309,21 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     justify-content: center;
 }
 
-#center-content>.obsidian-document:not([data-type='markdown']).embed>* {
+#center-content > .obsidian-document:not([data-type='markdown']).embed > *
+{
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
 }
 
-:not(h1, h2, h3, h4, h5, h6, li):has(> :is(.math, table)) {
+:not(h1,h2,h3,h4,h5,h6,li):has(> :is(.math, table)) 
+{
     overflow-x: auto !important;
 }
 
 /* For custom view exports */
-#center-content>.obsidian-document:not([data-type='markdown']) {
+#center-content > .obsidian-document:not([data-type='markdown'])
+{
     overflow-x: auto;
     contain: content;
     padding: 0;
@@ -313,7 +331,8 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     height: 100%;
 }
 
-.obsidian-document[data-type="attachment"] {
+.obsidian-document[data-type="attachment"]
+{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -322,24 +341,28 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     width: 100%;
 }
 
-.obsidian-document[data-type="attachment"]>* {
+.obsidian-document[data-type="attachment"] > *
+{
     outline: none;
     border: none;
     box-shadow: none;
 }
 
-.obsidian-document[data-type="attachment"] :is(img) {
+.obsidian-document[data-type="attachment"] :is(img)
+{
     max-width: 90%;
     max-height: 90%;
     object-fit: contain;
 }
 
-.obsidian-document[data-type="attachment"]> :is(audio) {
+.obsidian-document[data-type="attachment"] > :is(audio)
+{
     width: 100%;
     max-width: min(90%, var(--line-width));
 }
 
-.obsidian-document[data-type="attachment"]> :is(embed, iframe, video) {
+.obsidian-document[data-type="attachment"] > :is(embed, iframe, video)
+{
     width: 100%;
     height: 100%;
     max-width: 100%;
@@ -347,7 +370,8 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     object-fit: contain;
 }
 
-.canvas-wrapper> :is(.header, .footer) {
+.canvas-wrapper > :is(.header, .footer)
+{
     z-index: 100;
     position: absolute;
     display: flex;
@@ -361,97 +385,19 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
 
 /*#region Loading */
 
-.scroll-highlight {
+.scroll-highlight 
+{
     position: absolute;
     width: 100%;
     height: 100%;
     pointer-events: none;
     z-index: 1000;
-    background-color: hsla(var(--color-accent-hsl), .25);
+    background-color: hsla(var(--color-accent-hsl),.25);
     opacity: 0;
     padding: 1em;
     inset: 50%;
     translate: -50% -50%;
     border-radius: var(--radius-s);
-}
-
-/*#endregion */
-
-/*#region Image Zoom */
-
-/* Clickable images in markdown content */
-.markdown-rendered img,
-.markdown-preview-view img {
-    cursor: default;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.markdown-rendered img:hover,
-.markdown-preview-view img:hover {
-    opacity: 0.9;
-}
-
-/* Fullscreen image zoom overlay */
-.image-zoom-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    display: none;
-    cursor: default;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
-.image-zoom-overlay.active {
-    display: block;
-    animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-/* Zoomed image styles */
-.image-zoom-img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    cursor: default;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    border-radius: var(--radius-s, 4px);
-    transform-origin: 0 0;
-    will-change: transform;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-user-drag: none;
-}
-
-/* Mobile-friendly touch target */
-@media (max-width: 768px) {
-    .image-zoom-overlay {
-        background-color: rgba(0, 0, 0, 0.7);
-    }
-
-    .image-zoom-img {
-        border-radius: 0;
-        box-shadow: none;
-    }
-}
-
-/* Ensure images in zoom are not affected by parent styles */
-.image-zoom-overlay .image-zoom-img {
-    max-width: none !important;
-    max-height: none !important;
 }
 
 /*#endregion */
