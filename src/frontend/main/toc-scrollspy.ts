@@ -2,8 +2,9 @@ import { Tree, TreeItem } from "./trees";
 
 export class TocScrollSpy {
     private rafPending = false;
+    private pendingOutlineScrollFrame: number | null = null;
     private headings: { id: string, element: HTMLElement }[] = [];
-    private TOP_OFFSET_PX = 150;
+    private TOP_OFFSET_PX = 50;
     private scrollContainer: HTMLElement | null = null;
 
     private currentPathname: string = "";
@@ -86,21 +87,30 @@ export class TocScrollSpy {
     private sync() {
         if (this.headings.length === 0 || !this.scrollContainer) return;
 
-        let activeId: string | null = null;
-        const containerTop = this.scrollContainer.getBoundingClientRect().top;
-
-        for (const h of this.headings) {
-            const rect = h.element.getBoundingClientRect();
-            if (rect.top - containerTop <= this.TOP_OFFSET_PX) {
-                activeId = h.id;
-            } else {
-                break;
-            }
-        }
-
         const site = (window as any).ObsidianSite;
         const outlineTree = site.outlineTree as Tree;
         if (!outlineTree) return;
+
+        let activeId: string | null = null;
+        const containerTop = this.scrollContainer.getBoundingClientRect().top;
+        const scrollOffset = this.scrollContainer.scrollTop;
+
+        // If at the very top, select the first heading and scroll the TOC to top
+        if (scrollOffset < 50) {
+            activeId = this.headings[0].id;
+            if (outlineTree.rootEl) {
+                this.scheduleOutlineScroll(outlineTree.rootEl, 0);
+            }
+        } else {
+            for (const h of this.headings) {
+                const rect = h.element.getBoundingClientRect();
+                if (rect.top - containerTop <= this.TOP_OFFSET_PX) {
+                    activeId = h.id;
+                } else {
+                    break;
+                }
+            }
+        }
 
         if (activeId) {
             const variants = [
@@ -118,25 +128,48 @@ export class TocScrollSpy {
                 if (item) break;
             }
 
-            if (item && item !== outlineTree.activeItem) {
-                item.setActive();
-
-                // --- Auto Collapse/Expand Optimization ---
-                this.syncExpansion(outlineTree, item);
+            if (item) {
+                const isNew = item !== outlineTree.activeItem;
+                if (isNew) {
+                    item.setActive();
+                    this.syncExpansion(outlineTree, item);
+                }
 
                 const el = item.itemEl;
-                if (outlineTree.rootEl) {
-                    (el as any).scrollIntoViewIfNeeded ? (el as any).scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'center' }) : el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const outlineContainer = outlineTree.rootEl;
+                if (outlineContainer && el) {
+                    const containerRect = outlineContainer.getBoundingClientRect();
+                    const itemRect = el.getBoundingClientRect();
+                    const itemTop = (itemRect.top - containerRect.top) + outlineContainer.scrollTop;
+                    const containerHeight = containerRect.height;
+                    const targetTop = itemTop - containerHeight * 0.3;
+                    this.scheduleOutlineScroll(outlineContainer, Math.max(0, targetTop));
                 }
             }
         } else {
             if (outlineTree.activeItem) {
                 outlineTree.activeItem.selfEl.classList.remove("is-active");
                 outlineTree.activeItem = undefined;
-                // Collapse back to default depth when scrolled to top
                 this.syncExpansion(outlineTree, undefined);
             }
         }
+    }
+
+    private scheduleOutlineScroll(outlineContainer: HTMLElement, targetTop: number) {
+        if (this.pendingOutlineScrollFrame !== null) {
+            cancelAnimationFrame(this.pendingOutlineScrollFrame);
+        }
+
+        const distance = Math.abs(targetTop - outlineContainer.scrollTop);
+        const behavior: ScrollBehavior = distance > 50 ? 'smooth' : 'auto';
+
+        this.pendingOutlineScrollFrame = requestAnimationFrame(() => {
+            outlineContainer.scrollTo({
+                top: targetTop,
+                behavior
+            });
+            this.pendingOutlineScrollFrame = null;
+        });
     }
 
     private syncExpansion(tree: Tree, activeItem: TreeItem | undefined) {
