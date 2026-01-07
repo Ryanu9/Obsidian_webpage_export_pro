@@ -192,14 +192,24 @@ export class FileTree extends Tree {
 		const header = wrapper.querySelector(".feature-header") as HTMLElement;
 		if (header && this.totalFileCount > 0) {
 			header.classList.add("nav-folder-title"); // Reuse the same flex class
-			header.style.justifyContent = "space-between";
 
 			const titleEl = header.querySelector(".feature-title") as HTMLElement;
+			const collapseBtn = header.querySelector(".tree-collapse-all") as HTMLElement;
+
 			if (titleEl) {
 				titleEl.style.margin = "0";
+
+				// Create count element
 				const countEl = header.createDiv({ cls: "nav-folder-count" });
 				countEl.textContent = `${this.totalFileCount}`;
-				header.insertBefore(countEl, titleEl.nextSibling);
+				countEl.style.marginLeft = "auto"; // Push to the right
+
+				// Ensure order: Title -> CollapseBtn -> Count
+				// Title is already first. Let's make sure CollapseBtn is next to it.
+				if (collapseBtn) {
+					header.insertBefore(collapseBtn, titleEl.nextSibling);
+					header.appendChild(countEl); // Put count at the end
+				}
 			}
 		}
 		return wrapper;
