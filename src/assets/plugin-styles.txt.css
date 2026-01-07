@@ -1,4 +1,3 @@
-
 /*#region Variables */
 body {
 	--color-fade-speed: 0.2s;
@@ -54,9 +53,8 @@ a.tree-item-self.is-clickable {
 	font-size: 1.05em;
 }
 
-.tree-item:not(.mod-collapsible)>.tree-item-self
-{
-	padding-left: calc(var(--nav-item-children-margin-start,var(--nav-item-children-margin-left)) - 0.35em);
+.tree-item:not(.mod-collapsible)>.tree-item-self {
+	padding-left: calc(var(--nav-item-children-margin-start, var(--nav-item-children-margin-left)) - 0.35em);
 }
 
 .tree-item-self {
@@ -170,7 +168,7 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 	left: -2em !important;
 }
 
-.heading:hover>.heading-collapse-indicator{
+.heading:hover>.heading-collapse-indicator {
 	opacity: 1;
 }
 
@@ -845,19 +843,21 @@ a.backlink:hover {
 
 /*#region Tags */
 
-#tags, #aliases {
+#tags,
+#aliases {
 	display: flex;
 	align-items: baseline;
 	gap: 1em;
 }
 
-#tags .tags-content, #aliases .aliases-content {
+#tags .tags-content,
+#aliases .aliases-content {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 0.5em;
 }
 
-#aliases .aliases-content .alias
-{
+#aliases .aliases-content .alias {
 	font-size: var(--tag-size);
 	padding-inline: 0.25em;
 }
@@ -881,14 +881,12 @@ a.backlink:hover {
 
 /*#region Header & Footer */
 
-.header .data-bar
-{
+.header .data-bar {
 	display: flex;
 	flex-wrap: wrap;
 }
 
-.header .data-bar > :not(:first-child)
-{
+.header .data-bar> :not(:first-child) {
 	border-left: 1px solid var(--background-modifier-border);
 	padding-left: 0.5em;
 	margin-left: 0.5em;
