@@ -334,7 +334,6 @@ export class Webpage extends Attachment {
 
 	private get descriptionOrShortenedContent(): string {
 		let description = this.description;
-		let localThis = this;
 
 		if (!description) {
 			if (!this.viewElement) return "";
@@ -342,85 +341,18 @@ export class Webpage extends Attachment {
 			content.querySelectorAll(`h1, h2, h3, h4, h5, h6, .mermaid, table, mjx-container, style, script, 
 .mod-header, .mod-footer, .metadata-container, .frontmatter, img[src^="data:"]`).forEach((heading) => heading.remove());
 
-			// update image links
-			content.querySelectorAll("[src]").forEach((el: HTMLImageElement) => {
-				let src = el.getAttribute("src");
-				if (!src) return;
-				if (src.startsWith("http") || src.startsWith("data:")) return;
-				if (src.startsWith("data:")) {
-					el.remove();
-					return;
-				}
-				src = src.replace("app://obsidian", "");
-				src = src.replace(".md", "");
-				const path = Path.joinStrings(this.exportOptions.rssOptions.siteUrl ?? "", src);
-				el.setAttribute("src", path.path);
-			});
-
-			// update normal links
-			content.querySelectorAll("[href]").forEach((el: HTMLAnchorElement) => {
-				let href = el.getAttribute("href");
-				if (!href) return;
-				if (href.startsWith("http") || href.startsWith("data:")) return;
-				href = href.replace("app://obsidian", "");
-				href = href.replace(".md", "");
-				const path = Path.joinStrings(this.exportOptions.rssOptions.siteUrl ?? "", href);
-				el.setAttribute("href", path.path);
-			});
-
-			function keepTextLinksImages(element: HTMLElement) {
-				const walker = localThis.pageDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
-				let node;
-				const nodes = [];
-				while (node = walker.nextNode()) {
-					if (node.nodeType == Node.ELEMENT_NODE) {
-						const element = node as HTMLElement;
-						if (element.tagName == "A" || element.tagName == "IMG" || element.tagName == "BR") {
-							nodes.push(element);
-						}
-
-						if (element.tagName == "DIV") {
-							const classes = element.parentElement?.classList;
-							if (classes?.contains("heading-children") || classes?.contains("markdown-preview-sizer")) {
-								nodes.push(document.createElement("br"));
-							}
-						}
-
-						if (element.tagName == "LI") {
-							nodes.push(document.createElement("br"));
-						}
-					}
-					else {
-						if (node.parentElement?.tagName != "A" && node.parentElement?.tagName != "IMG")
-							nodes.push(node);
-					}
-				}
-
-				element.innerHTML = "";
-				element.append(...nodes);
-			}
-
-
-			keepTextLinksImages(content);
-
-			//remove subsequent br tags
-			content.querySelectorAll("br").forEach((br: HTMLElement) => {
-				const next = br.nextElementSibling;
-				if (next?.tagName == "BR") br.remove();
-			});
-
-			// remove br tags at the start and end of the content
-			const first = content.firstElementChild;
-			if (first?.tagName == "BR") first.remove();
-			const last = content.lastElementChild;
-			if (last?.tagName == "BR") last.remove();
-
-			description = content.innerHTML;
+			description = content.innerText || content.textContent || "";
 			content.remove();
 		}
 
-		// remove multiple whitespace characters in a row
-		description = description.replace(/\s{2,}/g, " ");
+		// remove all remaining html tags, replace newlines with spaces and multiple whitespace characters with single space
+		description = description.replace(/<[^>]*>?/gm, "");
+		description = description.replace(/\s+/g, " ").trim();
+
+		// truncate to 200 characters to prevent various issues like URI_TOO_LONG in Giscus and for SEO
+		if (description.length > 200) {
+			description = description.substring(0, 197) + "...";
+		}
 
 		return description ?? "";
 	}
