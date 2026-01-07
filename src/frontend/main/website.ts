@@ -27,6 +27,7 @@ import { BacklinkList } from "./backlinks";
 import { Tags } from "./tags";
 import { Aliases } from "./aliases";
 import { TocScrollSpy } from "./toc-scrollspy";
+import { AttachmentDownload } from "./attachment-download";
 
 type Constructor<T> = new () => T;
 
@@ -131,6 +132,7 @@ export class ObsidianWebsite {
 		if (leftSidebarEl) this.leftSidebar = new Sidebar(leftSidebarEl);
 		if (rightSidebarEl) this.rightSidebar = new Sidebar(rightSidebarEl);
 		this.tocScrollSpy = new TocScrollSpy();
+		new AttachmentDownload();
 		this.search = await new Search().init();
 
 		const pathname =
