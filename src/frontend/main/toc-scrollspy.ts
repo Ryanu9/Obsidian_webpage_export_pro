@@ -9,33 +9,43 @@ export class TocScrollSpy {
     private currentPathname: string = "";
 
     constructor() {
-        this.init();
+        this.refreshScrollContainer();
         this.injectStyles();
     }
 
-    private init() {
+    private onScroll = () => this.requestSync();
+    private onResize = () => this.requestSync();
+
+    private refreshScrollContainer() {
         const site = (window as any).ObsidianSite;
 
-        const interval = setInterval(() => {
-            const scrollEl = document.querySelector('.obsidian-document.markdown-preview-view') as HTMLElement;
+        // Attempt to find the scrollable container. 
+        // In Obsidian, it's often .markdown-preview-view. 
+        // If not found, fall back to centerContentEl.
+        const scrollEl = document.querySelector('.obsidian-document.markdown-preview-view') as HTMLElement;
+        const newContainer = scrollEl || site?.centerContentEl;
 
-            if (scrollEl) {
-                this.scrollContainer = scrollEl;
-                this.scrollContainer.addEventListener('scroll', () => this.requestSync(), { passive: true });
-                window.addEventListener('resize', () => this.requestSync());
-                clearInterval(interval);
-            } else if (site && site.centerContentEl) {
-                this.scrollContainer = site.centerContentEl;
-                this.scrollContainer?.addEventListener('scroll', () => this.requestSync(), { passive: true });
-                window.addEventListener('resize', () => this.requestSync());
-                clearInterval(interval);
+        if (newContainer && newContainer !== this.scrollContainer) {
+            if (this.scrollContainer) {
+                this.scrollContainer.removeEventListener('scroll', this.onScroll);
             }
-        }, 100);
+            this.scrollContainer = newContainer;
+            this.scrollContainer.addEventListener('scroll', this.onScroll, { passive: true });
+
+            window.removeEventListener('resize', this.onResize);
+            window.addEventListener('resize', this.onResize);
+
+            console.log("TOC ScrollSpy: Scroll container updated", this.scrollContainer);
+        }
     }
 
     public updateHeadings() {
         const site = (window as any).ObsidianSite;
         const doc = site.document;
+
+        // Always try to refresh the container when headings are updated (page switch)
+        this.refreshScrollContainer();
+
         if (!doc) {
             this.headings = [];
             return;
@@ -43,6 +53,7 @@ export class TocScrollSpy {
 
         this.currentPathname = doc.pathname || "";
 
+        // Wait a bit for the DOM to be fully rendered
         setTimeout(() => {
             const headerObjects = doc.getFlatHeaders();
             this.headings = headerObjects.map((h: any) => ({
@@ -159,41 +170,39 @@ export class TocScrollSpy {
                 position: relative;
                 transition: color 0.1s ease, font-weight 0.1s ease;
                 border-radius: 4px;
-                display: grid !important;
-                grid-template-columns: 24px 1fr;
+                display: flex !important;
                 align-items: center;
                 padding-left: 0 !important;
             }
 
-            /* Alignment Optimization: Grid ensures text is always in the same column */
+            /* TOC Items Layout: Flex ensures icon is right next to text */
             #outline .collapse-icon {
-                grid-column: 1;
-                grid-row: 1;
                 display: flex !important;
                 align-items: center;
                 justify-content: center;
                 z-index: 2;
-                width: 24px;
+                width: 20px;
                 height: 24px;
+                margin-right: 2px;
+                flex-shrink: 0;
             }
 
             #outline .tree-item-inner {
-                grid-column: 2;
-                grid-row: 1;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 padding-right: 4px;
+                flex-grow: 1;
             }
 
             /* Placeholder for alignment if icon is missing */
             #outline .tree-item-self::before {
                 content: "";
-                grid-column: 1;
-                grid-row: 1;
-                width: 24px;
+                width: 20px;
                 height: 24px;
                 display: block;
+                margin-right: 2px;
+                flex-shrink: 0;
             }
 
             #outline .tree-item-self.is-active {

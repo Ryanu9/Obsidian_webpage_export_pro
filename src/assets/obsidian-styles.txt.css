@@ -171,6 +171,7 @@ h6:hover .collapse-indicator,
 
 .markdown-rendered pre>button.copy-code-button:active {
 	background-color: var(--interactive-hover);
+	box-shadow: var(--input-shadow);
 	transition: none;
 }
 
