@@ -10,6 +10,8 @@ import { Notice } from "./notifications";
 import { Tags } from "./tags";
 import { Tree } from "./trees";
 import { Aliases } from "./aliases";
+import { YamlProperties } from "./yaml-properties";
+
 
 export class WebpageDocument {
 	public title: string = "";
@@ -201,6 +203,7 @@ export class WebpageDocument {
 			this.processCallouts();
 			this.processLists();
 			this.initNewImageZoom();
+			new YamlProperties().parseAndDisplayYamlProperties(this.info, this.documentEl ?? this.containerEl);
 		}
 
 		if (this.documentType == DocumentType.Canvas) {

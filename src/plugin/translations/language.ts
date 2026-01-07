@@ -5,8 +5,7 @@ import { language as it } from './it';
 import { language as uk } from './uk';
 import { language as pt } from './pt';
 
-export interface i18n
-{
+export interface i18n {
 	cancel: string;
 	browse: string;
 	pathInputPlaceholder: string;
@@ -23,20 +22,20 @@ export interface i18n
 	},
 	updateAvailable: string;
 	exportAsHTML: string;
-	exportModal: 
+	exportModal:
 	{
 		title: string;
 		exportAsTitle: string;
 		moreOptions: string;
 		openAfterExport: string;
 		exportButton: string;
-		filePicker: 
+		filePicker:
 		{
 			title: string;
 			selectAll: string;
 			save: string;
 		}
-		currentSite: 
+		currentSite:
 		{
 			noSite: string;
 			oldSite: string;
@@ -120,7 +119,7 @@ export interface i18n
 			info_edgePruning: string;
 			info_minNodeRadius: string;
 			info_maxNodeRadius: string;
-		},		
+		},
 		search: {
 			title: string;
 			description: string;
@@ -158,6 +157,8 @@ export interface i18n
 			title: string;
 			description: string;
 			info_hideProperties: string;
+			info_showYamlProperties: string;
+			info_yamlPropertiesDefaultExpanded: string;
 		},
 		rss: {
 			title: string;
@@ -178,7 +179,7 @@ export interface i18n
 			title: string;
 			description: string;
 		},
-		includeStyleCssIds:{
+		includeStyleCssIds: {
 			title: string;
 			description: string;
 		},
@@ -236,28 +237,25 @@ export interface i18n
 
 function getUserLanguage(): string {
 	let locale = window.moment.locale();
-	
-	if (!locale)
-	{
-		locale = "en";	
+
+	if (!locale) {
+		locale = "en";
 	}
 
 	return locale;
 }
 
-function getLanguage()
-{
+function getLanguage() {
 	const settingLanguages = getUserLanguage();
 	const language = translations[settingLanguages];
-	if (!language)
-	{
+	if (!language) {
 		console.log(`Language ${settingLanguages} not found, defaulting to English`);
 		return translations["en"];
 	}
 	return language;
 }
 
-export let translations: { [key: string]: i18n } = 
+export let translations: { [key: string]: i18n } =
 {
 	"en": en, // English
 	"zh-cn": cn, // Chinese

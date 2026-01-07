@@ -150,9 +150,11 @@ export const language: i18n =
 			description: "显示当前文档的别名。"
 		},
 		properties: {
-			title: "属性",
+			title: "文档属性显示",
 			description: "以表格形式显示当前文档的所有属性。",
-			info_hideProperties: "要从属性视图中隐藏的属性列表"
+			info_hideProperties: "要从属性视图中隐藏的属性列表",
+			info_showYamlProperties: "是否显示 YAML 属性",
+			info_yamlPropertiesDefaultExpanded: "YAML 属性是否默认展开"
 		},
 		rss: {
 			title: "RSS",

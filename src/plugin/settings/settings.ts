@@ -2,7 +2,7 @@ import { Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, getIcon } fr
 import { Path } from 'src/plugin/utils/path';
 import pluginStylesBlacklist from 'src/assets/third-party-styles-blacklist.txt';
 import { ExportLog } from 'src/plugin/render-api/render-api';
-import { createDivider, createDropdown, createFeatureSetting, createFileInput, createSection, createText, createToggle, generateSettingsFromObject }  from './settings-components';
+import { createDivider, createDropdown, createFeatureSetting, createFileInput, createSection, createText, createToggle, generateSettingsFromObject } from './settings-components';
 import { ExportPipelineOptions } from "src/plugin/website/pipeline-options.js";
 import { FlowList } from 'src/plugin/features/flow-list';
 import { i18n } from '../translations/language';
@@ -15,15 +15,13 @@ import safeParser from 'postcss-safe-parser';
 
 // #region Settings Definition
 
-export enum ExportPreset
-{
+export enum ExportPreset {
 	Online = "online",
 	Local = "local",
 	RawDocuments = "raw-documents",
 }
 
-export enum LogLevel
-{
+export enum LogLevel {
 	All = "all",
 	Warning = "warning",
 	Error = "error",
@@ -31,8 +29,7 @@ export enum LogLevel
 	None = "none",
 }
 
-export class Settings
-{
+export class Settings {
 	public static settingsVersion: string = "0.0.0";
 
 	public static exportOptions: ExportPipelineOptions = new ExportPipelineOptions();
@@ -46,11 +43,10 @@ export class Settings
 	public static openAfterExport: boolean = true;
 
 	// Graph View Settings
-	public static filePickerBlacklist: string[] = ["(^|\\/)node_modules\\/","(^|\\/)dist\\/","(^|\\/)dist-ssr\\/","(^|\\/)\\.vscode\\/"]; // ignore node_modules, dist, and .vscode
+	public static filePickerBlacklist: string[] = ["(^|\\/)node_modules\\/", "(^|\\/)dist\\/", "(^|\\/)dist-ssr\\/", "(^|\\/)\\.vscode\\/"]; // ignore node_modules, dist, and .vscode
 	public static filePickerWhitelist: string[] = ["\\.\\w+$"]; // only include files with extensions
 
-	public static async onlinePreset()
-	{
+	public static async onlinePreset() {
 		Settings.exportOptions.inlineCSS = false;
 		Settings.exportOptions.inlineFonts = false;
 		Settings.exportOptions.inlineHTML = false;
@@ -68,8 +64,7 @@ export class Settings
 		await SettingsPage.saveSettings();
 	}
 
-	public static async localPreset()
-	{
+	public static async localPreset() {
 		Settings.exportOptions.inlineCSS = true;
 		Settings.exportOptions.inlineFonts = true;
 		Settings.exportOptions.inlineHTML = false;
@@ -86,8 +81,7 @@ export class Settings
 		await SettingsPage.saveSettings();
 	}
 
-	public static async rawDocumentsPreset()
-	{
+	public static async rawDocumentsPreset() {
 		Settings.exportOptions.inlineCSS = true;
 		Settings.exportOptions.inlineFonts = true;
 		Settings.exportOptions.inlineHTML = true;
@@ -104,19 +98,16 @@ export class Settings
 		await SettingsPage.saveSettings();
 	}
 
-	static getAllFilesFromPaths(paths: string[]): string[]
-	{
+	static getAllFilesFromPaths(paths: string[]): string[] {
 		const files: string[] = [];
 
 		const allFilePaths = app.vault.getFiles().map(f => f.path);
 		if (!paths || paths.length == 0) return allFilePaths;
 
-		for (const path of paths)
-		{
+		for (const path of paths) {
 			const file = app.vault.getAbstractFileByPath(path);
 			if (file instanceof TFile) files.push(file.path);
-			else if (file instanceof TFolder)
-			{
+			else if (file instanceof TFolder) {
 				const newFiles = allFilePaths.filter((f) => f.startsWith(file?.path ?? "*"));
 				files.push(...newFiles);
 			}
@@ -127,21 +118,18 @@ export class Settings
 		return filteredFiles;
 	}
 
-	static getFilesToExport(): TFile[]
-	{
+	static getFilesToExport(): TFile[] {
 		return this.getAllFilesFromPaths(Settings.exportOptions.filesToExport).map(p => app.vault.getFileByPath(p)).filter(f => f) as TFile[];
 	}
 
-	
+
 }
 
 // #endregion
 
-export class SettingsPage extends PluginSettingTab
-{
+export class SettingsPage extends PluginSettingTab {
 
-	display() 
-	{
+	display() {
 		const { containerEl: container } = this;
 
 		const lang = i18n.settings;
@@ -170,7 +158,7 @@ export class SettingsPage extends PluginSettingTab
 		supportContainer.style.display = 'grid';
 		supportContainer.style.gridTemplateColumns = "0.5fr 0.5fr";
 		supportContainer.style.gridTemplateRows = "40px 20px";
-		supportContainer.appendChild(supportLink); 
+		supportContainer.appendChild(supportLink);
 
 		// debug info button
 		const debugInfoButton = container.createEl('button');
@@ -195,12 +183,11 @@ export class SettingsPage extends PluginSettingTab
 		// #region Page Features
 
 		createDivider(container);
-		
+
 		let section = createSection(container, lang.pageFeatures.title, lang.pageFeatures.description);
-		
-		createFeatureSetting(section, lang.document.title, 			Settings.exportOptions.documentOptions,			lang.document.description,
-			(container) =>
-			{
+
+		createFeatureSetting(section, lang.document.title, Settings.exportOptions.documentOptions, lang.document.description,
+			(container) => {
 				createToggle(container, lang.addPageIcon.title,
 					() => Settings.exportOptions.addPageIcon,
 					(value) => Settings.exportOptions.addPageIcon = value,
@@ -209,19 +196,19 @@ export class SettingsPage extends PluginSettingTab
 		);
 
 
-		createFeatureSetting(section, lang.sidebars.title, 			Settings.exportOptions.sidebarOptions,			lang.sidebars.description);
-		createFeatureSetting(section, lang.fileNavigation.title,	Settings.exportOptions.fileNavigationOptions,	lang.fileNavigation.description);
-		createFeatureSetting(section, lang.outline.title,			Settings.exportOptions.outlineOptions,			lang.outline.description);
-		createFeatureSetting(section, lang.graphView.title, 		Settings.exportOptions.graphViewOptions,		lang.graphView.description);
-		createFeatureSetting(section, lang.search.title,			Settings.exportOptions.searchOptions,			lang.search.description);
-		createFeatureSetting(section, lang.linkPreview.title,		Settings.exportOptions.linkPreviewOptions,		lang.linkPreview.description);
-		createFeatureSetting(section, lang.themeToggle.title,		Settings.exportOptions.themeToggleOptions,		lang.themeToggle.description);
-		createFeatureSetting(section, lang.customHead.title,		Settings.exportOptions.customHeadOptions,		lang.customHead.description);
-		createFeatureSetting(section, lang.backlinks.title,			Settings.exportOptions.backlinkOptions,			lang.backlinks.description);
-		createFeatureSetting(section, lang.tags.title,				Settings.exportOptions.tagOptions,				lang.tags.description);
-		createFeatureSetting(section, lang.aliases.title,			Settings.exportOptions.aliasOptions,			lang.aliases.description);
-		// createFeatureSetting(section, lang.properties.title,		Settings.exportOptions.propertiesOptions,		lang.properties.description);
-		createFeatureSetting(section, lang.rss.title,				Settings.exportOptions.rssOptions,				lang.rss.description);
+		createFeatureSetting(section, lang.sidebars.title, Settings.exportOptions.sidebarOptions, lang.sidebars.description);
+		createFeatureSetting(section, lang.fileNavigation.title, Settings.exportOptions.fileNavigationOptions, lang.fileNavigation.description);
+		createFeatureSetting(section, lang.outline.title, Settings.exportOptions.outlineOptions, lang.outline.description);
+		createFeatureSetting(section, lang.graphView.title, Settings.exportOptions.graphViewOptions, lang.graphView.description);
+		createFeatureSetting(section, lang.search.title, Settings.exportOptions.searchOptions, lang.search.description);
+		createFeatureSetting(section, lang.linkPreview.title, Settings.exportOptions.linkPreviewOptions, lang.linkPreview.description);
+		createFeatureSetting(section, lang.themeToggle.title, Settings.exportOptions.themeToggleOptions, lang.themeToggle.description);
+		createFeatureSetting(section, lang.customHead.title, Settings.exportOptions.customHeadOptions, lang.customHead.description);
+		createFeatureSetting(section, lang.backlinks.title, Settings.exportOptions.backlinkOptions, lang.backlinks.description);
+		createFeatureSetting(section, lang.tags.title, Settings.exportOptions.tagOptions, lang.tags.description);
+		createFeatureSetting(section, lang.aliases.title, Settings.exportOptions.aliasOptions, lang.aliases.description);
+		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);
+		createFeatureSetting(section, lang.rss.title, Settings.exportOptions.rssOptions, lang.rss.description);
 
 		// #endregion
 
@@ -229,7 +216,7 @@ export class SettingsPage extends PluginSettingTab
 
 		createDivider(container);
 		section = createSection(container, lang.generalSettingsSection.title, lang.generalSettingsSection.description);
-		
+
 		createFileInput(section,
 			() => Settings.exportOptions.faviconPath,
 			(value) => Settings.exportOptions.faviconPath = value,
@@ -251,7 +238,7 @@ export class SettingsPage extends PluginSettingTab
 				browseButton: true,
 			});
 
-		createText(section, lang.siteName.title, 
+		createText(section, lang.siteName.title,
 			() => Settings.exportOptions.siteName,
 			(value) => Settings.exportOptions.siteName = value,
 			lang.siteName.description);
@@ -268,7 +255,7 @@ export class SettingsPage extends PluginSettingTab
 		createDropdown(section, lang.iconEmojiStyle.title,
 			() => Settings.exportOptions.iconEmojiStyle,
 			(value) => Settings.exportOptions.iconEmojiStyle = value as EmojiStyle,
-			EmojiStyle, 
+			EmojiStyle,
 			lang.iconEmojiStyle.description);
 
 		createDropdown(section, lang.themeName.title,
@@ -277,15 +264,14 @@ export class SettingsPage extends PluginSettingTab
 			(value) => Settings.exportOptions.themeName = value,
 			this.getInstalledThemesRecord(),
 			lang.themeName.description);
-	
+
 		new Setting(section)
 			.setName(lang.includeStyleCssIds.title)
 			.setDesc(lang.includeStyleCssIds.description)
 
 		const styleIdsList = new FlowList();
 		styleIdsList.generate(section);
-		this.getStyleTagIds().forEach(async (plugin) => 
-		{
+		this.getStyleTagIds().forEach(async (plugin) => {
 			if (supportedStyleIds.ids.contains(plugin) || supportedStyleIds.ignoreIds.contains(plugin)) return;
 
 			const isChecked = Settings.exportOptions.includeStyleCssIds.contains(plugin);
@@ -302,8 +288,7 @@ export class SettingsPage extends PluginSettingTab
 
 		const pluginsList = new FlowList();
 		styleIdsList.generate(section);
-		this.getPluginIDs().forEach(async (plugin) => 
-		{
+		this.getPluginIDs().forEach(async (plugin) => {
 			//@ts-ignore
 			const pluginManifest = app.plugins.manifests[plugin];
 			if (!pluginManifest) return;
@@ -330,7 +315,7 @@ export class SettingsPage extends PluginSettingTab
 
 
 		//#endregion
-	
+
 		//#region Export Settings
 
 		createDivider(container);
@@ -338,9 +323,9 @@ export class SettingsPage extends PluginSettingTab
 		section = createSection(container, lang.exportSettingsSection.title,
 			lang.exportSettingsSection.description);
 
-		createToggle(section, lang.relativeHeaderLinks.title, 
-			() => Settings.exportOptions.relativeHeaderLinks, 
-			(value) => Settings.exportOptions.relativeHeaderLinks = value, 
+		createToggle(section, lang.relativeHeaderLinks.title,
+			() => Settings.exportOptions.relativeHeaderLinks,
+			(value) => Settings.exportOptions.relativeHeaderLinks = value,
 			lang.relativeHeaderLinks.description);
 
 		createToggle(section, lang.slugifyPaths.title,
@@ -361,7 +346,7 @@ export class SettingsPage extends PluginSettingTab
 
 		section = createSection(container, lang.obsidianSettingsSection.title,
 			lang.obsidianSettingsSection.description);
-		
+
 		createDropdown(section, lang.logLevel.title,
 			() => Settings.logLevel,
 			(value) => Settings.logLevel = value as LogLevel,
@@ -372,7 +357,7 @@ export class SettingsPage extends PluginSettingTab
 			() => Settings.titleProperty,
 			(value) => Settings.titleProperty = value,
 			lang.titleProperty.description);
-		
+
 		// #endregion
 	}
 
@@ -381,8 +366,7 @@ export class SettingsPage extends PluginSettingTab
 	static loaded = false;
 
 	private blacklistedPluginIDs: string[] = [];
-	public async getBlacklistedPluginIDs(): Promise<string[]> 
-	{
+	public async getBlacklistedPluginIDs(): Promise<string[]> {
 		if (this.blacklistedPluginIDs.length > 0) return this.blacklistedPluginIDs;
 		this.blacklistedPluginIDs = pluginStylesBlacklist.replaceAll("\r", "").split("\n");
 
@@ -394,15 +378,12 @@ export class SettingsPage extends PluginSettingTab
 		SettingsPage.plugin = plugin;
 	}
 
-	getPluginIDs(): string[]
-	{
+	getPluginIDs(): string[] {
 		/*@ts-ignore*/
 		const pluginsArray: string[] = Array.from(app.plugins.enabledPlugins.values()) as string[];
-		for (let i = 0; i < pluginsArray.length; i++)
-		{
+		for (let i = 0; i < pluginsArray.length; i++) {
 			/*@ts-ignore*/
-			if (app.plugins.manifests[pluginsArray[i]] == undefined)
-			{
+			if (app.plugins.manifests[pluginsArray[i]] == undefined) {
 				pluginsArray.splice(i, 1);
 				i--;
 			}
@@ -479,69 +460,68 @@ export class SettingsPage extends PluginSettingTab
 			// @ts-ignore
 			const styleID = stylesheets[i].ownerNode?.id;
 
-			if (!styleID || styleID == "")
-			{
+			if (!styleID || styleID == "") {
 				// first check if it has any non-statandard attributes that can be used to uniquely identify it
-                // @ts-ignore
-                const attributes = stylesheets[i].ownerNode?.attributes;
-                if (attributes) {
-                    // First try to find most meaningful data attribute
-                    const priorityPrefixes = ['source-plugin', 'type', 'name', 'source'];
-                    let foundPriorityAttr = false;
-                    
-                    for (const prefix of priorityPrefixes) {
-                        const attr = Array.from(attributes).find((a: Attr) => a.name === `data-${prefix}`);
-                        if (attr) {
-                            // @ts-ignore
-                            stylesheets[i].ownerNode.id = `${prefix}-${attr.value}-stylesheet`;
-                            foundPriorityAttr = true;
-                            break;
-                        }
-                    }
+				// @ts-ignore
+				const attributes = stylesheets[i].ownerNode?.attributes;
+				if (attributes) {
+					// First try to find most meaningful data attribute
+					const priorityPrefixes = ['source-plugin', 'type', 'name', 'source'];
+					let foundPriorityAttr = false;
 
-                    if (!foundPriorityAttr) {
-                        // Collect all data attributes
-                        const dataAttrs = Array.from(attributes)
-                            .filter((attr: Attr) => attr.name.startsWith('data-'))
-                            .map((attr: Attr) => ({
-                                name: attr.name.substring(5),
-                                value: attr.value
-                            }));
-                        
-                        if (dataAttrs.length > 0) {
-                            // Combine all data attributes into ID
-                            const id = dataAttrs
-                                .map(attr => `${attr.name}${attr.value ? `-${attr.value}` : ''}`)
-                                .join('-');
-                            // @ts-ignore
-                            stylesheets[i].ownerNode.id = `${id}-stylesheet`;
-                            continue;
-                        }
-                    } else {
-                        continue;
-                    }
-                }
+					for (const prefix of priorityPrefixes) {
+						const attr = Array.from(attributes).find((a: Attr) => a.name === `data-${prefix}`);
+						if (attr) {
+							// @ts-ignore
+							stylesheets[i].ownerNode.id = `${prefix}-${attr.value}-stylesheet`;
+							foundPriorityAttr = true;
+							break;
+						}
+					}
 
-                // Check for other unique attributes if no data- attributes found
-                let hasUniqueAttr = false;
-                if (attributes) {
-                    for (const attr of attributes) {
-                        if (!["type", "id"].contains(attr.name) && !attr.name.startsWith("data-")) {
-                            // check if the attribute is unique
-                            const elements = document.querySelectorAll(`[${attr.name}]`);
-                            if (elements.length == 1) {
-                                // @ts-ignore
-                                stylesheets[i].ownerNode.id = `${attr.name}-stylesheet`;
-                                hasUniqueAttr = true;
-                                break;
-                            }
-                        }
-                    }
-                }
+					if (!foundPriorityAttr) {
+						// Collect all data attributes
+						const dataAttrs = Array.from(attributes)
+							.filter((attr: Attr) => attr.name.startsWith('data-'))
+							.map((attr: Attr) => ({
+								name: attr.name.substring(5),
+								value: attr.value
+							}));
 
-                if (hasUniqueAttr) continue;
+						if (dataAttrs.length > 0) {
+							// Combine all data attributes into ID
+							const id = dataAttrs
+								.map(attr => `${attr.name}${attr.value ? `-${attr.value}` : ''}`)
+								.join('-');
+							// @ts-ignore
+							stylesheets[i].ownerNode.id = `${id}-stylesheet`;
+							continue;
+						}
+					} else {
+						continue;
+					}
+				}
 
-				if (!stylesheets[i].ownerNode?.textContent?.contains("svelte-")) 
+				// Check for other unique attributes if no data- attributes found
+				let hasUniqueAttr = false;
+				if (attributes) {
+					for (const attr of attributes) {
+						if (!["type", "id"].contains(attr.name) && !attr.name.startsWith("data-")) {
+							// check if the attribute is unique
+							const elements = document.querySelectorAll(`[${attr.name}]`);
+							if (elements.length == 1) {
+								// @ts-ignore
+								stylesheets[i].ownerNode.id = `${attr.name}-stylesheet`;
+								hasUniqueAttr = true;
+								break;
+							}
+						}
+					}
+				}
+
+				if (hasUniqueAttr) continue;
+
+				if (!stylesheets[i].ownerNode?.textContent?.contains("svelte-"))
 					continue;
 
 				// @ts-ignore
@@ -550,8 +530,7 @@ export class SettingsPage extends PluginSettingTab
 		}
 	}
 
-	getStyleTagIds(): string[]
-	{
+	getStyleTagIds(): string[] {
 		SettingsPage.nameStyles();
 		let ids: string[] = [];
 		document.querySelectorAll('style').forEach((style) => {
@@ -560,47 +539,39 @@ export class SettingsPage extends PluginSettingTab
 		return ids;
 	}
 
-	getInstalledThemesRecord(): Record<string, string>
-	{
+	getInstalledThemesRecord(): Record<string, string> {
 		// @ts-ignore
 		const themes = Object.values(app.customCss.themes) as { name: string, author: string }[];
 
-		const themeRecord: Record<string, string> = 
+		const themeRecord: Record<string, string> =
 		{
 			// @ts-ignore
 			"Current": "obsidian-current-theme",
 			"Default": "Default",
 		};
 
-		for (const theme of themes)
-		{
+		for (const theme of themes) {
 			themeRecord[theme.name] = theme.name;
 		}
 
 		return themeRecord;
 	}
-	static deepAssign(truth: any, source: any)
-	{
+	static deepAssign(truth: any, source: any) {
 		if (!source) return;
 		let objects = Object.values(truth);
 		let keys = Object.keys(truth);
-		for (let i = 0; i < objects.length; i++)
-		{
+		for (let i = 0; i < objects.length; i++) {
 			let key = keys[i];
 			let type = typeof objects[i];
-			if (type == "object" && source[key] != undefined)
-			{
-				if (Array.isArray(objects[i]))
-				{
+			if (type == "object" && source[key] != undefined) {
+				if (Array.isArray(objects[i])) {
 					truth[key] = source[key];
 				}
-				else
-				{
+				else {
 					SettingsPage.deepAssign(objects[i], source[key]);
 				}
 			}
-			else if (source[key] != undefined)
-			{
+			else if (source[key] != undefined) {
 				truth[key] = source[key];
 			}
 		}
@@ -608,32 +579,26 @@ export class SettingsPage extends PluginSettingTab
 		return truth;
 	}
 
-	static deepCopy(truth: any): any
-	{
+	static deepCopy(truth: any): any {
 		return JSON.parse(JSON.stringify(truth));
 	}
 
-	static deepRemoveStartingWith(truth: any, prefix: string): any
-	{
+	static deepRemoveStartingWith(truth: any, prefix: string): any {
 		const keys = Object.keys(truth);
-		for (let i = 0; i < keys.length; i++)
-		{
-			if (keys[i].startsWith(prefix))
-			{
+		for (let i = 0; i < keys.length; i++) {
+			if (keys[i].startsWith(prefix)) {
 				delete truth[keys[i]];
 			}
 
 			let type = typeof truth[keys[i]];
-			if (type == "object")
-			{
+			if (type == "object") {
 				SettingsPage.deepRemoveStartingWith(truth[keys[i]], prefix);
 			}
 		}
 		return truth;
 	}
 
-	static async loadSettings() 
-	{
+	static async loadSettings() {
 		const loadedSettings = await SettingsPage.plugin.loadData();
 		// do a deep object assign so any non exisant values anywhere in the default settings are preserved
 		SettingsPage.deepAssign(Settings, loadedSettings);
@@ -643,20 +608,17 @@ export class SettingsPage extends PluginSettingTab
 		SettingsPage.loaded = true;
 	}
 
-	static async saveSettings() 
-	{
-		let copy = SettingsPage.deepCopy({...Settings});
+	static async saveSettings() {
+		let copy = SettingsPage.deepCopy({ ...Settings });
 		copy = SettingsPage.deepRemoveStartingWith(copy, "info_");
 		await SettingsPage.plugin.saveData(copy);
 	}
 
-	static renameFile(file: TFile, oldPath: string)
-	{
+	static renameFile(file: TFile, oldPath: string) {
 		const oldPathParsed = new Path(oldPath).path;
 		let fileList = Settings.exportOptions.filesToExport;
 		const index = fileList.indexOf(oldPathParsed);
-		if (index >= 0)
-		{
+		if (index >= 0) {
 			fileList[index] = file.path;
 		}
 

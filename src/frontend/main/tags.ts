@@ -22,7 +22,7 @@ export class Tags extends DynamicInsertedFeature<
 			tagEl.classList.add("tag");
 			tagEl.setAttribute(
 				"href",
-				`?query=tag:${tagName.replace("#", "")}`
+				`?query=tags:${tagName.replace("#", "")}`
 			);
 			tagEl.innerText = tagName;
 			container.appendChild(tagEl);

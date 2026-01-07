@@ -146,7 +146,9 @@ export const language: i18n =
 		properties: {
 			title: "Proprietà",
 			description: "Mostra tutte le proprietà del documento attualmente aperto in una tabella.",
-			info_hideProperties: "Un elenco di proprietà da nascondere nella vista delle proprietà"
+			info_hideProperties: "Un elenco di proprietà da nascondere nella vista delle proprietà",
+			info_showYamlProperties: "Show YAML Properties",
+			info_yamlPropertiesDefaultExpanded: "YAML Properties Default Expanded"
 		},
 		rss: {
 			title: "RSS",

@@ -302,7 +302,7 @@ export class ObsidianWebsite {
 		console.log("Loading URL", url, header, query);
 
 		if (query && query.startsWith("query=")) {
-			this.search?.searchParseFilters(query.substring(6));
+			this.search?.searchParseFilters(decodeURIComponent(query.substring(6)));
 			return;
 		}
 
@@ -325,10 +325,9 @@ export class ObsidianWebsite {
 
 		const page = await new ObsidianDocument(url).load();
 
-		if (!page)
-		{
+		if (!page) {
 			new Notice("Failed to load page. Unknown error.");
-			return;	
+			return;
 		}
 
 		// Update meta tags
@@ -580,7 +579,7 @@ export class ObsidianWebsite {
 	private set deviceSize(size: string) {
 		this._deviceSize = size;
 	}
-	
+
 	private onResize() {
 		if (!this.isResizing) {
 			this.onStartResize();

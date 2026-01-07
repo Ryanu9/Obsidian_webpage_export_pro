@@ -10,7 +10,19 @@ export class PropertiesOptions extends InsertedFeatureOptionsWithTitle {
 	hideProperties: string[];
 	info_hideProperties = new FeatureSettingInfo({
 		show: true,
-		description: i18n.settings.properties.info_hideProperties,
+		name: i18n.settings.properties.info_hideProperties,
+	});
+
+	showYamlProperties: boolean = true;
+	info_showYamlProperties = new FeatureSettingInfo({
+		show: true,
+		name: i18n.settings.properties.info_showYamlProperties,
+	});
+
+	yamlPropertiesDefaultExpanded: boolean = false;
+	info_yamlPropertiesDefaultExpanded = new FeatureSettingInfo({
+		show: true,
+		name: i18n.settings.properties.info_yamlPropertiesDefaultExpanded,
 	});
 
 	constructor() {

@@ -1,6 +1,6 @@
 import { i18n } from "./language";
 
-export const language: i18n = 
+export const language: i18n =
 {
 	cancel: "Cancel",
 	browse: "Browse",
@@ -18,20 +18,20 @@ export const language: i18n =
 	},
 	updateAvailable: "Update Available",
 	exportAsHTML: "Export as HTML",
-	exportModal: 
+	exportModal:
 	{
 		title: "Export to HTML",
 		exportAsTitle: "Export {0} as HTML",
 		moreOptions: "More options located on the plugin settings page.",
 		openAfterExport: "Open after export",
 		exportButton: "Export",
-		filePicker: 
+		filePicker:
 		{
 			title: "Select all files in exported vault",
 			selectAll: "Select All",
 			save: "Save",
 		},
-		currentSite: 
+		currentSite:
 		{
 			noSite: "This path currently contains no exported website.",
 			oldSite: "This path contains an export created with a different version of the plugin.",
@@ -53,7 +53,7 @@ export const language: i18n =
 			clearWarning: "This will delete the site metadata (but not all the exported html).\n\nThis will force the site to re-export all files.\n\nAlso if you change which files are selected for export before exporting again some files may be left on your file system unused.\n\nThis action cannot be undone.",
 		},
 	},
-	settings: 
+	settings:
 	{
 		title: "HTML Export Settings",
 		support: "Support the continued development of this plugin.",
@@ -97,7 +97,7 @@ export const language: i18n =
 			info_exposeStartingPath: "Whether or not to show the current file in the file tree when the page is first loaded"
 		},
 		outline: {
-			title: "Outline", 
+			title: "Outline",
 			description: "Shows a list of the open document's headers.",
 			info_startCollapsed: "Should the outline start collapsed?",
 			info_minCollapseDepth: "Only allow outline items to be collapsed if they are at least this many levels deep in the tree."
@@ -153,7 +153,9 @@ export const language: i18n =
 		properties: {
 			title: "Properties",
 			description: "Displays all the properties of the currently opened document as a table.",
-			info_hideProperties: "A list of properties to hide from the properties view"
+			info_hideProperties: "A list of properties to hide from the properties view",
+			info_showYamlProperties: "Show YAML Properties",
+			info_yamlPropertiesDefaultExpanded: "YAML Properties Default Expanded"
 		},
 		rss: {
 			title: "RSS",
@@ -178,7 +180,7 @@ export const language: i18n =
 			title: "Include Styles with IDs",
 			description: "Include CSS from style tags with the following IDs in the exported HTML"
 		},
-		generalSettingsSection:{
+		generalSettingsSection: {
 			title: "General Settings",
 			description: "Control simple settings like the favicon and site metadata",
 		},

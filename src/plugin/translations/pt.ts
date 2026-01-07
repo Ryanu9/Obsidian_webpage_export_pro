@@ -1,6 +1,6 @@
 import { i18n } from "./language";
 
-export const language: i18n = 
+export const language: i18n =
 {
 	cancel: "Cancelar",
 	browse: "Procurar",
@@ -18,20 +18,20 @@ export const language: i18n =
 	},
 	updateAvailable: "Atualização disponível",
 	exportAsHTML: "Exportar como HTML",
-	exportModal: 
+	exportModal:
 	{
 		title: "Exportar para HTML",
 		exportAsTitle: "Exportar {0} como HTML",
 		moreOptions: "Mais opções disponíveis na página de configurações do plugin.",
 		openAfterExport: "Abrir após exportar",
 		exportButton: "Exportar",
-		filePicker: 
+		filePicker:
 		{
 			title: "Selecionar todos os arquivos no cofre exportado",
 			selectAll: "Selecionar tudo",
 			save: "Salvar",
 		},
-		currentSite: 
+		currentSite:
 		{
 			noSite: "Este caminho não contém um site exportado atualmente.",
 			oldSite: "Este caminho contém uma exportação criada com uma versão diferente do plugin.",
@@ -53,7 +53,7 @@ export const language: i18n =
 			clearWarning: "Isso excluirá os metadados do site (mas não todo o HTML exportado).\n\nForçará a reexportação de todos os arquivos.\n\nAlém disso se você alterar os arquivos selecionados antes da próxima exportação, alguns arquivos podem permanecer inutilizados no seu sistema.\n\nEsta ação não pode ser desfeita.",
 		},
 	},
-	settings: 
+	settings:
 	{
 		title: "Configurações de Exportação HTML",
 		support: "Apoie o desenvolvimento contínuo deste plugin.",
@@ -97,7 +97,7 @@ export const language: i18n =
 			info_exposeStartingPath: "Mostrar o arquivo atual na árvore ao carregar a página"
 		},
 		outline: {
-			title: "Sumário", 
+			title: "Sumário",
 			description: "Exibe uma lista de cabeçalhos do documento aberto.",
 			info_startCollapsed: "O sumário deve começar recolhido?",
 			info_minCollapseDepth: "Permitir recolhimento apenas se o item tiver ao menos esse número de níveis na árvore."
@@ -116,7 +116,7 @@ export const language: i18n =
 			info_edgePruning: "Arestas com copmrimeto menor que esse limite não serão renderizadas, no entanto, ainda contribuirão para a simulação. Isso pode ser útil para que gráficos enrolados sejam apresentados de forma mais organizada. Passando o mouse sobre um nó mostrará todas as arestas conectadas a ele.",
 			info_minNodeRadius: "Quão pequenos os menores nós devem ser? Quando menor um nó, menos atrairá outros nós.",
 			info_maxNodeRadius: "Quão grandes os maiores nós devem ser? Nós são escalados proporcionalmente ao número de conexões que têm. Quanto maior um nó, mais atrairá outros nós. Isso pode ser útil para agrupar e destacar nós importantes."
-		},		search: {
+		}, search: {
 			title: "Barra de Pesquisa",
 			description: "Permite pesquisar no cofre, listando arquivos e cabeçalhos correspondentes. (NOTA: disponível apenas em exportações hospedadas na web)",
 			placeholder: "Pesquisar..."
@@ -152,7 +152,9 @@ export const language: i18n =
 		properties: {
 			title: "Propriedades",
 			description: "Exibe todas as propriedades do documento em uma tabela.",
-			info_hideProperties: "Lista de propriedades a ocultar na visualização"
+			info_hideProperties: "Lista de propriedades a ocultar na visualização",
+			info_showYamlProperties: "Show YAML Properties",
+			info_yamlPropertiesDefaultExpanded: "YAML Properties Default Expanded"
 		},
 		rss: {
 			title: "RSS",
@@ -177,7 +179,7 @@ export const language: i18n =
 			title: "Incluir Estilos com IDs",
 			description: "Inclui CSS de tags de estilo com os IDs especificados"
 		},
-		generalSettingsSection:{
+		generalSettingsSection: {
 			title: "Configurações Gerais",
 			description: "Controle configurações simples como favicon e metadados do site",
 		},
