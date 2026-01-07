@@ -206,3 +206,7 @@ h6:hover .collapse-indicator,
 .nav-folder-title:hover .nav-folder-count {
 	color: var(--text-normal);
 }
+
+button:not(.clickable-icon) {
+	box-shadow: none;
+}
