@@ -209,6 +209,61 @@ export class SettingsPage extends PluginSettingTab {
 		createFeatureSetting(section, lang.aliases.title, Settings.exportOptions.aliasOptions, lang.aliases.description);
 		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);
 		createFeatureSetting(section, lang.rss.title, Settings.exportOptions.rssOptions, lang.rss.description);
+		createFeatureSetting(section, lang.giscus.title, Settings.exportOptions.giscusOptions, lang.giscus.description, (container) => {
+			const giscus = Settings.exportOptions.giscusOptions;
+
+			const renderGiscusSettings = (cont: HTMLElement) => {
+				cont.empty();
+
+				const scriptSetting = new Setting(cont)
+					.setName(lang.giscus.info_script)
+					.setDesc(lang.giscus.info_script);
+
+				scriptSetting.addTextArea((text) => {
+					text.inputEl.style.width = "100%";
+					text.inputEl.style.height = "100px";
+					text.setPlaceholder("<script ...></script>");
+					text.onChange(async (value) => {
+						const repoMatch = value.match(/data-repo=["']([^"']+)["']/);
+						const repoIdMatch = value.match(/data-repo-id=["']([^"']+)["']/);
+						const categoryMatch = value.match(/data-category=["']([^"']+)["']/);
+						const categoryIdMatch = value.match(/data-category-id=["']([^"']+)["']/);
+						const mappingMatch = value.match(/data-mapping=["']([^"']+)["']/);
+						const strictMatch = value.match(/data-strict=["']([^"']+)["']/);
+						const reactionsMatch = value.match(/data-reactions-enabled=["']([^"']+)["']/);
+						const metadataMatch = value.match(/data-emit-metadata=["']([^"']+)["']/);
+						const inputPositionMatch = value.match(/data-input-position=["']([^"']+)["']/);
+						const themeMatch = value.match(/data-theme=["']([^"']+)["']/);
+						const langMatch = value.match(/data-lang=["']([^"']+)["']/);
+						const loadingMatch = value.match(/data-loading=["']([^"']+)["']/);
+
+						let updated = false;
+						if (repoMatch) { giscus.repo = repoMatch[1]; updated = true; }
+						if (repoIdMatch) { giscus.repoId = repoIdMatch[1]; updated = true; }
+						if (categoryMatch) { giscus.category = categoryMatch[1]; updated = true; }
+						if (categoryIdMatch) { giscus.categoryId = categoryIdMatch[1]; updated = true; }
+						if (mappingMatch) giscus.mapping = mappingMatch[1] as any;
+						if (strictMatch) giscus.strict = strictMatch[1] === "1";
+						if (reactionsMatch) giscus.reactionsEnabled = reactionsMatch[1] === "1";
+						if (metadataMatch) giscus.emitMetadata = metadataMatch[1] === "1";
+						if (inputPositionMatch) giscus.inputPosition = inputPositionMatch[1] as any;
+						if (themeMatch) giscus.theme = themeMatch[1];
+						if (langMatch) giscus.lang = langMatch[1];
+						if (loadingMatch) giscus.loading = loadingMatch[1] as any;
+
+						if (updated) {
+							await SettingsPage.saveSettings();
+							new Notice("Giscus configuration updated from script!");
+							renderGiscusSettings(cont);
+						}
+					});
+				});
+
+				generateSettingsFromObject(giscus, cont);
+			};
+
+			renderGiscusSettings(container);
+		});
 
 		// #endregion
 

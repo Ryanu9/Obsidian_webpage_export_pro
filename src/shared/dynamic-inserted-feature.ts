@@ -73,7 +73,7 @@ export abstract class DynamicInsertedFeature<
 		while (contentEl.firstChild) {
 			contentEl.removeChild(contentEl.firstChild);
 		}
-		
+
 		// check if feature exists in the document, and if not reinsert it
 		const featureEl = this.getElement(InsertedFeature.FEATURE_KEY);
 		if (!featureEl?.isConnected && featureEl) {

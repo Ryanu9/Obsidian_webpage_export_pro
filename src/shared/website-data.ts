@@ -13,8 +13,7 @@ import { SidebarOptions } from "./features/sidebar";
 import { TagsOptions } from "./features/tags";
 import { ThemeToggleOptions } from "./features/theme-toggle";
 
-export enum EmojiStyle
-{
+export enum EmojiStyle {
 	Native = "Native",
 	Twemoji = "Twemoji",
 	OpenMoji = "OpenMoji",
@@ -22,8 +21,7 @@ export enum EmojiStyle
 	FluentUI = "FluentUI",
 }
 
-export enum DocumentType
-{
+export enum DocumentType {
 	Markdown = "markdown",
 	Canvas = "canvas",
 	Excalidraw = "excalidraw",
@@ -32,8 +30,7 @@ export enum DocumentType
 	Other = "other"
 }
 
-export interface FileData
-{
+export interface FileData {
 	createdTime: number;
 	modifiedTime: number;
 	sourceSize: number;
@@ -46,9 +43,8 @@ export interface FileData
 	data: string | null;
 }
 
-export interface WebpageData extends FileData
-{
-	headers: {heading: string, level: number, id: string}[];
+export interface WebpageData extends FileData {
+	headers: { heading: string, level: number, id: string }[];
 	aliases: string[];
 	inlineTags: string[];
 	frontmatterTags: string[];
@@ -64,8 +60,9 @@ export interface WebpageData extends FileData
 	fullURL: string;
 }
 
-export class WebsiteOptions
-{
+import { GiscusOptions } from "./features/giscus";
+
+export class WebsiteOptions {
 	/**
 	 * The options for the backlinks feature.
 	 */
@@ -136,8 +133,12 @@ export class WebsiteOptions
 	 */
 	linkPreview: LinkPreviewOptions;
 
-	public static fromJSON(json: string): WebsiteOptions
-	{
+	/**
+	 * The options for the giscus feature.
+	 */
+	giscus: GiscusOptions;
+
+	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
 		data.tags = Object.assign(new TagsOptions(), data.tags);
@@ -153,17 +154,17 @@ export class WebsiteOptions
 		data.document = Object.assign(new DocumentOptions(), data.document);
 		data.rss = Object.assign(new RssOptions(), data.rss);
 		data.linkPreview = Object.assign(new LinkPreviewOptions(), data.linkPreview);
+		data.giscus = Object.assign(new GiscusOptions(), data.giscus);
 
 		return data;
 	}
 }
 
-export class WebsiteData
-{
+export class WebsiteData {
 	ignoreMetadata: boolean = false;
-	webpages: {[targetPath: string]: WebpageData} = {};
-	fileInfo: {[targetPath: string]: FileData} = {};
-	sourceToTarget: {[sourcePath: string]: string} = {};
+	webpages: { [targetPath: string]: WebpageData } = {};
+	fileInfo: { [targetPath: string]: FileData } = {};
+	sourceToTarget: { [sourcePath: string]: string } = {};
 	attachments: string[] = [];
 	shownInTree: string[] = [];
 	allFiles: string[] = [];
@@ -172,7 +173,7 @@ export class WebsiteData
 	vaultName: string = "";
 	createdTime: number = 0;
 	modifiedTime: number = 0;
-	pluginVersion: string = ""; 
+	pluginVersion: string = "";
 	exportRoot: string = "";
 	baseURL: string = "";
 
@@ -180,10 +181,10 @@ export class WebsiteData
 	bodyClasses: string = "";
 	hasFavicon: boolean = false;
 	featureOptions: WebsiteOptions = new WebsiteOptions();
+	exportOptions: any = {}; // Store necessary export options
 
 
-	public static fromJSON(json: string): WebsiteData
-	{
+	public static fromJSON(json: string): WebsiteData {
 		let data = Object.assign(new WebsiteData(), JSON.parse(json));
 		data.featureOptions = WebsiteOptions.fromJSON(JSON.stringify(data.featureOptions));
 		return data;

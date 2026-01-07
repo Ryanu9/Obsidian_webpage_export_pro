@@ -173,8 +173,9 @@ export class LockScreen {
         const style = document.createElement('style');
         style.id = 'password-lock-style';
         style.textContent = \`
-            .password-lock { display: flex; align-items: center; justify-content: center; min-height: 50vh; padding: 2rem; text-align: center; }
-            .password-lock__panel { background: var(--background-secondary); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--divider-color); box-shadow: var(--shadow-l); max-width: 400px; width: 100%; }
+            #password-lock-container { width: 100%; height: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem; padding-top: min(10vh, 5rem); text-align: center; overflow-y: auto; box-sizing: border-box; }
+            .password-lock { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 0; text-align: center; box-sizing: border-box; flex-shrink: 0; }
+            .password-lock__panel { background: var(--background-secondary); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--divider-color); box-shadow: var(--shadow-l); max-width: 400px; width: 100%; box-sizing: border-box; margin: 0 auto; flex-shrink: 0; }
             .password-lock__icon { width: 48px; height: 48px; margin-bottom: 1rem; color: var(--text-accent); }
             .password-lock__title { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
             .password-lock__description { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }

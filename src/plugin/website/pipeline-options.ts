@@ -14,6 +14,7 @@ import { CustomHeadOptions } from "src/shared/features/custom-head";
 import { MarkdownRendererOptions } from "src/plugin/render-api/api-options";
 import { RssOptions } from "src/shared/features/rss";
 import { LinkPreviewOptions } from "src/shared/features/link-preview";
+import { GiscusOptions } from "src/shared/features/giscus";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -103,6 +104,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the link preview feature.
 	 */
 	linkPreviewOptions: LinkPreviewOptions = new LinkPreviewOptions();
+
+	/**
+	 * The options for the giscus feature.
+	 */
+	giscusOptions: GiscusOptions = new GiscusOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

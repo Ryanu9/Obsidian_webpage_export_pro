@@ -246,5 +246,22 @@ export const language: i18n =
 			inputPlaceholder: "Enter password",
 			invalidPassword: "Incorrect password or corrupted data",
 		},
+		giscus: {
+			title: "Giscus Comments",
+			description: "Add a comment system based on GitHub Discussions to the bottom of the page.",
+			info_repo: "GitHub repository name (e.g. owner/repo)",
+			info_repoId: "Repository ID",
+			info_category: "Discussion category name",
+			info_categoryId: "Category ID",
+			info_mapping: "Page to discussion mapping",
+			info_strict: "Enable strict mode",
+			info_reactionsEnabled: "Enable reactions",
+			info_emitMetadata: "Emit metadata to discussions",
+			info_inputPosition: "Input box position",
+			info_script: "Paste the giscus script tag here to automatically fill the fields below.",
+			info_theme: "Comments theme",
+			info_lang: "Comments language",
+			info_loading: "Loading method",
+		},
 	}
 }

@@ -245,5 +245,22 @@ export const language: i18n =
 			inputPlaceholder: "请输入密码",
 			invalidPassword: "密码错误或数据损坏",
 		},
+		giscus: {
+			title: "Giscus 评论区",
+			description: "在页面底部添加基于 GitHub Discussions 的评论系统。",
+			info_repo: "GitHub 仓库名 (例如: owner/repo)",
+			info_repoId: "仓库 ID",
+			info_category: "讨论分类名称",
+			info_categoryId: "分类 ID",
+			info_mapping: "页面与讨论的映射方式",
+			info_strict: "启用严格模式",
+			info_reactionsEnabled: "启用表情反应",
+			info_emitMetadata: "向讨论发送元数据",
+			info_inputPosition: "评论框位置",
+			info_script: "将 giscus 脚本标签粘贴到此处，以自动填写下方的字段。",
+			info_theme: "评论区主题",
+			info_lang: "评论区语言",
+			info_loading: "加载方式",
+		},
 	}
 }

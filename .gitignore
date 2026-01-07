@@ -34,3 +34,4 @@ dist
 todo.txt
 vault/
 output/
+.cursor/rules/1.mdc

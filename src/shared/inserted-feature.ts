@@ -147,10 +147,9 @@ export class InsertedFeature<TOptions extends InsertedFeatureOptions> {
 			if (key === InsertedFeature.FEATURE_KEY) return; // Skip root
 
 			let element = existingElement.querySelector(
-				`.${
-					Array.isArray(def.className)
-						? def.className[0]
-						: def.className
+				`.${Array.isArray(def.className)
+					? def.className[0]
+					: def.className
 				}`
 			);
 
@@ -167,7 +166,7 @@ export class InsertedFeature<TOptions extends InsertedFeatureOptions> {
 		});
 	}
 
-	protected onAfterMount(): void {}
+	protected onAfterMount(): void { }
 
 	public get options(): TOptions {
 		return this._options;

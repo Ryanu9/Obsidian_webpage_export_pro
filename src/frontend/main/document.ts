@@ -11,6 +11,7 @@ import { Tags } from "./tags";
 import { Tree } from "./trees";
 import { Aliases } from "./aliases";
 import { YamlProperties } from "./yaml-properties";
+import { Giscus } from "./giscus";
 
 
 export class WebpageDocument {
@@ -232,6 +233,7 @@ export class WebpageDocument {
 				(outline as HTMLElement).style.setProperty('display', 'none', 'important');
 				outline.setAttribute('data-toc-hidden', 'true');
 			}
+			Giscus.initOnEncryptedPage();
 		}
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
@@ -456,6 +458,16 @@ export class WebpageDocument {
 
 	public postProcess() {
 		if (!this.documentEl) return;
+
+		// Initialize Giscus
+		if (this.isMainDocument && !ObsidianSite.metadata.ignoreMetadata && ObsidianSite.metadata.featureOptions.giscus.enabled) {
+			if (window.requestIdleCallback) {
+				window.requestIdleCallback(() => new Giscus());
+			} else {
+				setTimeout(() => new Giscus(), 1000);
+			}
+		}
+
 		// make completed kanban checkboxes checked
 		this.documentEl
 			?.querySelectorAll(

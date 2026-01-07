@@ -249,6 +249,23 @@ export interface i18n {
 			inputPlaceholder: string;
 			invalidPassword: string;
 		},
+		giscus: {
+			title: string;
+			description: string;
+			info_repo: string;
+			info_repoId: string;
+			info_category: string;
+			info_categoryId: string;
+			info_mapping: string;
+			info_strict: string;
+			info_reactionsEnabled: string;
+			info_emitMetadata: string;
+			info_inputPosition: string;
+			info_script: string;
+			info_theme: string;
+			info_lang: string;
+			info_loading: string;
+		},
 	}
 }
 

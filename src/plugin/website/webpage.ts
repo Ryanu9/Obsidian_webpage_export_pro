@@ -106,6 +106,34 @@ export class Webpage extends Attachment {
 								this.exportOptions.encryptionDescriptionText
 							);
 
+							// Static injection for Giscus on encrypted pages
+							if (this.exportOptions.enableGiscusOnEncryptedPages && this.exportOptions.giscusOptions.enabled) {
+								const lockContainer = centerContent.querySelector("#password-lock-container");
+								if (lockContainer) {
+									const giscusWrapper = lockContainer.createDiv({ cls: "password-lock__giscus" });
+									giscusWrapper.style.marginTop = "3rem";
+									giscusWrapper.style.width = "100%";
+									giscusWrapper.style.maxWidth = "var(--file-line-width)";
+									giscusWrapper.createDiv({ cls: "giscus" }); // Container for Giscus to inject into
+									const script = giscusWrapper.createEl("script");
+									script.src = "https://giscus.app/client.js";
+									script.setAttribute("data-repo", this.exportOptions.giscusOptions.repo);
+									script.setAttribute("data-repo-id", this.exportOptions.giscusOptions.repoId);
+									script.setAttribute("data-category", this.exportOptions.giscusOptions.category);
+									script.setAttribute("data-category-id", this.exportOptions.giscusOptions.categoryId);
+									script.setAttribute("data-mapping", this.exportOptions.giscusOptions.mapping);
+									script.setAttribute("data-strict", this.exportOptions.giscusOptions.strict ? "1" : "0");
+									script.setAttribute("data-reactions-enabled", this.exportOptions.giscusOptions.reactionsEnabled ? "1" : "0");
+									script.setAttribute("data-emit-metadata", this.exportOptions.giscusOptions.emitMetadata ? "1" : "0");
+									script.setAttribute("data-input-position", this.exportOptions.giscusOptions.inputPosition);
+									script.setAttribute("data-theme", "preferred_color_scheme"); // Default, will be synced
+									script.setAttribute("data-lang", this.exportOptions.giscusOptions.lang);
+									script.setAttribute("data-loading", this.exportOptions.giscusOptions.loading);
+									script.crossOrigin = "anonymous";
+									script.async = true;
+								}
+							}
+
 							// Generate and inject decryption script
 							const scriptEl = this.pageDocument.createElement("script");
 							scriptEl.textContent = LockScreen.generateDecryptionScript(encryptedData);
