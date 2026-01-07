@@ -209,4 +209,5 @@ h6:hover .collapse-indicator,
 
 button:not(.clickable-icon) {
 	box-shadow: none;
+	background-color: transparent;
 }

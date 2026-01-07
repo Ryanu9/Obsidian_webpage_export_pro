@@ -55,6 +55,15 @@ export class TocScrollSpy {
 
         // Wait a bit for the DOM to be fully rendered
         setTimeout(() => {
+            // Move collapse icon inside the inner container for better "tight" integration
+            document.querySelectorAll('#outline .tree-item-self').forEach(self => {
+                const icon = self.querySelector(':scope > .collapse-icon');
+                const inner = self.querySelector('.tree-item-inner');
+                if (icon && inner) {
+                    inner.prepend(icon);
+                }
+            });
+
             const headerObjects = doc.getFlatHeaders();
             this.headings = headerObjects.map((h: any) => ({
                 id: h.id,
@@ -172,43 +181,43 @@ export class TocScrollSpy {
                 border-radius: 4px;
                 display: flex !important;
                 align-items: center;
-                padding-left: 0 !important;
+                padding-left: 8px !important;
             }
 
-            /* TOC Items Layout: Flex ensures icon is right next to text */
+            #outline .tree-item-inner {
+                display: flex !important;
+                align-items: flex-start; /* Align icon to the top of the first line */
+                gap: 4px; 
+                white-space: normal; /* Allow wrapping */
+                word-break: break-word;
+                padding-right: 4px;
+                flex: 1;
+                line-height: 1.4;
+                padding-top: 2px;
+                padding-bottom: 2px;
+            }
+
             #outline .collapse-icon {
                 display: flex !important;
                 align-items: center;
                 justify-content: center;
                 z-index: 2;
-                width: 20px;
+                width: 20px !important;
                 height: 24px;
-                margin-right: 2px;
                 flex-shrink: 0;
-            }
-
-            #outline .tree-item-inner {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                padding-right: 4px;
-                flex-grow: 1;
-            }
-
-            /* Placeholder for alignment if icon is missing */
-            #outline .tree-item-self::before {
-                content: "";
-                width: 20px;
-                height: 24px;
-                display: block;
-                margin-right: 2px;
-                flex-shrink: 0;
+                margin-top: -2px; /* Pull icon up slightly to align with the first line better */
             }
 
             #outline .tree-item-self.is-active {
                 color: var(--text-normal);
                 font-weight: 600;
                 background-color: var(--background-modifier-hover);
+            }
+
+            /* Hide collapse icon for top-level TOC items (depth 0) */
+            #outline .tree-item[data-depth="0"] > .tree-item-self .collapse-icon,
+            #outline .tree-item[data-depth="1"] > .tree-item-self .collapse-icon {
+                display: none !important;
             }
         `;
         document.head.appendChild(style);
