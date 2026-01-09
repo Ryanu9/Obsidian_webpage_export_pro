@@ -100,7 +100,7 @@ body
 }
 
 .sidebar-topbar {
-    height: calc(2.3em + 2 * var(--sidebar-margin));
+    height: calc(1em + 2 * var(--sidebar-margin));
     width: var(--sidebar-width);
     padding: var(--sidebar-margin);
     z-index: 1;
