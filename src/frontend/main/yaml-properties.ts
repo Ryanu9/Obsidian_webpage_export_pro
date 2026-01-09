@@ -231,6 +231,8 @@ export class YamlProperties {
                 margin: 1em 0;
                 padding: 0;
                 overflow: hidden;
+                width: 100%;
+                box-sizing: border-box;
             }
             .yaml-properties-header {
                 background-color: transparent;
@@ -265,25 +267,41 @@ export class YamlProperties {
             }
             .yaml-properties-content {
                 padding: 8px 12px;
+                width: 100%;
+                box-sizing: border-box;
             }
             .yaml-properties-table {
-                width: 100%;
+                width: 100% !important;
                 border-collapse: collapse;
                 font-size: 0.9em;
+                table-layout: fixed;
+                margin: 0;
+                display: table;
+            }
+            .yaml-properties-table tr {
+                width: 100%;
+                display: table-row;
             }
             .yaml-property-key {
                 color: var(--text-muted);
-                width: 30%;
+                width: 30% !important;
                 padding: 4px 8px 4px 0;
                 vertical-align: top;
+                box-sizing: border-box;
             }
             .yaml-property-value {
                 padding: 4px 0;
                 word-break: break-all;
+                width: 70% !important;
+                box-sizing: border-box;
                 display: flex;
                 flex-wrap: wrap;
                 gap: 4px;
                 align-items: center;
+                overflow-wrap: break-word;
+            }
+            .yaml-properties-table td {
+                box-sizing: border-box;
             }
             .yaml-property-value .tag,
             .yaml-property-value .property-list-item {
