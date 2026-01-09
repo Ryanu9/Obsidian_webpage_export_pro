@@ -178,6 +178,11 @@ export class FilePickerTree extends FileTree
 			return;
 		}
 
+		// First, uncheck all items
+		this.forAllChildren((child) => child.check(false));
+		this.selectAllItem?.check(false, false, true);
+
+		// Then, check only the specified files
 		this.forAllChildren((child) =>
 		{
 			if(files.includes(child.dataRef ?? ""))

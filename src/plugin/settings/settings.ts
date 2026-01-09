@@ -29,6 +29,15 @@ export enum LogLevel {
 	None = "none",
 }
 
+export interface ExportConfig {
+	name: string;
+	filesToExport: string[];
+	exportPath: string;
+	exportPreset: ExportPreset;
+	exportOptions: any; // Deep copy of ExportPipelineOptions
+	openAfterExport: boolean;
+}
+
 export class Settings {
 	public static settingsVersion: string = "0.0.0";
 
@@ -41,6 +50,9 @@ export class Settings {
 	public static deleteOldFiles: boolean = true;
 	public static exportPreset: ExportPreset = ExportPreset.Online;
 	public static openAfterExport: boolean = true;
+
+	// Export Configurations
+	public static exportConfigs: ExportConfig[] = [];
 
 	// Graph View Settings
 	public static filePickerBlacklist: string[] = ["(^|\\/)node_modules\\/", "(^|\\/)dist\\/", "(^|\\/)dist-ssr\\/", "(^|\\/)\\.vscode\\/"]; // ignore node_modules, dist, and .vscode
@@ -120,6 +132,52 @@ export class Settings {
 
 	static getFilesToExport(): TFile[] {
 		return this.getAllFilesFromPaths(Settings.exportOptions.filesToExport).map(p => app.vault.getFileByPath(p)).filter(f => f) as TFile[];
+	}
+
+	static saveExportConfig(name: string): void {
+		const config: ExportConfig = {
+			name: name,
+			filesToExport: [...Settings.exportOptions.filesToExport],
+			exportPath: Settings.exportOptions.exportPath,
+			exportPreset: Settings.exportPreset,
+			exportOptions: SettingsPage.deepCopy(Settings.exportOptions),
+			openAfterExport: Settings.openAfterExport
+		};
+		
+		const existingIndex = Settings.exportConfigs.findIndex(c => c.name === name);
+		if (existingIndex >= 0) {
+			Settings.exportConfigs[existingIndex] = config;
+		} else {
+			Settings.exportConfigs.push(config);
+		}
+		
+		SettingsPage.saveSettings();
+	}
+
+	static loadExportConfig(name: string): boolean {
+		const config = Settings.exportConfigs.find(c => c.name === name);
+		if (!config) return false;
+
+		Settings.exportOptions.filesToExport = [...config.filesToExport];
+		Settings.exportOptions.exportPath = config.exportPath;
+		Settings.exportPreset = config.exportPreset;
+		Settings.openAfterExport = config.openAfterExport;
+		
+		// Deep copy export options
+		SettingsPage.deepAssign(Settings.exportOptions, config.exportOptions);
+		Settings.exportOptions.reconstructFeatureOptions();
+		
+		SettingsPage.saveSettings();
+		return true;
+	}
+
+	static deleteExportConfig(name: string): void {
+		Settings.exportConfigs = Settings.exportConfigs.filter(c => c.name !== name);
+		SettingsPage.saveSettings();
+	}
+
+	static getExportConfigNames(): string[] {
+		return Settings.exportConfigs.map(c => c.name);
 	}
 
 

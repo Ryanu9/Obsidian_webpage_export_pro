@@ -34,6 +34,29 @@ export interface i18n {
 			title: string;
 			selectAll: string;
 			save: string;
+			newConfig: string;
+			updateConfig: string;
+			loadConfig: string;
+			configManagement: string;
+			configManagementTitle: string;
+			newConfigTitle: string;
+			updateConfigTitle: string;
+			loadConfigTitle: string;
+			configNamePlaceholder: string;
+			configNameRequired: string;
+			configSaved: string;
+			configUpdated: string;
+			configLoaded: string;
+			configLoadFailed: string;
+			noConfigs: string;
+			selectConfigFirst: string;
+			deleteConfig: string;
+			deleteConfigConfirm: string;
+			deleteConfigWarning: string;
+			configDeleted: string;
+			saveAsConfigTitle: string;
+			saveAsConfigQuestion: string;
+			yes: string;
 		}
 		currentSite:
 		{

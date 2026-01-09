@@ -1,4 +1,4 @@
-import { ButtonComponent, Modal, Setting, TFile } from 'obsidian';
+import { ButtonComponent, Modal, Notice, Setting, TFile } from 'obsidian';
 import { Utils } from 'src/plugin/utils/utils';
 import HTMLExportPlugin from 'src/plugin/main';
 import { ExportPreset, Settings, SettingsPage } from './settings';
@@ -95,13 +95,249 @@ export class ExportModal extends Modal
 			{
 				button.setButtonText(lang.filePicker.save).onClick(async () =>
 				{
-					Settings.exportOptions.filesToExport = this.filePicker.getSelectedFilesSavePaths();
-					await SettingsPage.saveSettings();
+					// Ask if user wants to save as new config
+					const askModal = new Modal(app);
+					askModal.titleEl.setText(lang.filePicker.saveAsConfigTitle);
+					askModal.contentEl.createEl('p', { text: lang.filePicker.saveAsConfigQuestion });
+					
+					new Setting(askModal.contentEl)
+						.addButton((btn) => btn.setButtonText(i18n.cancel).onClick(async () => {
+							// Cancel: save normally
+							Settings.exportOptions.filesToExport = this.filePicker.getSelectedFilesSavePaths();
+							await SettingsPage.saveSettings();
+							askModal.close();
+						}))
+						.addButton((btn) => btn.setButtonText(lang.filePicker.yes).onClick(async () => {
+							askModal.close();
+							
+							// Yes: ask for config name
+							const nameModal = new Modal(app);
+							nameModal.titleEl.setText(lang.filePicker.newConfigTitle);
+							const nameInput = nameModal.contentEl.createEl('input', { type: 'text', placeholder: lang.filePicker.configNamePlaceholder });
+							nameInput.style.width = "100%";
+							nameInput.style.marginBottom = "1em";
+							
+							new Setting(nameModal.contentEl)
+								.addButton((btn) => btn.setButtonText(i18n.cancel).onClick(() => nameModal.close()))
+								.addButton((btn) => btn.setButtonText(lang.filePicker.save).onClick(async () =>
+								{
+									const name = nameInput.value.trim();
+									if (!name) {
+										new Notice(lang.filePicker.configNameRequired, 3000);
+										return;
+									}
+									
+									// Update files to export before saving
+									Settings.exportOptions.filesToExport = this.filePicker.getSelectedFilesSavePaths();
+									Settings.saveExportConfig(name);
+									new Notice(lang.filePicker.configSaved.replace("{0}", name || ""), 3000);
+									nameModal.close();
+								}));
+							
+							nameModal.open();
+						}));
+					
+					askModal.open();
 				});
 			});
 
 			saveFiles.settingEl.style.border = "none";
 			saveFiles.settingEl.style.marginRight = "1em";
+
+			// Add config management button
+			let configModal: Modal | null = null;
+			let selectedConfig: string | null = null;
+			let configActionButton: ButtonComponent | null = null;
+			let deleteButton: ButtonComponent | null = null;
+			let loadButton: ButtonComponent | null = null;
+			let configList: HTMLElement | null = null;
+			let nameInput: HTMLInputElement | null = null;
+			
+			const refreshConfigList = () => {
+				if (!configModal || !configList) return;
+				
+				configList.empty();
+				selectedConfig = null;
+				if (nameInput) nameInput.value = "";
+				
+				const configs = Settings.getExportConfigNames();
+				
+				// Show existing configs if any
+				if (configs.length > 0 && configList) {
+					configs.forEach(configName => {
+						const configItem = configList!.createDiv();
+						configItem.style.padding = "0.5em";
+						configItem.style.cursor = "pointer";
+						configItem.style.borderRadius = "4px";
+						configItem.style.marginBottom = "0.25em";
+						configItem.style.display = "flex";
+						configItem.style.alignItems = "center";
+						
+						const radio = configItem.createEl('input', { type: 'radio' });
+						radio.setAttribute('name', 'config-select');
+						radio.value = configName;
+						radio.style.marginRight = "0.5em";
+						
+						const label = configItem.createEl('span', { text: configName });
+						label.style.flex = "1";
+						
+						radio.addEventListener('change', () => {
+							selectedConfig = configName;
+							if (configList) {
+								configList.querySelectorAll('div').forEach(div => {
+									div.style.backgroundColor = "";
+								});
+							}
+							configItem.style.backgroundColor = "var(--background-modifier-hover)";
+							// Clear input when selecting config
+							if (nameInput) nameInput.value = "";
+							// Update button text
+							if (configActionButton) {
+								configActionButton.setButtonText(lang.filePicker.updateConfig);
+							}
+							// Enable delete and load buttons
+							if (deleteButton) deleteButton.setDisabled(false);
+							if (loadButton) loadButton.setDisabled(false);
+						});
+						
+						configItem.addEventListener('click', () => {
+							radio.checked = true;
+							radio.dispatchEvent(new Event('change'));
+						});
+					});
+				}
+				
+				// Disable buttons if no config selected
+				if (!selectedConfig) {
+					if (configActionButton) configActionButton.setButtonText(lang.filePicker.newConfig);
+					if (deleteButton) deleteButton.setDisabled(true);
+					if (loadButton) loadButton.setDisabled(true);
+				}
+			};
+			
+			const openConfigModal = () => {
+				configModal = new Modal(app);
+				configModal.titleEl.setText(lang.filePicker.configManagementTitle);
+				
+				// Input for new config name
+				const nameInputContainer = configModal.contentEl.createDiv();
+				nameInputContainer.style.marginBottom = "1em";
+				nameInput = nameInputContainer.createEl('input', { type: 'text', placeholder: lang.filePicker.configNamePlaceholder });
+				nameInput.style.width = "100%";
+				
+				configList = configModal.contentEl.createDiv();
+				configList.style.marginBottom = "1em";
+				configList.style.maxHeight = "300px";
+				configList.style.overflowY = "auto";
+				
+				refreshConfigList();
+				
+				nameInput.addEventListener('input', () => {
+					// Clear selection when typing
+					if (selectedConfig && configList) {
+						selectedConfig = null;
+						configList.querySelectorAll('input[type="radio"]').forEach((radio: HTMLInputElement) => {
+							radio.checked = false;
+						});
+						configList.querySelectorAll('div').forEach(div => {
+							div.style.backgroundColor = "";
+						});
+						if (configActionButton) {
+							configActionButton.setButtonText(lang.filePicker.newConfig);
+						}
+						if (deleteButton) deleteButton.setDisabled(true);
+						if (loadButton) loadButton.setDisabled(true);
+					}
+				});
+				
+				const buttonSetting = new Setting(configModal.contentEl);
+				buttonSetting.addButton((btn) => btn.setButtonText(i18n.cancel).onClick(() => configModal?.close()));
+				
+				// Delete button
+				buttonSetting.addButton((btn) => {
+					deleteButton = btn;
+					btn.setButtonText(lang.filePicker.deleteConfig).setDisabled(true).onClick(async () =>
+					{
+						if (!selectedConfig) return;
+						
+						const confirmModal = new Modal(app);
+						confirmModal.titleEl.setText(lang.filePicker.deleteConfigConfirm);
+						confirmModal.contentEl.createEl('p', { text: lang.filePicker.deleteConfigWarning.replace("{0}", selectedConfig) });
+						
+						new Setting(confirmModal.contentEl)
+							.addButton((btn) => btn.setButtonText(i18n.cancel).onClick(() => confirmModal.close()))
+							.addButton((btn) => btn.setButtonText(lang.filePicker.deleteConfig).onClick(async () =>
+							{
+								Settings.deleteExportConfig(selectedConfig!);
+								new Notice(lang.filePicker.configDeleted.replace("{0}", selectedConfig || ""), 3000);
+								confirmModal.close();
+								refreshConfigList();
+							}));
+						
+						confirmModal.open();
+					});
+				});
+				
+				// Load button
+				buttonSetting.addButton((btn) => {
+					loadButton = btn;
+					btn.setButtonText(lang.filePicker.loadConfig).setDisabled(true).onClick(async () =>
+					{
+						if (!selectedConfig) return;
+						
+						if (Settings.loadExportConfig(selectedConfig)) {
+							// Update file picker with loaded files
+							if (this.filePicker) {
+								this.filePicker.setSelectedFiles(Settings.exportOptions.filesToExport);
+							}
+							configModal?.close();
+							// Reload the modal to reflect all loaded settings
+							setTimeout(() => {
+								this.open();
+								new Notice(lang.filePicker.configLoaded.replace("{0}", selectedConfig || ""), 3000);
+							}, 100);
+						} else {
+							new Notice(lang.filePicker.configLoadFailed, 3000);
+						}
+					});
+				});
+				
+				// Save/Update button
+				buttonSetting.addButton((btn) => {
+					configActionButton = btn;
+					btn.setButtonText(lang.filePicker.newConfig).onClick(async () =>
+					{
+						const configName = selectedConfig || nameInput?.value.trim();
+						if (!configName) {
+							new Notice(lang.filePicker.configNameRequired, 3000);
+							return;
+						}
+						
+						// Update files to export before saving
+						Settings.exportOptions.filesToExport = this.filePicker.getSelectedFilesSavePaths();
+						
+						if (selectedConfig) {
+							// Update existing config
+							Settings.saveExportConfig(selectedConfig);
+							new Notice(lang.filePicker.configUpdated.replace("{0}", selectedConfig || ""), 3000);
+						} else {
+							// Create new config
+							Settings.saveExportConfig(configName);
+							new Notice(lang.filePicker.configSaved.replace("{0}", configName || ""), 3000);
+						}
+						// Refresh list instead of closing
+						refreshConfigList();
+					});
+				});
+				
+				configModal.open();
+			};
+			
+			saveFiles.addButton((button) => 
+			{
+				button.setButtonText(lang.filePicker.configManagement).onClick(openConfigModal);
+			});
+
 		}
 
 
