@@ -64,6 +64,7 @@ export interface WebpageData extends FileData {
 }
 
 import { GiscusOptions } from "./features/giscus";
+import { CodeBlockOptions } from "./features/code-block";
 
 export class WebsiteOptions {
 	/**
@@ -156,7 +157,12 @@ export class WebsiteOptions {
 	 */
 	navbar: NavbarOptions;
 
-	public static fromJSON(json: string): WebsiteOptions {
+	/**
+	 * The options for the code block feature.
+	 */
+	codeBlock: CodeBlockOptions;
+
+public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
 		data.tags = Object.assign(new TagsOptions(), data.tags);
@@ -176,6 +182,7 @@ export class WebsiteOptions {
 		data.footerLinks = Object.assign(new FooterLinksOptions(), data.footerLinks ?? {});
 		data.navbar = Object.assign(new NavbarOptions(), data.navbar ?? {});
 		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
+		data.codeBlock = Object.assign(new CodeBlockOptions(), data.codeBlock ?? {});
 
 		return data;
 	}

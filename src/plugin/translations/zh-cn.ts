@@ -311,5 +311,20 @@ export const language: i18n =
 			info_lang: "评论区语言",
 			info_loading: "加载方式",
 		},
+		codeBlock: {
+			title: "代码块",
+			description: "配置代码块显示选项",
+			info_showLineNumbers: "显示代码块行号",
+			info_defaultCollapse: "默认折叠代码块（超过阈值的代码块）",
+			info_collapseThreshold: "自动折叠的行数阈值（默认：30）",
+			info_defaultWrap: "默认启用代码块自动换行",
+			info_showBottomExpandButton: "在代码块底部右侧显示展开/收起按钮",
+		},
+	},
+	codeBlock: {
+		copy: "复制",
+		copied: "已复制",
+		wrap: "自动换行",
+		expandCollapse: "展开/收起",
 	}
 }

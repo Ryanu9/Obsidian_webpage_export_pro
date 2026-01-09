@@ -97,6 +97,7 @@ export class Index {
 				footerLinks: options.footerLinksOptions,
 				navbar: options.navbarOptions,
 				copyright: options.copyrightOptions,
+				codeBlock: options.codeBlockOptions,
 			};
 
 			// set global values

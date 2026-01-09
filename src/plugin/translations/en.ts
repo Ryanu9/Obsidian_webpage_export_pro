@@ -312,5 +312,20 @@ export const language: i18n =
 			info_lang: "Comments language",
 			info_loading: "Loading method",
 		},
+		codeBlock: {
+			title: "Code Block",
+			description: "Configure code block display options",
+			info_showLineNumbers: "Show line numbers for code blocks",
+			info_defaultCollapse: "Collapse code blocks by default (for blocks longer than threshold)",
+			info_collapseThreshold: "Number of lines threshold for auto-collapse (default: 30)",
+			info_defaultWrap: "Enable word wrap for code blocks by default",
+			info_showBottomExpandButton: "Show expand/collapse button at the bottom right of code blocks",
+		},
+	},
+	codeBlock: {
+		copy: "Copy",
+		copied: "Copied",
+		wrap: "Wrap",
+		expandCollapse: "Expand/Collapse",
 	}
 }

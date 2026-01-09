@@ -315,6 +315,21 @@ export interface i18n {
 			info_lang: string;
 			info_loading: string;
 		},
+		codeBlock: {
+			title: string;
+			description: string;
+			info_showLineNumbers: string;
+			info_defaultCollapse: string;
+			info_collapseThreshold: string;
+			info_defaultWrap: string;
+			info_showBottomExpandButton: string;
+		},
+	},
+	codeBlock: {
+		copy: string;
+		copied: string;
+		wrap: string;
+		expandCollapse: string;
 	}
 }
 

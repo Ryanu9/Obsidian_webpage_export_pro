@@ -305,5 +305,20 @@ export const language: i18n =
 			info_lang: "Comments language",
 			info_loading: "Loading method",
 		},
+		codeBlock: {
+			title: "Blocco di codice",
+			description: "Configura le opzioni di visualizzazione dei blocchi di codice",
+			info_showLineNumbers: "Mostra i numeri di riga per i blocchi di codice",
+			info_defaultCollapse: "Comprimi i blocchi di codice per impostazione predefinita (per blocchi più lunghi della soglia)",
+			info_collapseThreshold: "Soglia del numero di righe per la compressione automatica (predefinito: 30)",
+			info_defaultWrap: "Abilita l'avvolgimento delle parole per i blocchi di codice per impostazione predefinita",
+			info_showBottomExpandButton: "Mostra il pulsante espandi/comprimi in basso a destra dei blocchi di codice",
+		},
+	},
+	codeBlock: {
+		copy: "Copia",
+		copied: "Copiato",
+		wrap: "A capo automatico",
+		expandCollapse: "Espandi/Comprimi",
 	}
 };

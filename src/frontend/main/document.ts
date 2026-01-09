@@ -12,6 +12,7 @@ import { Tree } from "./trees";
 import { Aliases } from "./aliases";
 import { YamlProperties } from "./yaml-properties";
 import { Giscus } from "./giscus";
+import { CodeBlockManager } from "./code-block-manager";
 
 
 export class WebpageDocument {
@@ -223,7 +224,7 @@ export class WebpageDocument {
 
 	public async postLoadInit(): Promise<WebpageDocument> {
 		this.findElements();
-		this.postProcess();
+		await this.postProcess();
 
 		// Handle encrypted page TOC visibility
 		const isLocked = document.querySelector('#password-lock-container') !== null;
@@ -544,7 +545,7 @@ export class WebpageDocument {
 		}
 	}
 
-	public postProcess() {
+	public async postProcess() {
 		if (!this.documentEl) return;
 
 		// Initialize Giscus
@@ -574,6 +575,11 @@ export class WebpageDocument {
 				"allow-fold-lists",
 				ObsidianSite.metadata.featureOptions.document.allowFoldingLists
 			);
+		}
+
+		// Initialize Code Blocks
+		if (this.documentEl) {
+			await new CodeBlockManager(this.documentEl).init();
 		}
 	}
 

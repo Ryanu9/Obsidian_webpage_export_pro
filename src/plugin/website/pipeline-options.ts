@@ -18,6 +18,7 @@ import { GiscusOptions } from "src/shared/features/giscus";
 import { CopyrightOptions } from "src/shared/features/copyright";
 import { FooterLinksOptions } from "src/shared/features/footer-links";
 import { NavbarOptions } from "src/shared/features/navbar";
+import { CodeBlockOptions } from "src/shared/features/code-block";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -127,6 +128,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the top navbar feature.
 	 */
 	navbarOptions: NavbarOptions = new NavbarOptions();
+
+	/**
+	 * The options for the code block feature.
+	 */
+	codeBlockOptions: CodeBlockOptions = new CodeBlockOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

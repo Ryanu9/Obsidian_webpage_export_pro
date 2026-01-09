@@ -311,5 +311,20 @@ export const language: i18n =
 			info_lang: "Comments language",
 			info_loading: "Loading method",
 		},
+		codeBlock: {
+			title: "Bloco de código",
+			description: "Configurar opções de exibição de blocos de código",
+			info_showLineNumbers: "Mostrar números de linha para blocos de código",
+			info_defaultCollapse: "Recolher blocos de código por padrão (para blocos maiores que o limite)",
+			info_collapseThreshold: "Limite de número de linhas para recolhimento automático (padrão: 30)",
+			info_defaultWrap: "Habilitar quebra de linha para blocos de código por padrão",
+			info_showBottomExpandButton: "Mostrar botão expandir/recolher no canto inferior direito dos blocos de código",
+		},
+	},
+	codeBlock: {
+		copy: "Copiar",
+		copied: "Copiado",
+		wrap: "Quebra de linha",
+		expandCollapse: "Expandir/Recolher",
 	}
 }

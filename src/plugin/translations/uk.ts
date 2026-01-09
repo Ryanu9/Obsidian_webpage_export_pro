@@ -310,5 +310,20 @@ export const language: i18n =
 			info_lang: "Comments language",
 			info_loading: "Loading method",
 		},
+		codeBlock: {
+			title: "Блок коду",
+			description: "Налаштування параметрів відображення блоків коду",
+			info_showLineNumbers: "Показувати номери рядків для блоків коду",
+			info_defaultCollapse: "Згортати блоки коду за замовчуванням (для блоків довших за поріг)",
+			info_collapseThreshold: "Поріг кількості рядків для автоматичного згортання (за замовчуванням: 30)",
+			info_defaultWrap: "Увімкнути перенос слів для блоків коду за замовчуванням",
+			info_showBottomExpandButton: "Показувати кнопку розгорнути/згорнути внизу праворуч блоків коду",
+		},
+	},
+	codeBlock: {
+		copy: "Копіювати",
+		copied: "Скопійовано",
+		wrap: "Перенос рядків",
+		expandCollapse: "Розгорнути/Згорнути",
 	}
 }
