@@ -236,7 +236,7 @@ export class CodeBlockManager {
                 color: var(--text-faint);
                 user-select: none;
                 font-family: inherit; /* Sync font with code */
-                background-color: var(--background-secondary-alt);
+                background-color: transparent; /* Match code block background */
                 min-width: 2.5em; 
             }
 
