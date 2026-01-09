@@ -75,7 +75,8 @@ export const language: i18n =
 			description: "Controle configurações do próprio documento",
 			info_allowFoldingLists: "Permitir que listas sejam recolhidas",
 			info_allowFoldingHeadings: "Permitir que cabeçalhos sejam recolhidos",
-			info_documentWidth: "A largura do documento"
+			info_documentWidth: "A largura do documento",
+			info_showCreatedUpdatedTime: "Mostrar hora de criação e atualização abaixo do título da página"
 		},
 		sidebars: {
 			title: "Barras Laterais",

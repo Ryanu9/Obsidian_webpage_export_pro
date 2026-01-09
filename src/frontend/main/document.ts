@@ -242,6 +242,7 @@ export class WebpageDocument {
 			this.processLists();
 			this.initNewImageZoom();
 			new YamlProperties().parseAndDisplayYamlProperties(this.info, this.documentEl ?? this.containerEl);
+			this.renderCreatedUpdatedBar();
 		}
 
 		if (this.documentType == DocumentType.Canvas) {
@@ -254,6 +255,93 @@ export class WebpageDocument {
 		}
 
 		return this;
+	}
+
+	private renderCreatedUpdatedBar() {
+		if (!this.headerEl) return;
+
+		// 检查设置是否启用
+		if (!ObsidianSite.metadata?.featureOptions?.document?.showCreatedUpdatedTime) {
+			return;
+		}
+
+		// 移除之前的元素
+		this.headerEl.querySelector('.created-updated-bar')?.remove();
+
+		const { createdTime, modifiedTime } = this.info || {};
+		if (!createdTime && !modifiedTime) return;
+
+		// 创建容器
+		const bar = document.createElement('div');
+		bar.className = 'created-updated-bar';
+
+		// 辅助函数：创建时间条目
+		const createTimeEntry = (time: number, type: 'created' | 'updated') => {
+			const el = document.createElement('span');
+			el.className = `${type}-time`;
+
+			// 创建SVG图标
+			const icon = document.createElement('span');
+			icon.className = `${type}-icon`;
+
+			if (type === 'created') {
+				// 使用 date-range-svgrepo-com.svg
+				icon.innerHTML = `<svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M20 10V7C20 5.89543 19.1046 5 18 5H6C4.89543 5 4 5.89543 4 7V10M20 10V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V10M20 10H4M8 3V7M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+				<rect x="6" y="12" width="3" height="3" rx="0.5" fill="currentColor"/>
+				<rect x="10.5" y="12" width="3" height="3" rx="0.5" fill="currentColor"/>
+				<rect x="15" y="12" width="3" height="3" rx="0.5" fill="currentColor"/>
+			</svg>`;
+			} else {
+				// 使用 date.svg
+				icon.innerHTML = `<svg width="1.2em" height="1.2em" viewBox="0 0 1024 1024" fill="currentColor">
+				<path d="M512 192c179.2 0 320 140.8 320 320s-140.8 320-320 320-320-140.8-320-320S332.8 192 512 192M512 128C300.8 128 128 300.8 128 512s172.8 384 384 384 384-172.8 384-384S723.2 128 512 128L512 128z"/>
+				<path d="M640 672c-6.4 0-19.2 0-25.6-6.4l-128-128C486.4 531.2 480 518.4 480 512L480 288C480 268.8 492.8 256 512 256s32 12.8 32 32l0 211.2 121.6 121.6c12.8 12.8 12.8 32 0 44.8C659.2 672 646.4 672 640 672z"/>
+			</svg>`;
+			}
+
+			// 创建时间文本（无背景高亮，加粗）
+			const timeSpan = document.createElement('span');
+			timeSpan.className = `${type}-time-value`;
+
+			const date = new Date(time);
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const day = String(date.getDate()).padStart(2, '0');
+
+			if (type === 'created') {
+				// created只显示 yyyy-mm-dd
+				timeSpan.textContent = `${year}-${month}-${day}`;
+			} else {
+				// updated显示 yyyy-mm-dd hh:mm
+				const hours = String(date.getHours()).padStart(2, '0');
+				const minutes = String(date.getMinutes()).padStart(2, '0');
+				timeSpan.textContent = `${year}-${month}-${day} ${hours}:${minutes}`;
+			}
+
+			el.appendChild(icon);
+			el.appendChild(timeSpan);
+			return el;
+		};
+
+		// 添加时间条目
+		if (createdTime) {
+			bar.appendChild(createTimeEntry(createdTime, 'created'));
+		}
+		if (modifiedTime) {
+			bar.appendChild(createTimeEntry(modifiedTime, 'updated'));
+		}
+
+		// 插入到page-title下方
+		const pageTitle = this.headerEl.querySelector('h1.page-title');
+		if (pageTitle?.nextSibling) {
+			pageTitle.parentNode?.insertBefore(bar, pageTitle.nextSibling);
+		} else if (pageTitle) {
+			pageTitle.parentNode?.appendChild(bar);
+		} else {
+			// 如果没有找到page-title，插入到header开头
+			this.headerEl.insertBefore(bar, this.headerEl.firstChild);
+		}
 	}
 
 	private initFootnotes() {

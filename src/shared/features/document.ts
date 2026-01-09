@@ -6,6 +6,7 @@ export class DocumentOptions extends FeatureOptions
 	allowFoldingLists: boolean = true;
 	allowFoldingHeadings: boolean = true;
 	documentWidth: string = "40em";
+	showCreatedUpdatedTime: boolean = true;
 
 	info_allowFoldingLists = new FeatureSettingInfo({
 		show: true,
@@ -18,6 +19,10 @@ export class DocumentOptions extends FeatureOptions
 	info_documentWidth = new FeatureSettingInfo({
 		show: true,
 		description: i18n.settings.document.info_documentWidth
+	});
+	info_showCreatedUpdatedTime = new FeatureSettingInfo({
+		show: true,
+		description: i18n.settings.document.info_showCreatedUpdatedTime
 	});
 
 	constructor()

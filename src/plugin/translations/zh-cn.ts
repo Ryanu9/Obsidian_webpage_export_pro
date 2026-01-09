@@ -74,7 +74,8 @@ export const language: i18n =
 			description: "控制文档本身的设置",
 			info_allowFoldingLists: "是否允许列表折叠",
 			info_allowFoldingHeadings: "是否允许标题折叠",
-			info_documentWidth: "文档的宽度"
+			info_documentWidth: "文档的宽度",
+			info_showCreatedUpdatedTime: "在页面标题下方显示创建和更新时间"
 		},
 		sidebars: {
 			title: "侧边栏",

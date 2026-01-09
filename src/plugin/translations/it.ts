@@ -68,7 +68,8 @@ export const language: i18n =
 			description: "Controlla le impostazioni del documento",
 			info_allowFoldingLists: "Permettere o meno il piegamento delle liste",
 			info_allowFoldingHeadings: "Permettere o meno il piegamento dei titoli",
-			info_documentWidth: "Larghezza del documento"
+			info_documentWidth: "Larghezza del documento",
+			info_showCreatedUpdatedTime: "Mostra l'ora di creazione e aggiornamento sotto il titolo della pagina"
 		},
 		sidebars: {
 			title: "Barre laterali",

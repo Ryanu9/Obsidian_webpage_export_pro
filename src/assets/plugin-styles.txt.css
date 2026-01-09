@@ -120,6 +120,50 @@ body.show-inline-title .page-title {
 	justify-content: center;
 }
 
+/*#region Created/Updated Time Bar */
+
+/* 时间显示 */
+.created-updated-bar {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 1.5em;
+	margin-bottom: 1em;
+	font-size: 0.9em;
+}
+
+/* 时间条目样式 */
+.created-time,
+.updated-time {
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+	color: var(--text-muted);
+}
+
+/* 图标样式 */
+.created-icon svg,
+.updated-icon svg {
+	color: var(--text-muted);
+	width: 1.2em;
+	height: 1.2em;
+	vertical-align: text-bottom;
+	position: relative;
+	top: -0.1em;
+}
+
+/* 时间值样式（无背景高亮，加粗） */
+.created-time-value,
+.updated-time-value {
+	color: var(--text-muted);
+	font-family: auto;
+	font-weight: 700;
+	font-size: 0.95em;
+	line-height: 1.2;
+}
+
+/*#endregion */
+
 h1 li {
 	translate: calc(0px - var(--list-indent)) 0;
 }

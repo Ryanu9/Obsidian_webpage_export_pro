@@ -75,7 +75,8 @@ export const language: i18n =
 			description: "Control settings on the document itself",
 			info_allowFoldingLists: "Whether or not to allow lists to be folded",
 			info_allowFoldingHeadings: "Whether or not to allow headings to be folded",
-			info_documentWidth: "The width of the document"
+			info_documentWidth: "The width of the document",
+			info_showCreatedUpdatedTime: "Show created and updated time below the page title"
 		},
 		sidebars: {
 			title: "Sidebars",

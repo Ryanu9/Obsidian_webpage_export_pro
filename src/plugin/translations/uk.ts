@@ -74,7 +74,8 @@ export const language: i18n =
 			description: "Керування налаштуваннями самого документа",
 			info_allowFoldingLists: "Дозволити чи заборонити згортання списків",
 			info_allowFoldingHeadings: "Дозволити чи заборонити згортання заголовків",
-			info_documentWidth: "Ширина документа"
+			info_documentWidth: "Ширина документа",
+			info_showCreatedUpdatedTime: "Показати час створення та оновлення під заголовком сторінки"
 		},
 		sidebars: {
 			title: "Бічні панелі",
