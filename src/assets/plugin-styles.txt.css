@@ -904,6 +904,12 @@ a.backlink:hover {
 	margin-left: 0.5em;
 }
 
+.header .data-bar> #tags {
+	border-left: none !important;
+	padding-left: 0;
+	margin-left: 0;
+}
+
 .header .data-bar:not(:empty) {
 	padding-bottom: 1em;
 	margin-bottom: 1em;
