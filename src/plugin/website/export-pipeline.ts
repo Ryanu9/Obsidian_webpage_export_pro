@@ -31,6 +31,7 @@ export class WebsiteExportPipeline
 			options.themeToggleOptions,
 			options.fileNavigationOptions,
 			options.customHeadOptions,
+			options.footerLinksOptions,
 			options.copyrightOptions
 		];
 		pipeline.assets = [];

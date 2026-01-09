@@ -50,6 +50,6 @@ export class GiscusOptions extends InsertedFeatureOptions {
         super();
         this.featureId = "giscus";
         this.enabled = false;
-        this.featurePlacement = new FeatureRelation(".footer", RelationType.End);
+        this.featurePlacement = new FeatureRelation(".footer .data-bar", RelationType.Start);
     }
 }

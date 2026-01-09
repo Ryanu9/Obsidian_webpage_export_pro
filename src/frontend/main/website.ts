@@ -27,6 +27,7 @@ import { BacklinkList } from "./backlinks";
 import { Tags } from "./tags";
 import { Aliases } from "./aliases";
 import { Copyright } from "./copyright";
+import { FooterLinks } from "./footer-links";
 import { TocScrollSpy } from "./toc-scrollspy";
 import { AttachmentDownload } from "./attachment-download";
 
@@ -64,6 +65,7 @@ export class ObsidianWebsite {
 	public backlinkList: BacklinkList | undefined = undefined;
 	public tags: Tags | undefined = undefined;
 	public aliases: Aliases | undefined = undefined;
+	public footerLinks: FooterLinks | undefined = undefined;
 	public copyright: Copyright | undefined = undefined;
 	public tocScrollSpy: TocScrollSpy | undefined = undefined;
 
@@ -182,6 +184,11 @@ export class ObsidianWebsite {
 					!ObsidianSite.metadata.ignoreMetadata &&
 					ObsidianSite.metadata.featureOptions.alias.enabled &&
 					doc.documentType == DocumentType.Markdown;
+				const insertFooterLinks =
+					doc.isMainDocument &&
+					!ObsidianSite.metadata.ignoreMetadata &&
+					ObsidianSite.metadata.featureOptions.footerLinks.enabled &&
+					doc.documentType == DocumentType.Markdown;
 				const insertCopyright =
 					doc.isMainDocument &&
 					!ObsidianSite.metadata.ignoreMetadata &&
@@ -265,6 +272,19 @@ export class ObsidianWebsite {
 					}
 				} else {
 					this.aliases?.hide();
+				}
+
+				// ------------------ FOOTER LINKS -----------------
+				if (insertFooterLinks) {
+					if (!this.footerLinks) {
+						this.footerLinks = new FooterLinks();
+					} else {
+						this.footerLinks.regenerate();
+					}
+
+					this.footerLinks?.show();
+				} else {
+					this.footerLinks?.hide();
 				}
 
 				// ------------------ COPYRIGHT -----------------

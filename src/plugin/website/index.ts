@@ -94,6 +94,7 @@ export class Index {
 				rss: options.rssOptions,
 				linkPreview: options.linkPreviewOptions,
 				giscus: options.giscusOptions,
+				footerLinks: options.footerLinksOptions,
 				copyright: options.copyrightOptions,
 			};
 

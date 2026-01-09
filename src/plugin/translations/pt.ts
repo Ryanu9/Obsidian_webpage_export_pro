@@ -150,6 +150,13 @@ export const language: i18n =
 			title: "Apelidos",
 			description: "Exibe os apelidos do documento atual."
 		},
+		footerLinks: {
+			title: "Links do Rodapé",
+			description: "Exibe links na parte inferior dos artigos.",
+			info_links: "Lista de links do rodapé, cada link contém texto e URL",
+			info_linkColorDark: "Cor do link no tema escuro",
+			info_linkColorLight: "Cor do link no tema claro"
+		},
 		copyright: {
 			title: "Copyright",
 			description: "Exibe informações de copyright na parte inferior dos artigos.",

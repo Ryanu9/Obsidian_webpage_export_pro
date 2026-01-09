@@ -52,6 +52,20 @@ export class Giscus extends DynamicInsertedFeature<GiscusOptions> {
         this.setupThemeSync();
     }
 
+    protected onAfterMount(): void {
+        super.onAfterMount();
+
+
+        const footerBar = document.querySelector(".footer .data-bar") as HTMLElement;
+        if (footerBar) {
+            const giscusEl = this.getElement(InsertedFeature.FEATURE_KEY);
+            if (giscusEl && giscusEl.parentElement === footerBar) {
+
+                footerBar.insertBefore(giscusEl, footerBar.firstChild);
+            }
+        }
+    }
+
     private getCurrentTheme(): string {
         const isDark = document.body.classList.contains("theme-dark");
         return isDark ? "dark" : "light";

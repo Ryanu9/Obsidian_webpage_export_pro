@@ -29,9 +29,10 @@ export function createToggle(container: HTMLElement, name: string, get: () => bo
 	return setting;
 }
 
-export function createText(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, desc: string = "", validation?: (value: string) => string, placeholder: string = "", multiline: boolean = false): Setting {
+export function createText(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, desc: string = "", validation?: (value: string) => string, placeholder: string = "", multiline: boolean = false, isColor: boolean = false): Setting {
 	const setting = new Setting(container);
 	const errorText = createError(container);
+	let textComponent: TextComponent | null = null;
 
 	const value = get();
 	if (value != "") errorText.setText(validation ? validation(value) : "");
@@ -39,7 +40,48 @@ export function createText(container: HTMLElement, name: string, get: () => stri
 	setting.setName(name)
 	if (desc != "") setting.setDesc(desc);
 	
-	if (multiline) {
+	if (isColor) {
+		// 颜色选择器 - Obsidian 的 addColorPicker 回调接收 ColorComponent
+		setting.addColorPicker((color) => {
+			color.setValue(value || "#000000");
+			color.onChange(async (colorValue: any) => {
+				// colorValue 可能是字符串或 ColorComponent，根据 Obsidian API 应该是 hex 字符串
+				const hexColor = typeof colorValue === 'string' 
+					? (colorValue.startsWith('#') ? colorValue : `#${colorValue}`)
+					: (colorValue as any)?.value || value;
+				const error = validation ? validation(hexColor) : "";
+				if (error == "") {
+					set(hexColor);
+					await SettingsPage.saveSettings();
+					// 选取颜色后，同步刷新文本输入框中的值
+					if (textComponent) {
+						textComponent.setValue(hexColor);
+					}
+				}
+				errorText.setText(error);
+			});
+		});
+
+		// 同时提供文本输入框以允许手动输入
+		setting.addText((text) => {
+			textComponent = text;
+			text.setPlaceholder(placeholder)
+				.setValue(value)
+				.onChange(async (textValue) => {
+					const error = validation ? validation(textValue) : "";
+					if (error == "") {
+						set(textValue);
+						await SettingsPage.saveSettings();
+						// 同步更新颜色选择器的值
+						const colorPicker = setting.settingEl.querySelector('input[type="color"]') as HTMLInputElement;
+						if (colorPicker && /^#[0-9A-Fa-f]{6}$/.test(textValue)) {
+							colorPicker.value = textValue;
+						}
+					}
+					errorText.setText(error);
+				});
+		});
+	} else if (multiline) {
 		setting.addTextArea((text) => {
 			text.inputEl.style.width = "100%";
 			text.inputEl.style.height = "120px";
@@ -245,63 +287,135 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 		}
 
 		if (Array.isArray(value)) {
-			const { section, sectionSetting } = createSectionGetSettings(container, name, description + " (Array with length: " + value.length + ")");
+			// 判断是否是 FooterLinkItem 类型
+			const isFooterLinkItem = value.length > 0 && typeof value[0] === 'object' && 'text' in value[0] && 'url' in value[0];
+			
+			if (isFooterLinkItem) {
+				// FooterLinkItem 类型：不使用可折叠的 section，直接显示标题和链接项
+				const titleSetting = new Setting(container);
+				titleSetting.setName(name);
+				titleSetting.setDesc(description);
+				
+				// 创建一个容器来包含所有的链接项
+				const linksContainer = container.createEl('div');
+				linksContainer.setAttribute('data-links-container', 'true');
+				
+				const renderLinks = () => {
+					// 清空链接容器
+					linksContainer.empty();
+					
+					// 重新渲染所有链接项
+					for (let i = 0; i < obj[key].length; i++) {
+						const linkItem = obj[key][i] as any;
+						const itemSetting = new Setting(linksContainer);
+						itemSetting.setName("");
+						
+						// 标题输入框
+						itemSetting.addText((text) => {
+							text.setPlaceholder("标题")
+								.setValue(linkItem.text || "");
+							text.inputEl.style.width = "150px";
+							text.onChange(async (v: string) => {
+								linkItem.text = v;
+								await SettingsPage.saveSettings();
+							});
+						});
+						
+						// 链接输入框
+						itemSetting.addText((text) => {
+							text.setPlaceholder("链接")
+								.setValue(linkItem.url || "");
+							text.inputEl.style.width = "calc(100% - 200px)";
+							text.onChange(async (v: string) => {
+								linkItem.url = v;
+								await SettingsPage.saveSettings();
+							});
+						});
+						
+						// 删除按钮
+						itemSetting.addExtraButton(button => button
+							.setIcon("trash-2")
+							.setTooltip("删除链接")
+							.onClick(() => {
+								obj[key].splice(i, 1);
+								SettingsPage.saveSettings();
+								// 只重新渲染链接部分
+								renderLinks();
+							}));
+					}
+					
+					// 在最后一行显示增加按钮（假设这行没有标题）
+					const addButtonSetting = new Setting(linksContainer);
+					addButtonSetting.setName("");
+					addButtonSetting.addButton(button => button
+						.setButtonText("添加链接")
+						.setCta()
+						.onClick(() => {
+							obj[key].push({ text: "", url: "" });
+							SettingsPage.saveSettings();
+							// 只重新渲染链接部分
+							renderLinks();
+						}));
+				};
+				
+				// 初始渲染
+				renderLinks();
+			} else {
+				// 其他类型：使用可折叠的 section
+				const { section, sectionSetting } = createSectionGetSettings(container, name, description + " (Array with length: " + value.length + ")");
 
-			for (let i = 0; i < value.length; i++) {
-				const type = typeof value[i];
-				name = "Element " + (i + 1);
-				description = "";
-				switch (type) {
-					case "boolean":
-						createToggle(section, name, () => value[i], (v) => obj[key][i] = v, description);
-						break;
-					case "string":
-						createText(section, name, () => value[i], (v) => obj[key][i] = v, description);
-						break;
-					case "number":
-						createText(section, name, () => value[i].toString(), (v) => obj[key][i] = parseFloat(v), description);
-						break;
-					case "object":
-						generateSettingsFromObject(value[i], createSection(section, name, description));
-						break;
-				}
-			}
-
-
-			sectionSetting.addExtraButton(button => button
-				.setIcon("plus")
-				.setTooltip("Add element")
-				.onClick(() => {
-					setTimeout(() => section.setAttribute("open", "open"), 0);
-					const prevItem = obj[key].length > 0 ? obj[key][obj[key].length - 1] : {};
-					const copy = SettingsPage.deepCopy(prevItem);
-					obj[key].push(copy);
-					name = "Element " + (obj[key].length);
+				for (let i = 0; i < value.length; i++) {
+					const type = typeof value[i];
+					name = "Element " + (i + 1);
 					description = "";
-					generateSettingsFromObject(copy, createSection(section, name, description));
-					SettingsPage.saveSettings();
+					switch (type) {
+						case "boolean":
+							createToggle(section, name, () => value[i], (v) => obj[key][i] = v, description);
+							break;
+						case "string":
+							createText(section, name, () => value[i], (v) => obj[key][i] = v, description);
+							break;
+						case "number":
+							createText(section, name, () => value[i].toString(), (v) => obj[key][i] = parseFloat(v), description);
+							break;
+						case "object":
+							const itemSection = createSection(section, name, description);
+							generateSettingsFromObject(value[i], itemSection);
+							break;
+					}
+				}
 
-					const descArr = sectionSetting.descEl.innerText.split("(");
-					descArr[descArr.length - 1] = "Array with length: " + obj[key].length + ")";
-					sectionSetting.descEl.innerText = descArr.join("(");
-				}));
+				// 其他类型：在 sectionSetting 上添加增加和删除按钮
+				sectionSetting.addExtraButton(button => button
+					.setIcon("plus")
+					.setTooltip("Add element")
+					.onClick(() => {
+						setTimeout(() => section.setAttribute("open", "open"), 0);
+						const prevItem = obj[key].length > 0 ? obj[key][obj[key].length - 1] : {};
+						const copy = SettingsPage.deepCopy(prevItem);
+						obj[key].push(copy);
+						SettingsPage.saveSettings();
+						container.empty();
+						generateSettingsFromObject(obj, container);
+					}));
 
-			sectionSetting.addExtraButton(button => button
-				.setIcon("minus")
-				.setTooltip("Remove element")
-				.onClick(() => {
-					setTimeout(() => section.setAttribute("open", "open"), 0);
-					if (obj[key].length <= 1)
-						return;
+				sectionSetting.addExtraButton(button => button
+					.setIcon("minus")
+					.setTooltip("Remove element")
+					.onClick(() => {
+						setTimeout(() => section.setAttribute("open", "open"), 0);
+						if (obj[key].length <= 1)
+							return;
 
-					obj[key].pop();
-					section.children[section.children.length - 1].remove();
-					SettingsPage.saveSettings();
+						obj[key].pop();
+						section.children[section.children.length - 1].remove();
+						SettingsPage.saveSettings();
 
-					const descArr = sectionSetting.descEl.innerText.split("(");
-					descArr[descArr.length - 1] = "Array with length: " + obj[key].length + ")";
-					sectionSetting.descEl.innerText = descArr.join("(");
-				}));
+						const descArr = sectionSetting.descEl.innerText.split("(");
+						descArr[descArr.length - 1] = "Array with length: " + obj[key].length + ")";
+						sectionSetting.descEl.innerText = descArr.join("(");
+					}));
+			}
 
 
 			continue;
@@ -312,7 +426,7 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 				createToggle(container, name, () => value, (v) => obj[key] = v, description);
 				break;
 			case "string":
-				createText(container, name, () => value, (v) => obj[key] = v, description, undefined, settinginfo.placeholder, settinginfo.multiline ?? false);
+				createText(container, name, () => value, (v) => obj[key] = v, description, undefined, settinginfo.placeholder, settinginfo.multiline ?? false, settinginfo.isColor ?? false);
 				break;
 			case "number":
 				createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);

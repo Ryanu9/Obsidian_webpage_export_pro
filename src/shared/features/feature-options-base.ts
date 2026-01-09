@@ -40,6 +40,7 @@ export class FeatureSettingInfo
 	description?: string = "";
 	placeholder?: string = "";
 	multiline?: boolean = false;
+	isColor?: boolean = false;
 
 	fileInputOptions?:
 	{
@@ -60,6 +61,7 @@ export class FeatureSettingInfo
 			description?: string, 
 			placeholder?: string, 
 			multiline?: boolean,
+			isColor?: boolean,
 			fileInputOptions?:
 			{
 				defaultPath?: string, 
@@ -79,6 +81,7 @@ export class FeatureSettingInfo
 			this.description = options.description ?? this.description;
 			this.placeholder = options.placeholder ?? this.placeholder;
 			this.multiline = options.multiline ?? this.multiline;
+			this.isColor = options.isColor ?? this.isColor;
 			this.fileInputOptions = options.fileInputOptions ?? this.fileInputOptions;
 			this.dropdownOptions = options.dropdownTypes ?? this.dropdownOptions;
 		}

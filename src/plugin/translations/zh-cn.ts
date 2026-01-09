@@ -150,6 +150,13 @@ export const language: i18n =
 			title: "别名",
 			description: "显示当前文档的别名。"
 		},
+		footerLinks: {
+			title: "底部链接",
+			description: "在文章底部显示链接信息。",
+			info_links: "底部链接列表，每个链接包含文本和URL",
+			info_linkColorDark: "暗色主题下的链接颜色",
+			info_linkColorLight: "亮色主题下的链接颜色"
+		},
 		copyright: {
 			title: "版权信息",
 			description: "在文章底部显示版权信息。",

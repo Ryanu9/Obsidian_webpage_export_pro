@@ -32,6 +32,7 @@ export class CopyrightOptions extends InsertedFeatureOptions {
 	constructor() {
 		super();
 		this.featureId = "copyright";
+		this.enabled = false;
 		this.featurePlacement = new FeatureRelation(
 			".footer .data-bar",
 			RelationType.End

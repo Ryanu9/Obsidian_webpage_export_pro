@@ -12,7 +12,7 @@ export class BacklinksOptions extends InsertedFeatureOptionsWithTitle {
 		this.displayTitle = i18n.settings.backlinks.title;
 		this.featurePlacement = new FeatureRelation(
 			".footer",
-			RelationType.Start
+			RelationType.End
 		);
 	}
 }

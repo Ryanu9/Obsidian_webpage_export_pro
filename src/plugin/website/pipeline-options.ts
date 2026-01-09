@@ -16,6 +16,7 @@ import { RssOptions } from "src/shared/features/rss";
 import { LinkPreviewOptions } from "src/shared/features/link-preview";
 import { GiscusOptions } from "src/shared/features/giscus";
 import { CopyrightOptions } from "src/shared/features/copyright";
+import { FooterLinksOptions } from "src/shared/features/footer-links";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -115,6 +116,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the copyright feature.
 	 */
 	copyrightOptions: CopyrightOptions = new CopyrightOptions();
+
+	/**
+	 * The options for the footer links feature.
+	 */
+	footerLinksOptions: FooterLinksOptions = new FooterLinksOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

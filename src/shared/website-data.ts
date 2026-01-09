@@ -13,6 +13,7 @@ import { SidebarOptions } from "./features/sidebar";
 import { TagsOptions } from "./features/tags";
 import { ThemeToggleOptions } from "./features/theme-toggle";
 import { CopyrightOptions } from "./features/copyright";
+import { FooterLinksOptions } from "./features/footer-links";
 
 export enum EmojiStyle {
 	Native = "Native",
@@ -144,6 +145,11 @@ export class WebsiteOptions {
 	 */
 	copyright: CopyrightOptions;
 
+	/**
+	 * The options for the footer links feature.
+	 */
+	footerLinks: FooterLinksOptions;
+
 	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
@@ -161,6 +167,7 @@ export class WebsiteOptions {
 		data.rss = Object.assign(new RssOptions(), data.rss);
 		data.linkPreview = Object.assign(new LinkPreviewOptions(), data.linkPreview);
 		data.giscus = Object.assign(new GiscusOptions(), data.giscus);
+		data.footerLinks = Object.assign(new FooterLinksOptions(), data.footerLinks ?? {});
 		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
 
 		return data;

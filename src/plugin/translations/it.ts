@@ -144,6 +144,13 @@ export const language: i18n =
 			title: "Alias",
 			description: "Mostra gli alias del documento attualmente aperto."
 		},
+		footerLinks: {
+			title: "Link Footer",
+			description: "Mostra i link in fondo agli articoli.",
+			info_links: "Elenco link footer, ogni link contiene testo e URL",
+			info_linkColorDark: "Colore del link nel tema scuro",
+			info_linkColorLight: "Colore del link nel tema chiaro"
+		},
 		copyright: {
 			title: "Copyright",
 			description: "Mostra le informazioni sul copyright in fondo agli articoli.",

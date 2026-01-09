@@ -154,6 +154,13 @@ export interface i18n {
 			title: string;
 			description: string;
 		},
+		footerLinks: {
+			title: string;
+			description: string;
+			info_links: string;
+			info_linkColorDark: string;
+			info_linkColorLight: string;
+		},
 		copyright: {
 			title: string;
 			description: string;
