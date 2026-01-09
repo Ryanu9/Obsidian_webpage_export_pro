@@ -36,8 +36,20 @@ export class YamlProperties {
     private extractFrontmatter(container: HTMLElement): Record<string, any> | null {
         try {
             const frontmatterEl = container.querySelector('.frontmatter, .yaml-frontmatter, pre[data-frontmatter]');
-            if (!frontmatterEl?.textContent) return null;
-            return this.parseYaml(frontmatterEl.textContent);
+            if (!frontmatterEl) return null;
+            
+            // Clone the element to avoid modifying the original
+            const clone = frontmatterEl.cloneNode(true) as HTMLElement;
+            
+            // Remove line number elements if they exist
+            const lineNumberWrappers = clone.querySelectorAll('.line-numbers-wrapper, .line-number');
+            lineNumberWrappers.forEach(el => el.remove());
+            
+            // Get text content without line numbers
+            const textContent = clone.textContent;
+            if (!textContent) return null;
+            
+            return this.parseYaml(textContent);
         } catch (error) {
             console.warn('解析YAML前置属性失败:', error);
             return null;

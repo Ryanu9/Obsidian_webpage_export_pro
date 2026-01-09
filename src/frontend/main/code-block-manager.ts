@@ -275,6 +275,18 @@ export class CodeBlockManager {
             .ansi-cyan-fg { color: cyan; }
             .ansi-white-fg { color: white; }
             .ansi-bright-black-fg { color: gray; }
+            
+            /* Exclude YAML properties from line numbers */
+            .yaml-properties-container pre {
+                display: block !important;
+                grid-template-columns: 1fr !important;
+            }
+            .yaml-properties-container .line-numbers-wrapper {
+                display: none !important;
+            }
+            .yaml-properties-container pre.has-line-numbers {
+                grid-template-columns: 1fr !important;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -292,6 +304,18 @@ export class CodeBlockManager {
         allPreElements.forEach(pre => {
             if (!pre) return;
             if (pre.getAttribute('data-processed') === 'true') return; // Avoid re-processing
+            
+            // Skip code blocks inside YAML properties container
+            if (pre.closest('.yaml-properties-container')) {
+                return;
+            }
+            
+            // Skip frontmatter elements (they should not have line numbers)
+            if (pre.classList.contains('frontmatter') || 
+                pre.classList.contains('yaml-frontmatter') || 
+                pre.hasAttribute('data-frontmatter')) {
+                return;
+            }
 
             const oldCopyButton = pre.querySelector('button.copy-code-button');
             if (oldCopyButton) {
