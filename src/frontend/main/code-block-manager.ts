@@ -133,22 +133,99 @@ export class CodeBlockManager {
                 border: none !important;
                 border-radius: 0 !important;
                 background: transparent !important;
+                font-family: var(--font-monospace, 'Consolas', monospace);
+                display: block;
+                position: relative;
+                overflow: visible;
+                clear: both;
+                float: none;
+            }
+
+            /* 当有行号时，使用 grid 布局 */
+            .markdown-rendered pre.has-line-numbers {
                 display: grid;
                 grid-template-columns: auto 1fr;
                 gap: 0;
-                font-family: var(--font-monospace, 'Consolas', monospace);
             }
 
-            .markdown-rendered pre code, 
-            .markdown-rendered pre.language-ansi > span,
-            .markdown-rendered pre .ansi-content-wrapper {
+            /* 当没有行号时，code 元素正常显示 */
+            .markdown-rendered pre:not(.has-line-numbers) {
+                display: block !important;
+            }
+
+            .markdown-rendered pre:not(.has-line-numbers) code,
+            .markdown-rendered pre:not(.has-line-numbers) code[data-line],
+            .markdown-rendered pre:not(.has-line-numbers).language-ansi > span,
+            .markdown-rendered pre:not(.has-line-numbers) .ansi-content-wrapper {
+                padding: 1em !important;
+                overflow-x: auto;
+                display: block !important;
+                white-space: pre !important; 
+                word-wrap: normal !important;
+                font-family: inherit;
+                position: static !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+                float: none !important;
+                clear: both !important;
+                transform: none !important;
+                z-index: auto !important;
+            }
+
+            /* 确保 code 内部的语法高亮元素在无行号时也正常显示 */
+            .markdown-rendered pre:not(.has-line-numbers) code * {
+                display: inline;
+                white-space: pre;
+                position: static !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+            }
+
+            /* 重置可能影响代码块显示的属性，特别是针对 is-loaded 类 */
+            .markdown-rendered pre:not(.has-line-numbers) code.is-loaded {
+                position: static !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                transform: none !important;
+                z-index: auto !important;
+            }
+
+            /* 当有行号时，code 元素占据 grid 第二列 */
+            .markdown-rendered pre.has-line-numbers code, 
+            .markdown-rendered pre.has-line-numbers.language-ansi > span,
+            .markdown-rendered pre.has-line-numbers .ansi-content-wrapper {
                 grid-column: 2;
+                grid-row: 1;
                 padding: 1em !important;
                 overflow-x: auto;
                 display: block;
                 white-space: pre !important; 
                 word-wrap: normal !important;
                 font-family: inherit;
+                min-width: 0; /* 防止 grid 项目溢出 */
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            /* 确保 code 内部的语法高亮元素正常显示，不影响 grid 布局 */
+            .markdown-rendered pre.has-line-numbers code * {
+                display: inline;
+                white-space: pre;
+            }
+
+            /* 当换行时，code 内部的语法高亮元素也要换行 */
+            .markdown-rendered pre.wrap-code.has-line-numbers code * {
+                white-space: pre-wrap !important;
             }
 
             .line-numbers-wrapper {
@@ -180,15 +257,37 @@ export class CodeBlockManager {
                 vertical-align: middle;
             }
 
-            /* Wrap Code Styles */
-            .markdown-rendered pre.wrap-code code,
-            .markdown-rendered pre.wrap-code.language-ansi > span,
-            .markdown-rendered pre.wrap-code .ansi-content-wrapper {
+            /* Wrap Code Styles - 没有行号时 */
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code,
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code[data-line],
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code.is-loaded,
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers).language-ansi > span,
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers) .ansi-content-wrapper {
                 white-space: pre-wrap !important;
                 word-wrap: break-word !important;
                 word-break: break-all !important;
                 width: 100% !important;
                 min-width: 0 !important; /* Override min-width: 100% */
+                overflow-x: visible !important;
+                overflow-wrap: break-word !important;
+            }
+
+            /* 当换行时，code 内部的语法高亮元素也要换行（无行号时） */
+            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code * {
+                white-space: pre-wrap !important;
+            }
+
+            /* Wrap Code Styles - 有行号时 */
+            .markdown-rendered pre.wrap-code.has-line-numbers code,
+            .markdown-rendered pre.wrap-code.has-line-numbers.language-ansi > span,
+            .markdown-rendered pre.wrap-code.has-line-numbers .ansi-content-wrapper {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                word-break: break-all !important;
+                width: 100% !important;
+                min-width: 0 !important; /* Override min-width: 100% */
+                overflow-x: visible !important;
+                overflow-wrap: break-word !important;
             }
 
             /* Collapse Styles */
@@ -286,6 +385,13 @@ export class CodeBlockManager {
             }
             .yaml-properties-container pre.has-line-numbers {
                 grid-template-columns: 1fr !important;
+            }
+
+            /* 隐藏 frontmatter 代码块，因为已经有 yaml-properties 显示了 */
+            .markdown-rendered pre.frontmatter,
+            .markdown-rendered pre.yaml-frontmatter,
+            .markdown-rendered pre[data-frontmatter] {
+                display: none !important;
             }
         `;
         document.head.appendChild(style);
