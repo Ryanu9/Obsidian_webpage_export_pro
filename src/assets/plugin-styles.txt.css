@@ -88,13 +88,13 @@ a.tree-item-self.is-clickable {
 }
 
 #webpage-icon:has(:is(svg, img)) {
-	font-size: 40px;
-	width: 40px;
-	height: 40px;
+	font-size: 1em;
+	width: 1em;
+	height: 1em;
 }
 
 #webpage-icon {
-	font-size: 40px;
+	font-size: 1em;
 	margin-bottom: 0;
 	margin-right: 0.5em;
 	font-family: emoji;
