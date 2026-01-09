@@ -319,6 +319,12 @@ export const language: i18n =
 			info_defaultWrap: "Увімкнути перенос слів для блоків коду за замовчуванням",
 			info_showBottomExpandButton: "Показувати кнопку розгорнути/згорнути внизу праворуч блоків коду",
 		},
+		vercelInsights: {
+			title: "Vercel Insights",
+			description: "Налаштування Vercel Analytics та Speed Insights",
+			info_enableVercelInsights: "Увімкнути Vercel Web Analytics (відстежує перегляди сторінок та взаємодії користувачів)",
+			info_enableVercelSpeedInsights: "Увімкнути Vercel Speed Insights (моніторить Core Web Vitals та метрики продуктивності)",
+		},
 	},
 	codeBlock: {
 		copy: "Копіювати",

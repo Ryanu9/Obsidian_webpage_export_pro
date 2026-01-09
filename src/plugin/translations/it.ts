@@ -314,6 +314,12 @@ export const language: i18n =
 			info_defaultWrap: "Abilita l'avvolgimento delle parole per i blocchi di codice per impostazione predefinita",
 			info_showBottomExpandButton: "Mostra il pulsante espandi/comprimi in basso a destra dei blocchi di codice",
 		},
+		vercelInsights: {
+			title: "Vercel Insights",
+			description: "Configura Vercel Analytics e Speed Insights",
+			info_enableVercelInsights: "Abilita Vercel Web Analytics (traccia visualizzazioni di pagina e interazioni utente)",
+			info_enableVercelSpeedInsights: "Abilita Vercel Speed Insights (monitora Core Web Vitals e metriche di performance)",
+		},
 	},
 	codeBlock: {
 		copy: "Copia",

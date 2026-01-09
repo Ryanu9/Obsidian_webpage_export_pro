@@ -321,6 +321,12 @@ export const language: i18n =
 			info_defaultWrap: "Enable word wrap for code blocks by default",
 			info_showBottomExpandButton: "Show expand/collapse button at the bottom right of code blocks",
 		},
+		vercelInsights: {
+			title: "Vercel Insights",
+			description: "Configure Vercel Analytics and Speed Insights",
+			info_enableVercelInsights: "Enable Vercel Web Analytics (tracks page views and user interactions)",
+			info_enableVercelSpeedInsights: "Enable Vercel Speed Insights (monitors Core Web Vitals and performance metrics)",
+		},
 	},
 	codeBlock: {
 		copy: "Copy",

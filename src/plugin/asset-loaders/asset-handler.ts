@@ -276,7 +276,36 @@ export class AssetHandler
 			head += asset.getHTML(options);
 		}
 
+		// Add Vercel Insights scripts if enabled
+		head += this.getVercelInsightsScripts(options);
+
 		return head;
+	}
+
+	private static getVercelInsightsScripts(options: ExportPipelineOptions): string
+	{
+		const vercelOptions = options.vercelInsightsOptions;
+		
+		// If neither feature is enabled, return empty string
+		if (!vercelOptions.enableVercelInsights && !vercelOptions.enableVercelSpeedInsights) {
+			return "";
+		}
+
+		let scripts = "";
+
+		// Vercel Web Analytics
+		if (vercelOptions.enableVercelInsights) {
+			scripts += `<script data-vercel-analytics="init">window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>`;
+			scripts += `<script data-vercel-analytics="loader" src="/_vercel/insights/script.js" defer></script>`;
+		}
+
+		// Vercel Speed Insights
+		if (vercelOptions.enableVercelSpeedInsights) {
+			scripts += `<script data-vercel-speed="init">window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };</script>`;
+			scripts += `<script data-vercel-speed="loader" src="/_vercel/speed-insights/script.js" defer></script>`;
+		}
+
+		return scripts;
 	}
 
 	/*Takes a style sheet string and creates assets from every font or image url embedded in it*/

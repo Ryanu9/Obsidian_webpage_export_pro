@@ -320,6 +320,12 @@ export const language: i18n =
 			info_defaultWrap: "默认启用代码块自动换行",
 			info_showBottomExpandButton: "在代码块底部右侧显示展开/收起按钮",
 		},
+		vercelInsights: {
+			title: "Vercel Insights",
+			description: "配置 Vercel 分析和速度监控",
+			info_enableVercelInsights: "启用 Vercel Web Analytics（跟踪页面浏览和用户交互）",
+			info_enableVercelSpeedInsights: "启用 Vercel Speed Insights（监控 Core Web Vitals 和性能指标）",
+		},
 	},
 	codeBlock: {
 		copy: "复制",

@@ -98,6 +98,7 @@ export class Index {
 				navbar: options.navbarOptions,
 				copyright: options.copyrightOptions,
 				codeBlock: options.codeBlockOptions,
+				vercelInsights: options.vercelInsightsOptions,
 			};
 
 			// set global values

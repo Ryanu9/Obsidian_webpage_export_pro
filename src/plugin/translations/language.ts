@@ -324,6 +324,12 @@ export interface i18n {
 			info_defaultWrap: string;
 			info_showBottomExpandButton: string;
 		},
+		vercelInsights: {
+			title: string;
+			description: string;
+			info_enableVercelInsights: string;
+			info_enableVercelSpeedInsights: string;
+		},
 	},
 	codeBlock: {
 		copy: string;

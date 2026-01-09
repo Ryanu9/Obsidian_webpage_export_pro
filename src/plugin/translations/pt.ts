@@ -320,6 +320,12 @@ export const language: i18n =
 			info_defaultWrap: "Habilitar quebra de linha para blocos de código por padrão",
 			info_showBottomExpandButton: "Mostrar botão expandir/recolher no canto inferior direito dos blocos de código",
 		},
+		vercelInsights: {
+			title: "Vercel Insights",
+			description: "Configurar Vercel Analytics e Speed Insights",
+			info_enableVercelInsights: "Habilitar Vercel Web Analytics (rastreia visualizações de página e interações do usuário)",
+			info_enableVercelSpeedInsights: "Habilitar Vercel Speed Insights (monitora Core Web Vitals e métricas de desempenho)",
+		},
 	},
 	codeBlock: {
 		copy: "Copiar",

@@ -65,6 +65,7 @@ export interface WebpageData extends FileData {
 
 import { GiscusOptions } from "./features/giscus";
 import { CodeBlockOptions } from "./features/code-block";
+import { VercelInsightsOptions } from "./features/vercel-insights";
 
 export class WebsiteOptions {
 	/**
@@ -162,6 +163,11 @@ export class WebsiteOptions {
 	 */
 	codeBlock: CodeBlockOptions;
 
+	/**
+	 * The options for the Vercel Insights feature.
+	 */
+	vercelInsights: VercelInsightsOptions;
+
 public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
@@ -183,6 +189,7 @@ public static fromJSON(json: string): WebsiteOptions {
 		data.navbar = Object.assign(new NavbarOptions(), data.navbar ?? {});
 		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
 		data.codeBlock = Object.assign(new CodeBlockOptions(), data.codeBlock ?? {});
+		data.vercelInsights = Object.assign(new VercelInsightsOptions(), data.vercelInsights ?? {});
 
 		return data;
 	}

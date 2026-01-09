@@ -19,6 +19,7 @@ import { CopyrightOptions } from "src/shared/features/copyright";
 import { FooterLinksOptions } from "src/shared/features/footer-links";
 import { NavbarOptions } from "src/shared/features/navbar";
 import { CodeBlockOptions } from "src/shared/features/code-block";
+import { VercelInsightsOptions } from "src/shared/features/vercel-insights";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -133,6 +134,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the code block feature.
 	 */
 	codeBlockOptions: CodeBlockOptions = new CodeBlockOptions();
+
+	/**
+	 * The options for the Vercel Insights feature.
+	 */
+	vercelInsightsOptions: VercelInsightsOptions = new VercelInsightsOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

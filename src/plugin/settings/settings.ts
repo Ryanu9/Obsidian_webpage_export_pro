@@ -270,6 +270,7 @@ export class SettingsPage extends PluginSettingTab {
 		createFeatureSetting(section, lang.copyright.title, Settings.exportOptions.copyrightOptions, lang.copyright.description);
 		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);
 		createFeatureSetting(section, lang.codeBlock.title, Settings.exportOptions.codeBlockOptions, lang.codeBlock.description);
+		createFeatureSetting(section, lang.vercelInsights.title, Settings.exportOptions.vercelInsightsOptions, lang.vercelInsights.description);
 		createFeatureSetting(section, lang.rss.title, Settings.exportOptions.rssOptions, lang.rss.description);
 		createFeatureSetting(section, lang.giscus.title, Settings.exportOptions.giscusOptions, lang.giscus.description, (container) => {
 			const giscus = Settings.exportOptions.giscusOptions;
