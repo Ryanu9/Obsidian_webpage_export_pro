@@ -313,8 +313,17 @@ export class ObsidianWebsite {
 		if (this.isHttp) {
 			let initialPath = this.document.pathname;
 			if (initialPath == "index.html") initialPath = "";
+			
+			// Preserve query parameters (especially for OAuth callbacks like Giscus)
+			const currentUrl = new URL(window.location.href);
+			const queryString = currentUrl.search;
+			// Only preserve query params if they exist (e.g., OAuth callbacks with code/state)
+			if (queryString) {
+				initialPath = initialPath + queryString;
+			}
+			
 			history.replaceState(
-				{ pathname: initialPath },
+				{ pathname: this.document.pathname },
 				this.document.title,
 				initialPath
 			);
