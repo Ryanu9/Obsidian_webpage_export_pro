@@ -1,7 +1,7 @@
 import { Shared } from "src/shared/shared";
 import MiniSearch, { SearchResult } from "minisearch";
 
-export enum ModalSearchType {
+export enum SearchType {
 	Title = 1,
 	Aliases = 2,
 	Headers = 4,
@@ -10,15 +10,7 @@ export enum ModalSearchType {
 	Content = 32,
 }
 
-const defaultSearchMask =
-	ModalSearchType.Title |
-	ModalSearchType.Aliases |
-	ModalSearchType.Headers |
-	ModalSearchType.Tags |
-	ModalSearchType.Path |
-	ModalSearchType.Content;
-
-interface ModalSearchResultItem extends SearchResult {
+interface SearchResultItem extends SearchResult {
 	title: string;
 	path: string;
 	headers?: string[];
@@ -27,578 +19,870 @@ interface ModalSearchResultItem extends SearchResult {
 	content?: string;
 }
 
-const INPUT_DEBOUNCE_MS = 80;
-const MAX_RESULTS = 30;
-
 export class ModalSearch {
-	private index: MiniSearch | undefined;
-
-	private overlayEl: HTMLElement | null = null;
-	private modalEl: HTMLElement | null = null;
-	private inputEl: HTMLInputElement | null = null;
-	private resultsEl: HTMLElement | null = null;
-	private toggleViewButtonEl: HTMLElement | null = null;
-
-	private currentResults: ModalSearchResultItem[] = [];
-	private selectedIndex = 0;
-	private isOpening = false;
-	private lastQuery = "";
-
-	private inputDebounceHandle: number | undefined;
+    private index: MiniSearch | null = null;
+    private modal: HTMLElement | null = null;
+    private overlay: HTMLElement | null = null;
+    private searchInput: HTMLInputElement | null = null;
+    private resultsContainer: HTMLElement | null = null;
+    private toggleBtn: HTMLButtonElement | null = null;
+    private selectedIndex: number = 0;
+    private currentResults: SearchResultItem[] = [];
 	private showDetailedView: boolean = false;
+    private searchTimeout: any = null;
 
 	constructor() {
-		this.onKeyDown = this.onKeyDown.bind(this);
-		this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
 	}
 
 	public async init(): Promise<ModalSearch | undefined> {
-		// Only load index once; if it fails we simply do not enable the modal search.
-		const resp = await ObsidianSite.fetch(
-			Shared.libFolderName + "/search-index.json",
-		);
-		if (!resp?.ok) return;
+        ModalSearch.injectStyles();
 
-		const raw = await resp.json();
+        const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
+        if (!indexResp?.ok) return;
 
-		try {
-			// @ts-ignore - MiniSearch.loadJS exists at runtime
-			this.index = MiniSearch.loadJS(raw, {
-				fields: ["title", "path", "tags", "headers", "aliases", "content"],
+        const indexJSON = await indexResp.json();
+        try {
+            // @ts-ignore
+            this.index = MiniSearch.loadJS(indexJSON, {
+                fields: ['title', 'path', 'tags', 'headers', 'aliases', 'content']
 			});
 		} catch (e) {
-			console.error("Failed to initialise modal search index", e);
+            console.error("ModalSearch: Failed to load index", e);
 			return;
 		}
 
-		this.buildDOM();
-		this.registerGlobalShortcuts();
-		this.bindTriggerElement();
+        this.createModal();
+        this.setupKeyboardShortcuts();
+        this.bindSearchButtons();
 		return this;
 	}
 
-	private bindTriggerElement() {
-		// 优先绑定到显式的放大镜图标
-		const icon = document.getElementById("search-icon");
-		if (icon) {
-			icon.addEventListener("click", (evt) => {
-				evt.preventDefault();
-				evt.stopPropagation();
+    private bindSearchButtons(): void {
+        const searchButtons = document.querySelectorAll('.search-icon, #search-icon, #search-input-container .search-icon');
+        searchButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
 				this.open();
 			});
-			return;
-		}
+        });
+    }
 
-
-		const container = document.getElementById("search-container");
-		if (container) {
-			container.addEventListener("click", (evt) => {
-				if (evt.target !== container) return;
-				evt.preventDefault();
-				evt.stopPropagation();
-				this.open();
-			});
-		}
-	}
-
-	private buildDOM() {
-		if (this.overlayEl) return;
-
-		const overlay = document.createElement("div");
-		overlay.className = "search-modal-overlay";
-		overlay.addEventListener("click", () => this.close());
-
-		const modal = document.createElement("div");
-		modal.className = "search-modal";
-		modal.addEventListener("click", (evt) => evt.stopPropagation());
-
-		const header = document.createElement("div");
-		header.className = "search-modal-header";
-
-		const input = document.createElement("input");
-		input.type = "search";
-		input.className = "search-modal-input";
-		input.placeholder = "Search notes…";
-		input.setAttribute("enterkeyhint", "search");
-		input.setAttribute("spellcheck", "false");
-
-		input.addEventListener("input", () => this.onInputChanged());
-		input.addEventListener("keydown", (evt) => {
-			if (
-				evt.key === "ArrowDown" ||
-				evt.key === "ArrowUp" ||
-				evt.key === "Enter"
-			) {
-				evt.preventDefault();
-				this.onKeyDown(evt);
+    private static injectStyles() {
+        if (document.getElementById('modal-search-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'modal-search-styles';
+        style.textContent = `
+			.search-modal-overlay {
+				position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+				background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+				z-index: 10000; display: none; align-items: flex-start;
+				justify-content: center; padding-top: 10vh; animation: modalSearchFadeIn 0.15s ease-out;
 			}
-		});
-
-		const toggle = document.createElement("button");
-		toggle.type = "button";
-		toggle.className = "search-modal-toggle";
-		toggle.setAttribute("aria-label", "Toggle detailed view");
-		toggle.innerHTML =
-			`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/></svg>`;
-		toggle.addEventListener("click", () => {
-			this.showDetailedView = !this.showDetailedView;
-			toggle.classList.toggle("active", this.showDetailedView);
-			this.renderResults(this.inputEl?.value ?? this.lastQuery);
-		});
-
-		header.appendChild(input);
-		header.appendChild(toggle);
-
-		const results = document.createElement("div");
-		results.className = "search-modal-results";
-
-		const hints = document.createElement("div");
-		hints.className = "search-modal-hints";
-		hints.innerHTML =
-			`<span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>` +
-			`<span><kbd>↵</kbd> Open</span>` +
-			`<span><kbd>Esc</kbd> Close</span>`;
-
-		modal.appendChild(header);
-		modal.appendChild(results);
-		modal.appendChild(hints);
-
-		overlay.appendChild(modal);
-		document.body.appendChild(overlay);
-
-		this.overlayEl = overlay;
-		this.modalEl = modal;
-		this.inputEl = input;
-		this.resultsEl = results;
-		this.toggleViewButtonEl = toggle;
-	}
-
-	private registerGlobalShortcuts() {
-		document.addEventListener("keydown", this.onGlobalKeyDown);
-	}
-
-	private onGlobalKeyDown(evt: KeyboardEvent) {
-		if ((evt.ctrlKey || evt.metaKey) && evt.key === "k") {
-			evt.preventDefault();
-			this.open();
-		} else if (evt.key === "Escape" && this.isOpen()) {
-			evt.preventDefault();
-			this.close();
-		}
-	}
-
-	public open(initialQuery: string = "") {
-		if (!this.overlayEl || !this.modalEl || this.isOpening) return;
-		this.isOpening = true;
-
-		this.overlayEl.classList.add("active");
-		this.modalEl.classList.add("active");
-		this.overlayEl.style.display = "flex";
-
-		requestAnimationFrame(() => {
-			this.inputEl?.focus();
-			if (initialQuery) {
-				this.inputEl!.value = initialQuery;
-				this.triggerSearch(initialQuery);
+			.search-modal-overlay.active { display: flex; }
+			@keyframes modalSearchFadeIn { from { opacity: 0; } to { opacity: 1; } }
+			.search-modal {
+				width: 90%; max-width: 800px; background: var(--background-primary);
+				border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+				display: flex; flex-direction: column; max-height: 75vh;
+				opacity: 0; transform: scale(0.95) translateY(-20px); transition: all 0.15s ease-out;
+				overflow: hidden; border: 1px solid var(--background-modifier-border);
 			}
-			this.isOpening = false;
-		});
-	}
+			.search-modal.active { opacity: 1; transform: scale(1) translateY(0); }
+			.search-modal-header {
+				display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+				border-bottom: 1px solid var(--background-modifier-border);
+			}
+			.search-modal-input {
+				flex: 1; border: none; outline: none; background: transparent;
+				font-size: 18px; color: var(--text-normal); font-family: inherit;
+			}
+			.search-modal-icon { color: var(--text-muted); display: flex; align-items: center; }
+			.search-modal-actions { display: flex; gap: 4px; }
+			.search-modal-btn {
+				padding: 6px; border: none; background: transparent; border-radius: 6px;
+				cursor: pointer; color: var(--text-muted); transition: all 0.15s ease;
+				display: flex; align-items: center; justify-content: center;
+			}
+			.search-modal-btn:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+			.search-modal-btn.active { background: var(--interactive-accent); color: white; }
+			.search-modal-results { flex: 1; overflow-y: auto; padding: 8px 0; min-height: 150px; }
+			.search-modal-result-item {
+				display: flex; gap: 12px; padding: 10px 20px; cursor: pointer;
+				margin: 2px 8px; border-radius: 8px; transition: background 0.1s;
+				border: 2px solid transparent; opacity: 0.7;
+			}
+			.search-modal-result-item:hover { background: var(--background-modifier-hover); opacity: 0.9; }
+			.search-modal-result-item.selected {
+				background: var(--background-primary-alt); border-color: var(--interactive-accent);
+				opacity: 1;
+			}
+			.search-result-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+			.search-result-path {
+				font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;
+				white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+			}
+			.search-result-title { font-weight: 600; font-size: 15px; color: var(--text-normal); }
+			.search-modal-result-item.selected .search-result-title { color: var(--interactive-accent); }
+			.search-result-excerpt {
+				font-size: 13px; color: var(--text-muted, #666); line-height: 1.6;
+				margin-top: 4px; word-break: break-word;
+			}
+			/* 摘要内的富文本样式还原 (加粗与斜体) */
+			.search-result-excerpt strong {
+				font-weight: 600; color: var(--text-normal, #333);
+			}
+			.search-result-excerpt em {
+				font-style: italic; color: var(--text-normal, #555);
+			}
+			/* 摘要内的代码展示 (行内与块级) */
+			.search-result-excerpt code.inline-code {
+				background: var(--code-background, #f5f5f5);
+				color: var(--code-normal, #e83e8c);
+				padding: 2px 6px; border-radius: 3px;
+				font-size: 0.9em;
+				font-family: var(--font-monospace, 'Consolas', 'Monaco', monospace);
+			}
+			/* 摘要中的代码块预览 */
+			.search-result-excerpt pre.search-excerpt-code {
+				margin: 0.5rem 0; padding: 0.75rem;
+				background: var(--code-block-background, #f3f4f6);
+				border-radius: 6px; font-size: 0.9em;
+				line-height: 1.5; white-space: pre-wrap;
+				color: var(--code-block-text, #1f2933);
+			}
+			/* 搜索命中词的高亮 (通用样式，适用于所有位置) */
+			mark.search-excerpt-highlight {
+				background: var(--text-highlight-bg, #ffd60a);
+				color: var(--text-normal, #333);
+				padding: 2px 4px; border-radius: 2px;
+			}
+			/* 摘要内的 mark 标签（如果没有 search-excerpt-highlight 类） */
+			.search-result-excerpt mark:not(.search-excerpt-highlight) {
+				background: transparent; color: var(--text-accent); font-weight: bold;
+			}
+			/* 摘要中的省略符号 (三个点) 样式 */
+			.search-result-excerpt .search-excerpt-ellipsis {
+				color: var(--text-faint, #999); font-style: italic; margin: 0 2px;
+			}
+			/* 摘要中的链接样式 */
+			.search-result-excerpt a.search-excerpt-link {
+				color: var(--text-accent, #4a9eff);
+				text-decoration: underline;
+			}
+			/* 摘要中的标题样式 */
+			.search-result-excerpt .search-excerpt-heading {
+				display: block; font-weight: 600;
+				margin: 0.25rem 0; color: var(--text-normal, #333);
+			}
+			/* 摘要中的列表项样式 */
+			.search-result-excerpt .search-excerpt-list-item {
+				display: block; margin: 0.2rem 0;
+			}
+			.search-result-excerpt .search-excerpt-list-item--ordered {
+				display: flex; gap: 0.5rem;
+			}
+			/* 摘要中的图片标记样式 */
+			.search-result-excerpt .search-excerpt-image {
+				color: var(--text-muted, #666);
+				font-style: italic;
+			}
+			.search-result-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+			.search-tag {
+				font-size: 11px; padding: 2px 8px; background: var(--background-secondary);
+				border-radius: 10px; color: var(--text-accent);
+			}
+			.search-alias { font-size: 12px; color: var(--text-accent); display: flex; align-items: center; gap: 4px; }
+			.search-alias::before { content: "alias"; font-size: 10px; opacity: 0.7; }
+			.search-modal-hints {
+				display: flex; justify-content: center; gap: 15px; padding: 10px;
+				border-top: 1px solid var(--background-modifier-border); font-size: 11px; color: var(--text-faint);
+			}
+			.search-modal-hints kbd {
+				background: var(--background-secondary); padding: 2px 5px; border-radius: 4px;
+				border: 1px solid var(--background-modifier-border);
+			}
+			.breadcrumb-sep { opacity: 0.5; font-size: 10px; }
+			
+			/* Dark theme specific overrides if needed */
+			.theme-dark .search-result-excerpt mark { color: #f7b756; }
+			.theme-light .search-result-excerpt mark { color: #db74db; }
+			.search-result-icon { color: var(--interactive-accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding-top: 2px; }
+			.search-tag.header-match { background: rgba(var(--interactive-accent-rgb), 0.1); border: 1px solid var(--interactive-accent); cursor: pointer; }
+			.search-tag.header-match:hover { background: var(--interactive-accent); color: white; }
+		`;
+        document.head.appendChild(style);
+    }
 
-	public close() {
-		if (!this.overlayEl || !this.modalEl) return;
+    private createModal(): void {
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'search-modal-overlay';
+        this.overlay.onclick = () => this.close();
 
-		this.overlayEl.classList.remove("active");
-		this.modalEl.classList.remove("active");
-		this.overlayEl.style.display = "none";
+        this.modal = document.createElement('div');
+        this.modal.className = 'search-modal';
+        this.modal.onclick = (e) => e.stopPropagation();
 
-		this.currentResults = [];
-		this.selectedIndex = 0;
-		this.lastQuery = "";
-		if (this.resultsEl) {
-			this.resultsEl.innerHTML = "";
-		}
-	}
+        const header = document.createElement('div');
+        header.className = 'search-modal-header';
+        header.innerHTML = `
+			<div class="search-modal-icon">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+			</div>
+		`;
 
-	public isOpen(): boolean {
-		return !!this.overlayEl && this.overlayEl.classList.contains("active");
-	}
+        this.searchInput = document.createElement('input');
+        this.searchInput.className = 'search-modal-input';
+        this.searchInput.placeholder = 'Search...';
+        this.searchInput.oninput = this.handleInputChange;
+        this.searchInput.onkeydown = this.handleKeyDown;
 
-	private onInputChanged() {
-		if (!this.inputEl) return;
-		const value = this.inputEl.value.trim();
+        const actions = document.createElement('div');
+        actions.className = 'search-modal-actions';
 
-		if (this.inputDebounceHandle != null) {
-			window.clearTimeout(this.inputDebounceHandle);
-		}
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'search-modal-btn';
+        toggleBtn.title = 'Toggle Detailed View';
+        toggleBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
+        this.toggleBtn = toggleBtn;
+        toggleBtn.onclick = () => {
+            this.toggleDetailedView();
+        };
 
-		if (!value) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'search-modal-btn';
+        closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        closeBtn.onclick = () => this.close();
+
+        actions.append(toggleBtn, closeBtn);
+        header.append(this.searchInput, actions);
+
+        this.resultsContainer = document.createElement('div');
+        this.resultsContainer.className = 'search-modal-results';
+
+        const hints = document.createElement('div');
+        hints.className = 'search-modal-hints';
+        hints.innerHTML = `<span><kbd>↑↓</kbd> Navigate</span><span><kbd>Enter</kbd> Open</span><span><kbd>Esc</kbd> Close</span>`;
+
+        this.modal.append(header, this.resultsContainer, hints);
+        this.overlay.append(this.modal);
+        document.body.append(this.overlay);
+    }
+
+    private setupKeyboardShortcuts(): void {
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                this.open();
+            }
+            if (e.key === 'Escape' && this.isOpen()) this.close();
+        });
+    }
+
+    private handleInputChange(): void {
+        if (this.searchTimeout) clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            const query = this.searchInput?.value || "";
+            this.performSearch(query);
+        }, 100);
+    }
+
+    private performSearch(query: string): void {
+        if (!this.index || query.length === 0) {
 			this.currentResults = [];
-			this.selectedIndex = 0;
-			if (this.resultsEl) this.resultsEl.textContent = "";
+            this.renderResults("");
 			return;
 		}
-
-		this.inputDebounceHandle = window.setTimeout(() => {
-			this.triggerSearch(value);
-		}, INPUT_DEBOUNCE_MS);
-	}
-
-	private triggerSearch(query: string) {
-		if (!this.index || !query || query === this.lastQuery) return;
-
-		this.lastQuery = query;
-		const fields: string[] = [];
-		const mask = defaultSearchMask;
-		if (mask & ModalSearchType.Title) fields.push("title");
-		if (mask & ModalSearchType.Aliases) fields.push("aliases");
-		if (mask & ModalSearchType.Headers) fields.push("headers");
-		if (mask & ModalSearchType.Tags) fields.push("tags");
-		if (mask & ModalSearchType.Path) fields.push("path");
-		if (mask & ModalSearchType.Content) fields.push("content");
 
 		const results = this.index.search(query, {
-			prefix: true,
-			fuzzy: 0.2,
-			boost: {
-				title: 2,
-				aliases: 1.8,
-				headers: 1.5,
-				tags: 1.3,
-				path: 1.1,
-			},
-			fields,
-		}) as ModalSearchResultItem[];
+            prefix: true, fuzzy: 0.2,
+            boost: { title: 2, aliases: 1.8, headers: 1.5, tags: 1.3, path: 1.1 }
+        }) as SearchResultItem[];
 
-		this.currentResults = results.slice(0, MAX_RESULTS);
+        const shownInTree = ObsidianSite.metadata?.shownInTree || [];
+        this.currentResults = results
+            .filter(r => r.path && r.title && (shownInTree.length === 0 || shownInTree.includes(r.path)))
+            .slice(0, 30);
+
 		this.selectedIndex = 0;
 		this.renderResults(query);
 	}
 
-	private onKeyDown(evt: KeyboardEvent) {
-		if (!this.currentResults.length) return;
+    private renderResults(query: string): void {
+        if (!this.resultsContainer) return;
+        this.resultsContainer.innerHTML = '';
 
-		if (evt.key === "ArrowDown") {
-			evt.preventDefault();
-			this.selectedIndex = Math.min(
-				this.selectedIndex + 1,
-				this.currentResults.length - 1,
-			);
-			this.renderSelection();
-		} else if (evt.key === "ArrowUp") {
-			evt.preventDefault();
-			this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
-			this.renderSelection();
-		} else if (evt.key === "Enter") {
-			evt.preventDefault();
-			this.openSelected();
-		}
-	}
-
-	private openSelected() {
-		const item = this.currentResults[this.selectedIndex];
-		if (!item) return;
-
-		const target = item.path.endsWith(".html") ? item.path : item.path + ".html";
-		const url = target + "?mark=" + encodeURIComponent(this.lastQuery);
-
-		this.close();
-		// Reuse the same navigation flow as internal links so history,
-		// sidebars and other features stay consistent.
-		ObsidianSite.loadURL(url);
-	}
-
-	private renderResults(query: string) {
-		if (!this.resultsEl) return;
-		this.resultsEl.textContent = "";
-
-		if (!this.currentResults.length) {
-			const empty = document.createElement("div");
-			empty.className = "search-modal-empty";
-			empty.textContent = "No results";
-			this.resultsEl.appendChild(empty);
+        if (this.currentResults.length === 0 && query.length > 0) {
+            this.resultsContainer.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-faint)">No results found.</div>`;
 			return;
 		}
 
-		const fragment = document.createDocumentFragment();
-		const lowerQuery = query.toLowerCase();
+        this.currentResults.forEach((result, i) => {
+            const item = this.createResultItem(result, query, i);
+            this.resultsContainer?.append(item);
+        });
+        this.updateSelection();
+    }
 
-		for (let i = 0; i < this.currentResults.length; i++) {
-			const result = this.currentResults[i];
-			const container = document.createElement("div");
-			container.className = "search-modal-result-item";
-			if (i === this.selectedIndex) {
-				container.classList.add("selected");
-			}
-			if (this.showDetailedView) {
-				container.classList.add("detailed");
-			}
+    private createResultItem(result: SearchResultItem, query: string, index: number): HTMLElement {
+        const div = document.createElement('div');
+        div.className = 'search-modal-result-item';
+        div.onclick = () => this.selectResult(result);
+        div.onmouseenter = () => { this.selectedIndex = index; this.updateSelection(); };
 
-			container.addEventListener("mouseenter", () => {
-				this.selectedIndex = i;
-				this.renderSelection();
-			});
-			container.addEventListener("click", () => {
-				this.selectedIndex = i;
-				this.openSelected();
-			});
+        const icon = document.createElement('div');
+        icon.className = 'search-result-icon';
+        icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>`;
 
-			const main = document.createElement("div");
-			main.className = "search-result-main";
+        const content = document.createElement('div');
+        content.className = 'search-result-content';
 
-			const titleEl = document.createElement("div");
-			titleEl.className = "search-result-title";
-			titleEl.innerHTML = this.highlightText(
-				result.title ?? result.path,
-				lowerQuery,
-			);
+        const path = result.path.replace(/\.html$/, '').split('/').filter(p => p && p !== 'index');
+        const pathEl = document.createElement('div');
+        pathEl.className = 'search-result-path';
+        pathEl.innerHTML = path.map(p => `<span>${this.escape(p)}</span>`).join('<span class="breadcrumb-sep">›</span>');
 
-			const pathEl = document.createElement("div");
-			pathEl.className = "search-result-path";
-			pathEl.textContent = result.path;
+        const title = document.createElement('div');
+        title.className = 'search-result-title';
+        title.innerHTML = this.highlight(result.title, query);
 
-			const excerptEl = document.createElement("div");
-			excerptEl.className = "search-result-excerpt";
-			excerptEl.innerHTML = this.buildExcerptHTML(result, lowerQuery);
-
-			main.appendChild(titleEl);
-			main.appendChild(pathEl);
-			main.appendChild(excerptEl);
+        content.append(pathEl, title);
 
 			if (this.showDetailedView) {
-				const meta = this.buildMetaSection(result, lowerQuery);
-				if (meta) {
-					main.appendChild(meta);
-				}
-			}
+            if (result.content) {
+                const excerpt = document.createElement('div');
+                excerpt.className = 'search-result-excerpt';
+                excerpt.innerHTML = this.getExcerpt(result.content, query);
+                content.append(excerpt);
+            }
 
-			container.appendChild(main);
-			fragment.appendChild(container);
-		}
+            const meta = document.createElement('div');
+            meta.className = 'search-result-meta';
 
-		this.resultsEl.appendChild(fragment);
-	}
+            if (result.aliases?.length) {
+                result.aliases.slice(0, 2).forEach(a => {
+                    const s = document.createElement('span');
+                    s.className = 'search-alias';
+                    s.innerHTML = this.highlight(a, query);
+                    meta.append(s);
+                });
+            }
 
-	private renderSelection() {
-		if (!this.resultsEl) return;
-		const children = this.resultsEl.querySelectorAll(".search-modal-result-item");
-		children.forEach((el, idx) => {
-			if (idx === this.selectedIndex) el.classList.add("selected");
-			else el.classList.remove("selected");
-		});
+            if (result.headers?.length) {
+                const matching = result.headers.filter(h => h.toLowerCase().includes(query.toLowerCase())).slice(0, 3);
+                matching.forEach(h => {
+                    const s = document.createElement('a');
+                    s.className = 'search-tag header-match';
+                    s.innerHTML = '§ ' + this.highlight(h, query);
+                    s.onclick = (e) => {
+                        e.stopPropagation();
+                        ObsidianSite.loadURL(result.path + '#' + encodeURIComponent(h));
+                        this.close();
+                    };
+                    meta.append(s);
+                });
+            }
 
-		const selected = children[this.selectedIndex] as HTMLElement | undefined;
-		if (selected) {
-			selected.scrollIntoView({ block: "nearest" });
-		}
-	}
+            if (result.tags?.length) {
+                result.tags.slice(0, 3).forEach(t => {
+                    const s = document.createElement('span');
+                    s.className = 'search-tag';
+                    s.innerHTML = '#' + this.highlight(t, query);
+                    meta.append(s);
+                });
+            }
+            if (meta.children.length) content.append(meta);
+        }
 
-	private highlightText(text: string, queryLower: string): string {
-		if (!text) return "";
-		const idx = text.toLowerCase().indexOf(queryLower);
-		if (idx === -1) {
-			return text;
-		}
-		const before = text.slice(0, idx);
-		const match = text.slice(idx, idx + queryLower.length);
-		const after = text.slice(idx + queryLower.length);
-		return `${this.escapeHtml(before)}<mark>${this.escapeHtml(
-			match,
-		)}</mark>${this.escapeHtml(after)}`;
-	}
+        div.append(icon, content);
+        return div;
+    }
 
-	private buildExcerptHTML(
-		item: ModalSearchResultItem,
-		queryLower: string,
-	): string {
-		const rawContent = item.content ?? "";
-		if (!rawContent) return "";
+    private updateSelection(): void {
+        const items = this.resultsContainer?.querySelectorAll('.search-modal-result-item');
+        items?.forEach((el, i) => {
+            if (i === this.selectedIndex) {
+                el.classList.add('selected');
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            } else {
+                el.classList.remove('selected');
+            }
+        });
+    }
 
-		const maxChars = 260;
-		const textOnly = this.stripHtml(rawContent);
-		const lower = textOnly.toLowerCase();
+    private handleKeyDown(e: KeyboardEvent): void {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.selectedIndex = (this.selectedIndex + 1) % Math.max(1, this.currentResults.length);
+            this.updateSelection();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.selectedIndex = (this.selectedIndex - 1 + this.currentResults.length) % Math.max(1, this.currentResults.length);
+            this.updateSelection();
+        } else if (e.key === 'Enter') {
+            const res = this.currentResults[this.selectedIndex];
+            if (res) this.selectResult(res);
+        } else if (e.key === 'Tab') {
+            e.preventDefault();
+            this.toggleDetailedView();
+        }
+    }
 
-		const terms = this.getQueryTerms(queryLower);
-		if (!terms.length) {
-			return this.escapeHtml(
-				textOnly.length > maxChars ? textOnly.slice(0, maxChars) + "…" : textOnly,
-			);
-		}
+    private toggleDetailedView(): void {
+        this.showDetailedView = !this.showDetailedView;
+        if (this.toggleBtn) {
+            this.toggleBtn.classList.toggle('active', this.showDetailedView);
+        }
+        this.performSearch(this.searchInput?.value || "");
+    }
 
-		const halfWindow = Math.floor(maxChars / 2);
-		let bestStart = 0;
-		let bestScore = -1;
+    private selectResult(result: SearchResultItem): void {
+        ObsidianSite.loadURL(result.path);
+        this.close();
+    }
 
-		for (const term of terms) {
-			let fromIndex = 0;
-			while (true) {
-				const hit = lower.indexOf(term, fromIndex);
-				if (hit === -1) break;
-				fromIndex = hit + term.length;
+    public open(): void {
+        this.overlay?.classList.add('active');
+        this.modal?.classList.add('active');
+        this.searchInput?.focus();
+        this.searchInput?.select();
+    }
 
-				const windowStart = Math.max(0, hit - halfWindow);
-				const windowEnd = Math.min(textOnly.length, windowStart + maxChars);
+    public close(): void {
+        this.overlay?.classList.remove('active');
+        this.modal?.classList.remove('active');
+    }
 
-				let score = 0;
-				for (const t of terms) {
-					const pos = lower.indexOf(t, windowStart);
-					if (pos !== -1 && pos <= windowEnd) {
-						score += 1;
-					}
-				}
+    public isOpen(): boolean { return this.overlay?.classList.contains('active') ?? false; }
 
-				if (score > bestScore) {
-					bestScore = score;
-					bestStart = windowStart;
-				}
-			}
-		}
+    private highlight(text: string, query: string): string {
+        if (!query) return this.escape(text);
+        const words = query.trim().split(/\s+/).map(w => this.escapeRegex(w)).filter(w => w);
+        if (!words.length) return this.escape(text);
+        const regex = new RegExp(`(${words.join('|')})`, 'gi');
+        return this.escape(text).replace(regex, '<mark class="search-excerpt-highlight">$1</mark>');
+    }
 
-		let start = bestStart;
-		let end = Math.min(textOnly.length, start + maxChars);
+    private getExcerpt(content: string, query: string): string {
+        if (!content) return "";
+        // 使用 HTML 格式的摘要，支持 Markdown 语法转换和富文本展示
+        return this.getHtmlExcerpt(content, query, 200);
+    }
 
-		// 尝试在单词或句子边界截断，避免在中间断开
-		if (end < textOnly.length) {
-			const punctuationIndex = textOnly.slice(start, end).search(/[.!?](\s|$)/);
-			if (punctuationIndex !== -1 && punctuationIndex > maxChars * 0.3) {
-				end = start + punctuationIndex + 1;
-			} else {
-				const space = textOnly.indexOf(" ", end);
-				if (space > -1 && space - end < 40) {
-					end = space;
-				}
-			}
-		}
+    /**
+     * 生成 HTML 格式的摘要，支持 Markdown 语法转换和富文本展示
+     */
+    private getHtmlExcerpt(text: string, query: string, maxLength: number = 200): string {
+        if (!text) return "";
 
-		const slice = textOnly.slice(start, end);
-		let safe = this.escapeHtml(slice);
+        // 获取纯文本版本用于定位
+        const cleanText = this.cleanTextContent(text);
+        const excerptInfo = this.findBestExcerptPosition(cleanText, query, maxLength);
 
-		if (start > 0) safe = "…" + safe;
-		if (end < textOnly.length) safe = safe + "…";
+        // 转换 Markdown 格式为 HTML
+        let html = text;
+        const codeBlocks: string[] = [];
 
-		const parts = this.getQueryTerms(queryLower).map((t) => this.escapeRegExp(t));
-		const re =
-			parts.length === 1
-				? new RegExp(parts[0], "gi")
-				: new RegExp("(" + parts.join("|") + ")", "gi");
-		safe = safe.replace(re, (m) => `<mark>${m}</mark>`);
+        // 先保护已有的 HTML 标签（如果有）
+        const htmlTagPattern = /<[^>]+>/g;
+        const htmlTags: string[] = [];
+        html = html.replace(htmlTagPattern, (match) => {
+            htmlTags.push(match);
+            return `__HTML_TAG_${htmlTags.length - 1}__`;
+        });
 
-		return safe;
-	}
+        // 提取并占位代码块，防止后续格式化破坏结构
+        html = html.replace(
+            /```(?:([\w+-]+)\s*)?([\s\S]*?)```/g,
+            (_match: string, language: string | undefined, codeContent: string) => {
+                const languageClass = language
+                    ? ` search-excerpt-code--${language.trim().toLowerCase()}`
+                    : "";
+                const normalizedCode = `${codeContent}`
+                    .replace(/^\s*[\r\n]+/, "")
+                    .replace(/[\r\n]+\s*$/, "")
+                    .replace(/\r\n/g, "\n")
+                    .replace(/\r/g, "\n");
+                const escapedCode = this.escape(normalizedCode);
+                const codeHtml = `<pre class="search-excerpt-code${languageClass}"><code>${escapedCode}</code></pre>`;
+                codeBlocks.push(codeHtml);
+                return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
+            },
+        );
 
-	private stripHtml(html: string): string {
-		const tmp = document.createElement("div");
-		tmp.innerHTML = html;
-		return tmp.textContent || tmp.innerText || "";
-	}
+        // 转换基本的 Markdown 语法为 HTML
+        // 加粗 **text** 或 __text__
+        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
 
-	private escapeHtml(value: string): string {
-		return value
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;")
-			.replace(/"/g, "&quot;")
-			.replace(/'/g, "&#039;");
-	}
+        // 斜体 *text* 或 _text_ （避免与加粗冲突）
+        html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
+        html = html.replace(/(?<!_)_([^_]+)_(?!_)/g, "<em>$1</em>");
 
-	private escapeRegExp(value: string): string {
-		return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	}
+        // 行内代码 `code`
+        html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
 
-	private getQueryTerms(queryLower: string): string[] {
-		return queryLower
-			.split(/[\s,;]+/)
-			.map((t) => t.trim())
-			.filter((t) => t.length > 1);
-	}
+        // 链接 [text](url) - 保留为链接样式
+        html = html.replace(
+            /\[([^\]]+)\]\(([^\)]+)\)/g,
+            '<a href="$2" class="search-excerpt-link">$1</a>',
+        );
 
-	private buildMetaSection(
-		item: ModalSearchResultItem,
-		queryLower: string,
-	): HTMLElement | null {
-		const aliases = item.aliases ?? [];
-		const tags = item.tags ?? [];
-		const headers = item.headers ?? [];
+        // 图片 ![alt](url) - 显示为图片标记
+        html = html.replace(
+            /!\[([^\]]*)\]\([^\)]+\)/g,
+            '<span class="search-excerpt-image">🖼️ $1</span>',
+        );
 
-		if (!aliases.length && !tags.length && !headers.length) return null;
+        // 标题 # Header
+        html = html.replace(
+            /^#{1,6}\s+(.+)$/gm,
+            '<strong class="search-excerpt-heading">$1</strong>',
+        );
 
-		const root = document.createElement("div");
-		root.className = "search-result-meta";
+        // 删除线 ~~text~~
+        html = html.replace(/~~([^~]+)~~/g, "<del>$1</del>");
 
-		const terms = this.getQueryTerms(queryLower);
+        // 高亮 ==text==
+        html = html.replace(
+            /==([^=]+)==/g,
+            '<mark class="search-excerpt-highlight">$1</mark>',
+        );
 
-		if (aliases.length) {
-			const aliasEl = document.createElement("div");
-			aliasEl.className = "search-result-aliases";
-			for (const a of aliases.slice(0, 6)) {
-				const chip = document.createElement("span");
-				chip.className = "meta-chip alias-chip";
-				chip.textContent = a;
-				if (this.textMatchesTerms(a, terms)) {
-					chip.classList.add("match");
-				}
-				aliasEl.appendChild(chip);
-			}
-			root.appendChild(aliasEl);
-		}
+        // 列表项 - * item 或 - item
+        html = html.replace(
+            /^\s*[-*+]\s+(.+)$/gm,
+            '<span class="search-excerpt-list-item">• $1</span>',
+        );
 
-		const matchingHeaders = this.pickMatchingHeaders(headers, terms);
-		if (matchingHeaders.length) {
-			const headersEl = document.createElement("div");
-			headersEl.className = "search-result-headers";
-			for (const h of matchingHeaders.slice(0, 5)) {
-				const link = document.createElement("button");
-				link.type = "button";
-				link.className = "meta-chip header-chip";
-				link.textContent = h;
-				link.addEventListener("click", (evt) => {
-					evt.preventDefault();
-					evt.stopPropagation();
-					const target = item.path.endsWith(".html")
-						? item.path
-						: item.path + ".html";
-					const url = `${target}#${encodeURIComponent(h)}`;
-					this.close();
-					ObsidianSite.loadURL(url);
-				});
-				headersEl.appendChild(link);
-			}
-			root.appendChild(headersEl);
-		}
+        // 有序列表 1. 项目 或 1.1. 项目
+        html = html.replace(
+            /^\s*(\d+(?:\.\d+)*)(?:[\.)])\s+(.+)$/gm,
+            (_match, indexToken: string, listContent: string) => {
+                const normalizedIndex = `${indexToken}`.replace(/\.$/, "");
+                const normalizedContent = listContent.trim();
+                return `<span class="search-excerpt-list-item search-excerpt-list-item--ordered"><span class="search-excerpt-list-index">${normalizedIndex}.</span><span class="search-excerpt-list-content">${normalizedContent}</span></span>`;
+            },
+        );
 
-		if (tags.length) {
-			const tagsEl = document.createElement("div");
-			tagsEl.className = "search-result-tags";
-			for (const t of tags.slice(0, 8)) {
-				const chip = document.createElement("span");
-				chip.className = "meta-chip tag-chip";
-				chip.textContent = t.startsWith("#") ? t : `#${t}`;
-				if (this.textMatchesTerms(t, terms)) {
-					chip.classList.add("match");
-				}
-				tagsEl.appendChild(chip);
-			}
-			root.appendChild(tagsEl);
-		}
+        // 恢复 HTML 标签
+        htmlTags.forEach((tag, index) => {
+            html = html.replace(`__HTML_TAG_${index}__`, tag);
+        });
 
-		return root;
-	}
+        // 将换行转换为<br />以保留原始段落结构
+        html = html.replace(/\r\n/g, "\n");
+        html = html.replace(/\n/g, "<br />");
+        html = html.replace(
+            /<\/span><br \/><span class="search-excerpt-list-item/g,
+            '</span><span class="search-excerpt-list-item',
+        );
 
-	private textMatchesTerms(text: string, terms: string[]): boolean {
-		const lower = text.toLowerCase();
-		return terms.some((t) => lower.includes(t));
-	}
+        // 清理多余的空白但保留换行
+        html = html.replace(/[ \t]+/g, " ").trim();
 
-	private pickMatchingHeaders(headers: string[], terms: string[]): string[] {
-		if (!headers.length || !terms.length) return [];
-		const matches: string[] = [];
-		for (const h of headers) {
-			const lower = h.toLowerCase();
-			if (terms.some((t) => lower.includes(t))) {
-				matches.push(h);
-			}
-		}
-		return matches;
-	}
+        // 还原代码块并保持其原始换行
+        codeBlocks.forEach((codeHtml, index) => {
+            html = html.replace(`__CODE_BLOCK_${index}__`, codeHtml);
+        });
+
+        if (excerptInfo.start === -1 || excerptInfo.start === 0) {
+            // 没有找到匹配或从开头开始，使用 HTML 版本截取
+            const excerptHtml = this.truncateHtml(html, maxLength);
+            return this.highlightQueryInHtml(excerptHtml, query);
+        }
+
+        // 尝试在 HTML 中找到对应位置
+        const prefix =
+            excerptInfo.start > 0
+                ? '<span class="search-excerpt-ellipsis">...</span>'
+                : "";
+        const suffix =
+            excerptInfo.end < cleanText.length
+                ? '<span class="search-excerpt-ellipsis">...</span>'
+                : "";
+
+        // 简化处理：基于字符位置估算 HTML 位置
+        const ratio = html.length / cleanText.length;
+        const htmlStart = Math.floor(excerptInfo.start * ratio);
+        const htmlEnd = Math.floor(excerptInfo.end * ratio);
+
+        let excerptHtml = html.substring(htmlStart, htmlEnd);
+
+        // 清理可能被截断的 HTML 标签
+        excerptHtml = this.cleanBrokenHtmlTags(excerptHtml);
+
+        // 在 HTML 中高亮查询词
+        return prefix + this.highlightQueryInHtml(excerptHtml, query) + suffix;
+    }
+
+    /**
+     * 清理文本内容，移除 HTML 标签和 Markdown 语法
+     */
+    private cleanTextContent(text: string): string {
+        if (!text) return "";
+
+        let cleaned = text;
+
+        // Remove HTML tags
+        cleaned = cleaned.replace(/<[^>]*>/g, " ");
+
+        // Decode common HTML entities
+        const htmlEntities: { [key: string]: string } = {
+            "&nbsp;": " ",
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": '"',
+            "&#39;": "'",
+            "&apos;": "'",
+            "&mdash;": "—",
+            "&ndash;": "–",
+            "&hellip;": "...",
+        };
+
+        for (const [entity, char] of Object.entries(htmlEntities)) {
+            cleaned = cleaned.replace(new RegExp(entity, "g"), char);
+        }
+
+        // Clean Markdown syntax
+        cleaned = cleaned.replace(/```([\s\S]*?)```/g, (_match, codeBlock: string) => {
+            const normalizedCode = `${codeBlock}`
+                .replace(/^\s*[\r\n]+/, "")
+                .replace(/[\r\n]+\s*$/, "");
+            return ` ${normalizedCode.replace(/\s+/g, " ").trim()} `;
+        }); // Code blocks
+        cleaned = cleaned.replace(/`([^`]+)`/g, "$1"); // Inline code
+        cleaned = cleaned.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "$1"); // Images
+        cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1"); // Links
+        cleaned = cleaned.replace(/^#{1,6}\s+/gm, ""); // Headers
+        cleaned = cleaned.replace(/^\s*[-*+]\s+/gm, ""); // Lists
+        cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, ""); // Numbered lists
+        cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, "$1"); // Bold
+        cleaned = cleaned.replace(/__([^_]+)__/g, "$1"); // Bold underscore
+        cleaned = cleaned.replace(/\*([^*]+)\*/g, "$1"); // Italic
+        cleaned = cleaned.replace(/_([^_]+)_/g, "$1"); // Italic underscore
+        cleaned = cleaned.replace(/~~([^~]+)~~/g, "$1"); // Strikethrough
+        cleaned = cleaned.replace(/==([^=]+)==/g, "$1"); // Highlight
+
+        // Normalize whitespace
+        cleaned = cleaned.replace(/\s+/g, " ").trim();
+
+        return cleaned;
+    }
+
+    /**
+     * 查找最佳摘要位置，尽量包含查询词
+     */
+    private findBestExcerptPosition(
+        text: string,
+        query: string,
+        maxLength: number,
+    ): { start: number; end: number } {
+        if (!query || text.length <= maxLength) {
+            return { start: 0, end: Math.min(text.length, maxLength) };
+        }
+
+        const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
+        const lowerText = text.toLowerCase();
+
+        if (queryWords.length === 0) {
+            return { start: 0, end: Math.min(text.length, maxLength) };
+        }
+
+        let bestMatchStart = -1;
+        let bestMatchScore = -1;
+
+        // 查找最佳匹配位置
+        for (const word of queryWords) {
+            const matchIndex = lowerText.indexOf(word);
+            if (matchIndex !== -1) {
+                const regionStart = Math.max(0, matchIndex - Math.floor(maxLength / 2));
+                const regionEnd = Math.min(
+                    lowerText.length,
+                    matchIndex + Math.floor(maxLength / 2),
+                );
+                const regionText = lowerText.substring(regionStart, regionEnd);
+
+                let score = 0;
+                for (const qw of queryWords) {
+                    if (regionText.indexOf(qw) !== -1) {
+                        score += 1;
+                    }
+                }
+
+                if (score > bestMatchScore) {
+                    bestMatchScore = score;
+                    bestMatchStart = matchIndex;
+                }
+            }
+        }
+
+        if (bestMatchStart === -1) {
+            return { start: 0, end: Math.min(text.length, maxLength) };
+        }
+
+        // 计算摘要范围
+        const halfLength = Math.floor(maxLength / 2);
+        let start = Math.max(0, bestMatchStart - halfLength);
+        let end = Math.min(text.length, start + maxLength);
+
+        if (end === text.length) {
+            start = Math.max(0, end - maxLength);
+        }
+
+        // 尝试在单词边界处开始和结束
+        if (start > 0) {
+            const spaceIndex = text.indexOf(" ", start);
+            if (spaceIndex !== -1 && spaceIndex < start + 30) {
+                start = spaceIndex + 1;
+            }
+        }
+
+        if (end < text.length) {
+            const spaceIndex = text.lastIndexOf(" ", end);
+            if (spaceIndex !== -1 && spaceIndex > end - 30) {
+                end = spaceIndex;
+            }
+        }
+
+        return { start, end };
+    }
+
+    /**
+     * 在 HTML 中高亮查询词
+     */
+    private highlightQueryInHtml(html: string, query: string): string {
+        if (!query) return html;
+
+        // 分割查询词，支持多词搜索
+        const queryWords = query.trim().split(/\s+/).filter((w) => w.length > 0);
+        if (queryWords.length === 0) return html;
+
+        // 创建一个临时标记来保护已有的 HTML 标签和特殊内容
+        const placeholders: { [key: string]: string } = {};
+        let placeholderIndex = 0;
+
+        // 保护代码块（pre 和 code 标签内的内容不应该被高亮）
+        html = html.replace(/<pre[^>]*>[\s\S]*?<\/pre>/gi, (match) => {
+            const key = `__CODE_BLOCK_PLACEHOLDER_${placeholderIndex}__`;
+            placeholders[key] = match;
+            placeholderIndex++;
+            return key;
+        });
+
+        // 保护行内代码
+        html = html.replace(/<code[^>]*>([^<]*)<\/code>/gi, (match) => {
+            const key = `__INLINE_CODE_PLACEHOLDER_${placeholderIndex}__`;
+            placeholders[key] = match;
+            placeholderIndex++;
+            return key;
+        });
+
+        // 保护已有的 mark 标签（避免重复高亮）
+        html = html.replace(/<mark[^>]*>([^<]*)<\/mark>/gi, (match) => {
+            const key = `__MARK_PLACEHOLDER_${placeholderIndex}__`;
+            placeholders[key] = match;
+            placeholderIndex++;
+            return key;
+        });
+
+        // 保护所有其他 HTML 标签
+        html = html.replace(/<[^>]+>/g, (match) => {
+            const key = `__HTML_PLACEHOLDER_${placeholderIndex}__`;
+            placeholders[key] = match;
+            placeholderIndex++;
+            return key;
+        });
+
+        // 对每个查询词进行高亮
+        for (const word of queryWords) {
+            const escapedWord = this.escapeRegex(word);
+            // 使用正则匹配，支持 CJK 字符
+            const regex = new RegExp(`(${escapedWord})`, "gi");
+            html = html.replace(regex, '<mark class="search-excerpt-highlight">$1</mark>');
+        }
+
+        // 恢复所有占位符（按相反顺序，先恢复后添加的）
+        const sortedKeys = Object.keys(placeholders).sort((a, b) => {
+            const aIndex = parseInt(a.match(/\d+/)?.[0] || "0");
+            const bIndex = parseInt(b.match(/\d+/)?.[0] || "0");
+            return bIndex - aIndex; // 反向排序，先恢复后添加的
+        });
+
+        sortedKeys.forEach((key) => {
+            html = html.replace(key, placeholders[key]);
+        });
+
+        // 清理可能嵌套的 mark 标签（避免重复高亮）
+        html = html.replace(/<mark[^>]*>(<mark[^>]*>([^<]*)<\/mark>)<\/mark>/gi, "$1");
+
+        return html;
+    }
+
+    /**
+     * 截断 HTML 但保留标签完整性
+     */
+    private truncateHtml(html: string, maxLength: number): string {
+        if (html.length <= maxLength) return html;
+
+        let truncated = html.substring(0, maxLength);
+        const lastTagStart = truncated.lastIndexOf("<");
+        const lastTagEnd = truncated.lastIndexOf(">");
+
+        // 如果有未闭合的标签，截取到最后一个完整标签
+        if (lastTagStart > lastTagEnd) {
+            truncated = truncated.substring(0, lastTagStart);
+        }
+
+        return truncated + '<span class="search-excerpt-ellipsis">...</span>';
+    }
+
+    /**
+     * 清理被截断的 HTML 标签
+     */
+    private cleanBrokenHtmlTags(html: string): string {
+        // 移除开头的不完整标签
+        html = html.replace(/^[^<]*>/, "");
+        // 移除结尾的不完整标签
+        html = html.replace(/<[^>]*$/, "");
+
+        // 检查并闭合未闭合的标签
+        const openTags: string[] = [];
+        const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+        let match;
+
+        while ((match = tagRegex.exec(html)) !== null) {
+            const tag = match[1].toLowerCase();
+            if (match[0].startsWith("</")) {
+                // 闭合标签
+                const lastOpen = openTags.lastIndexOf(tag);
+                if (lastOpen !== -1) {
+                    openTags.splice(lastOpen, 1);
+                }
+            } else if (
+                !match[0].endsWith("/>") &&
+                !["br", "img", "hr"].includes(tag)
+            ) {
+                // 开放标签（非自闭合）
+                openTags.push(tag);
+            }
+        }
+
+        // 为未闭合的标签添加闭合标签
+        for (let i = openTags.length - 1; i >= 0; i--) {
+            html += `</${openTags[i]}>`;
+        }
+
+        return html;
+    }
+
+    private escapeRegex(s: string): string { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+    private escape(s: string): string {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
 }
-

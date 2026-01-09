@@ -27,7 +27,7 @@ export class Index {
 		{
 			idField: 'path',
 			fields: ['title', 'aliases', 'headers', 'tags', 'path', 'content'],
-			storeFields: ['title', 'aliases', 'headers', 'tags', 'path'],
+			storeFields: ['title', 'aliases', 'headers', 'tags', 'path', 'content'],
 			processTerm: (term: any, _fieldName: any) =>
 				this.stopWords.includes(term) ? null : term.toLowerCase()
 		}
