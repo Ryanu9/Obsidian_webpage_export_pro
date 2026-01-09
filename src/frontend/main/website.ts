@@ -30,6 +30,7 @@ import { Copyright } from "./copyright";
 import { FooterLinks } from "./footer-links";
 import { TocScrollSpy } from "./toc-scrollspy";
 import { AttachmentDownload } from "./attachment-download";
+import { ModalSearch } from "./modal-search";
 
 type Constructor<T> = new () => T;
 
@@ -142,6 +143,9 @@ export class ObsidianWebsite {
 		this.tocScrollSpy = new TocScrollSpy();
 		new AttachmentDownload();
 		this.search = await new Search().init();
+		// Initialise modal search independently of header search so users can
+		// quickly open it with the keyboard even when the header is hidden.
+		await new ModalSearch().init();
 
 		const pathname =
 			document
