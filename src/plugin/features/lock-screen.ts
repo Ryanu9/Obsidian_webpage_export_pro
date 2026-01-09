@@ -18,7 +18,7 @@ export class LockScreen {
         return `
 <div class="password-lock" id="password-lock-container">
     <section class="password-lock__panel">
-        <svg class="password-lock__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="password-lock__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
@@ -176,7 +176,7 @@ export class LockScreen {
             #password-lock-container { width: 100%; height: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem; padding-top: min(10vh, 5rem); text-align: center; overflow-y: auto; box-sizing: border-box; }
             .password-lock { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 0; text-align: center; box-sizing: border-box; flex-shrink: 0; }
             .password-lock__panel { background: var(--background-secondary); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--divider-color); box-shadow: var(--shadow-l); max-width: 400px; width: 100%; box-sizing: border-box; margin: 0 auto; flex-shrink: 0; }
-            .password-lock__icon { width: 48px; height: 48px; margin-bottom: 1rem; color: var(--text-accent); }
+            .password-lock__icon { width: 48px; height: 48px; margin-bottom: 1rem; color: var(--text-normal); stroke: currentColor; fill: none; }
             .password-lock__title { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
             .password-lock__description { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
             .password-lock__form { display: flex; flex-direction: column; gap: 1rem; }
