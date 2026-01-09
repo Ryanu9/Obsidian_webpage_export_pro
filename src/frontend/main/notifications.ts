@@ -15,9 +15,12 @@ export class Notice
 		{
 			Notice.container = document.createElement("div");
 			Notice.container.classList.add("notice-container");
-			Notice.container.style.top = "0";
-			Notice.container.style.right = "0";
-			document.body.appendChild(Notice.container);
+
+			// 优先挂载到 #layout 内部，这样通知会自然跟随主布局，
+			// 并通过 CSS 与顶部导航栏互相避让，避免重叠。
+			const layout = document.getElementById("layout");
+			const targetContainer = layout || document.body;
+			targetContainer.appendChild(Notice.container);
 		}
 
 		this.notification = document.createElement("div");

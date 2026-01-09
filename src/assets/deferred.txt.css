@@ -434,6 +434,31 @@ body #center-content>.obsidian-document>.markdown-preview-sizer
 
 /*#endregion */
 
+/*#region Notices */
+
+.notice-container {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	align-items: flex-end;
+	pointer-events: none;
+}
+
+.notice-container .notice {
+	pointer-events: auto;
+}
+
+/* 当导航栏存在时，将通知整体下移 navbar 高度，避免被遮挡 */
+body:has(.website-navbar) .notice-container {
+	top: calc(1rem + var(--navbar-height, 40px));
+}
+
+/*#endregion */
+
 /*#region Loading */
 
 .scroll-highlight 
