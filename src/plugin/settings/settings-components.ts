@@ -287,30 +287,27 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 		}
 
 		if (Array.isArray(value)) {
-			// 判断是否是 FooterLinkItem 类型
-			const isFooterLinkItem = value.length > 0 && typeof value[0] === 'object' && 'text' in value[0] && 'url' in value[0];
+			const isFooterLinkItem =
+				key === 'links' ||
+				(value.length > 0 && typeof value[0] === 'object' && 'text' in value[0] && 'url' in value[0]);
 			
 			if (isFooterLinkItem) {
-				// FooterLinkItem 类型：不使用可折叠的 section，直接显示标题和链接项
 				const titleSetting = new Setting(container);
 				titleSetting.setName(name);
 				titleSetting.setDesc(description);
 				
-				// 创建一个容器来包含所有的链接项
+
 				const linksContainer = container.createEl('div');
 				linksContainer.setAttribute('data-links-container', 'true');
 				
 				const renderLinks = () => {
-					// 清空链接容器
 					linksContainer.empty();
 					
-					// 重新渲染所有链接项
 					for (let i = 0; i < obj[key].length; i++) {
 						const linkItem = obj[key][i] as any;
 						const itemSetting = new Setting(linksContainer);
 						itemSetting.setName("");
 						
-						// 标题输入框
 						itemSetting.addText((text) => {
 							text.setPlaceholder("标题")
 								.setValue(linkItem.text || "");
@@ -339,7 +336,6 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 							.onClick(() => {
 								obj[key].splice(i, 1);
 								SettingsPage.saveSettings();
-								// 只重新渲染链接部分
 								renderLinks();
 							}));
 					}

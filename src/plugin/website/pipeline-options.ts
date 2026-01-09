@@ -17,6 +17,7 @@ import { LinkPreviewOptions } from "src/shared/features/link-preview";
 import { GiscusOptions } from "src/shared/features/giscus";
 import { CopyrightOptions } from "src/shared/features/copyright";
 import { FooterLinksOptions } from "src/shared/features/footer-links";
+import { NavbarOptions } from "src/shared/features/navbar";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -121,6 +122,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the footer links feature.
 	 */
 	footerLinksOptions: FooterLinksOptions = new FooterLinksOptions();
+
+	/**
+	 * The options for the top navbar feature.
+	 */
+	navbarOptions: NavbarOptions = new NavbarOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

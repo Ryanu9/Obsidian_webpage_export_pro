@@ -151,6 +151,14 @@ export const language: i18n =
 			title: "Aliases",
 			description: "Displays the aliases for the currently opened document."
 		},
+		navbar: {
+			title: "Top Navbar",
+			description: "Display a horizontal navigation bar at the top of the page.",
+			info_height: "Height of the navbar (for example: 40px, 3rem).",
+			info_backgroundColor: "Background color of the navbar. Leave empty to use the theme default.",
+			info_links: "Navbar links list, each link contains text and URL",
+			info_moveThemeToggleToNavbar: "When enabled, move the theme toggle button into the right side of the top navbar",
+		},
 		footerLinks: {
 			title: "Footer Links",
 			description: "Display links at the bottom of articles.",

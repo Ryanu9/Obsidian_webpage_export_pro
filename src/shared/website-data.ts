@@ -14,6 +14,7 @@ import { TagsOptions } from "./features/tags";
 import { ThemeToggleOptions } from "./features/theme-toggle";
 import { CopyrightOptions } from "./features/copyright";
 import { FooterLinksOptions } from "./features/footer-links";
+import { NavbarOptions } from "./features/navbar";
 
 export enum EmojiStyle {
 	Native = "Native",
@@ -150,6 +151,11 @@ export class WebsiteOptions {
 	 */
 	footerLinks: FooterLinksOptions;
 
+	/**
+	 * The options for the top navbar feature.
+	 */
+	navbar: NavbarOptions;
+
 	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
@@ -168,6 +174,7 @@ export class WebsiteOptions {
 		data.linkPreview = Object.assign(new LinkPreviewOptions(), data.linkPreview);
 		data.giscus = Object.assign(new GiscusOptions(), data.giscus);
 		data.footerLinks = Object.assign(new FooterLinksOptions(), data.footerLinks ?? {});
+		data.navbar = Object.assign(new NavbarOptions(), data.navbar ?? {});
 		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
 
 		return data;

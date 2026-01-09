@@ -154,6 +154,14 @@ export interface i18n {
 			title: string;
 			description: string;
 		},
+		navbar: {
+			title: string;
+			description: string;
+			info_height: string;
+			info_backgroundColor: string;
+			info_links: string;
+			info_moveThemeToggleToNavbar: string;
+		},
 		footerLinks: {
 			title: string;
 			description: string;

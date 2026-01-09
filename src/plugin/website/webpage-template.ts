@@ -47,7 +47,7 @@ export class WebpageTemplate
 			body.setAttribute("class", await WebpageTemplate.getValidBodyClasses());
 
 		const main = body.createDiv({attr: {id: "main"}});
-		const navbar = main.createDiv({ attr: { id: "navbar" } });
+		const navbarHost = main.createDiv({ attr: { id: "navbar" } });
 		const mainHorizontal = main.createDiv({ attr: { id: "main-horizontal" } });
 			const leftContent = mainHorizontal.createDiv({attr: {id: "left-content", class: "leaf"}});
 				const leftSidebar = leftContent.createDiv({attr: {id: "left-sidebar", class: "sidebar"}});
@@ -84,6 +84,60 @@ export class WebpageTemplate
 		{
 			leftSidebar.remove();
 			rightSidebar.remove();
+		}
+
+		// build top navbar after layout is created
+		this.buildNavbar(navbarHost);
+	}
+
+	private buildNavbar(navbarHost: HTMLElement): void
+	{
+		const navbarOptions = (this.options as any).navbarOptions;
+		if (!navbarOptions || !navbarOptions.enabled || !navbarHost) return;
+
+		const nav = this.doc.createElement("nav");
+		nav.id = "website-navbar";
+		nav.className = "website-navbar";
+
+		// allow height & background to be configured
+		if (navbarOptions.height)
+		{
+			nav.style.height = navbarOptions.height;
+			nav.style.setProperty("--navbar-height", navbarOptions.height);
+		}
+		if (navbarOptions.backgroundColor)
+		{
+			nav.style.backgroundColor = navbarOptions.backgroundColor;
+		}
+
+		const linksContainer = this.doc.createElement("div");
+		linksContainer.className = "navbar-links";
+
+		const links = navbarOptions.links ?? [];
+		for (const link of links)
+		{
+			if (!link || !link.text || !link.url) continue;
+
+			const anchor = this.doc.createElement("a");
+			anchor.className = "navbar-link";
+			anchor.href = link.url;
+			anchor.textContent = link.text;
+
+			// 外部链接（如 http://、https://、obsidian:// 等）在新标签页打开
+			if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(link.url))
+			{
+				anchor.setAttribute("target", "_blank");
+				anchor.setAttribute("rel", "noopener noreferrer");
+			}
+
+			linksContainer.appendChild(anchor);
+		}
+
+		// only attach if there is content
+		if (linksContainer.childElementCount > 0)
+		{
+			nav.appendChild(linksContainer);
+			navbarHost.appendChild(nav);
 		}
 	}
 

@@ -150,6 +150,14 @@ export const language: i18n =
 			title: "别名",
 			description: "显示当前文档的别名。"
 		},
+		navbar: {
+			title: "顶部导航栏",
+			description: "在页面顶部显示一条水平导航栏。",
+			info_height: "导航栏高度（例如 40px、3rem）。",
+			info_backgroundColor: "导航栏背景颜色，留空则使用主题默认背景色。",
+			info_links: "导航栏中的链接列表，每个包含文本和 URL。",
+			info_moveThemeToggleToNavbar: "启用后，将主题切换按钮移动到顶部导航栏的右侧",
+		},
 		footerLinks: {
 			title: "底部链接",
 			description: "在文章底部显示链接信息。",

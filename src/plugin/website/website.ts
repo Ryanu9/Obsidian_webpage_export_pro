@@ -7,6 +7,7 @@ import { ExportLog, MarkdownRendererAPI } from "src/plugin/render-api/render-api
 import { AssetLoader } from "src/plugin/asset-loaders/base-asset";
 import { AssetType, InlinePolicy, Mutability } from "src/plugin/asset-loaders/asset-types.js";
 import { ExportPipelineOptions } from "src/plugin/website/pipeline-options.js";
+import { RelationType } from "src/shared/features/feature-options-base";
 import { Index as WebsiteIndex } from "src/plugin/website/index";
 import { WebpageTemplate } from "./webpage-template";
 import { AssetHandler } from "src/plugin/asset-loaders/asset-handler";
@@ -51,7 +52,26 @@ export class Website
 		// inject darkmode toggle
 		if (this.exportOptions.themeToggleOptions.enabled)
 		{
-			template.insertFeature(await new ThemeToggle().generate(), this.exportOptions.themeToggleOptions);
+			const themeToggleEl = await new ThemeToggle().generate();
+
+			// 根据是否启用顶部导航栏 + 用户选项，动态决定插入位置：
+			// - 启用 navbar 且 moveThemeToggleToNavbar 为 true: 放到 .website-navbar 右侧
+			// - 其他情况：保持 ThemeToggleOptions 中的默认插入位置（右侧边栏）
+			const placement = this.exportOptions.themeToggleOptions.featurePlacement;
+			const originalSelector = placement.selector;
+			const originalType = placement.type;
+
+			if (this.exportOptions.navbarOptions?.enabled && this.exportOptions.navbarOptions.moveThemeToggleToNavbar)
+			{
+				placement.selector = ".website-navbar";
+				placement.type = RelationType.End;
+			}
+
+			template.insertFeature(themeToggleEl, this.exportOptions.themeToggleOptions);
+
+			// 还原为用户 / 默认设置
+			placement.selector = originalSelector;
+			placement.type = originalType;
 		}
 
 		// inject search bar

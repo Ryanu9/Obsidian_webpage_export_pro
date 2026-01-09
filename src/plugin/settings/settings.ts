@@ -207,6 +207,7 @@ export class SettingsPage extends PluginSettingTab {
 		createFeatureSetting(section, lang.backlinks.title, Settings.exportOptions.backlinkOptions, lang.backlinks.description);
 		createFeatureSetting(section, lang.tags.title, Settings.exportOptions.tagOptions, lang.tags.description);
 		createFeatureSetting(section, lang.aliases.title, Settings.exportOptions.aliasOptions, lang.aliases.description);
+		createFeatureSetting(section, lang.navbar.title, Settings.exportOptions.navbarOptions, lang.navbar.description);
 		createFeatureSetting(section, lang.footerLinks.title, Settings.exportOptions.footerLinksOptions, lang.footerLinks.description);
 		createFeatureSetting(section, lang.copyright.title, Settings.exportOptions.copyrightOptions, lang.copyright.description);
 		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);

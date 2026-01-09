@@ -8,6 +8,7 @@ body
     --collapse-arrow-size: 11px;
     --tree-vertical-spacing: 1.3em;
     --sidebar-margin: 12px;
+    --navbar-height: 40px;
 }
 
 :root
@@ -220,9 +221,59 @@ body
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0.5em 1em;
+	padding: 1px 1em;
 	width: 100%;
 }
+
+/* #region Top Navbar */
+
+.website-navbar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: var(--navbar-height, 40px);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 2rem;
+	background-color: var(--background-primary);
+	border-bottom: 1px solid var(--background-modifier-border);
+	z-index: 1000;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.navbar-links {
+	display: flex;
+	gap: 1.25rem;
+	align-items: center;
+}
+
+.navbar-link {
+	font-size: 1rem;
+	font-weight: 700;
+	text-decoration: none;
+	color: var(--text-normal);
+	padding: 0 16px;
+	white-space: nowrap;
+}
+
+.navbar-link:hover {
+	color: var(--text-accent);
+	text-decoration: underline;
+}
+
+/* When navbar exists, offset body and sidebar headers to avoid overlap */
+body:has(.website-navbar) {
+	padding-top: var(--navbar-height, 40px);
+}
+
+body:has(.website-navbar) .sidebar-topbar {
+	top: calc(var(--navbar-height, 40px) + var(--sidebar-margin));
+}
+
+/* #endregion */
 
 #main {
 	display: flex;

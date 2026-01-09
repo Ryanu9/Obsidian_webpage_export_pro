@@ -95,6 +95,7 @@ export class Index {
 				linkPreview: options.linkPreviewOptions,
 				giscus: options.giscusOptions,
 				footerLinks: options.footerLinksOptions,
+				navbar: options.navbarOptions,
 				copyright: options.copyrightOptions,
 			};
 
