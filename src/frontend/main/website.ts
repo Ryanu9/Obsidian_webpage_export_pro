@@ -26,6 +26,7 @@ import {
 import { BacklinkList } from "./backlinks";
 import { Tags } from "./tags";
 import { Aliases } from "./aliases";
+import { Copyright } from "./copyright";
 import { TocScrollSpy } from "./toc-scrollspy";
 import { AttachmentDownload } from "./attachment-download";
 
@@ -63,6 +64,7 @@ export class ObsidianWebsite {
 	public backlinkList: BacklinkList | undefined = undefined;
 	public tags: Tags | undefined = undefined;
 	public aliases: Aliases | undefined = undefined;
+	public copyright: Copyright | undefined = undefined;
 	public tocScrollSpy: TocScrollSpy | undefined = undefined;
 
 	public entryPage: string;
@@ -180,6 +182,11 @@ export class ObsidianWebsite {
 					!ObsidianSite.metadata.ignoreMetadata &&
 					ObsidianSite.metadata.featureOptions.alias.enabled &&
 					doc.documentType == DocumentType.Markdown;
+				const insertCopyright =
+					doc.isMainDocument &&
+					!ObsidianSite.metadata.ignoreMetadata &&
+					ObsidianSite.metadata.featureOptions.copyright.enabled &&
+					doc.documentType == DocumentType.Markdown;
 
 				// ------------------ BACKLINKS -----------------
 				if (insertBacklinks) {
@@ -258,6 +265,19 @@ export class ObsidianWebsite {
 					}
 				} else {
 					this.aliases?.hide();
+				}
+
+				// ------------------ COPYRIGHT -----------------
+				if (insertCopyright) {
+					if (!this.copyright) {
+						this.copyright = new Copyright();
+					} else {
+						this.copyright.regenerate();
+					}
+
+					this.copyright?.show();
+				} else {
+					this.copyright?.hide();
 				}
 			}
 

@@ -39,6 +39,7 @@ export class FeatureSettingInfo
 	name?: string = "";
 	description?: string = "";
 	placeholder?: string = "";
+	multiline?: boolean = false;
 
 	fileInputOptions?:
 	{
@@ -58,6 +59,7 @@ export class FeatureSettingInfo
 			name?: string, 
 			description?: string, 
 			placeholder?: string, 
+			multiline?: boolean,
 			fileInputOptions?:
 			{
 				defaultPath?: string, 
@@ -76,6 +78,7 @@ export class FeatureSettingInfo
 			this.name = options.name ?? this.name;
 			this.description = options.description ?? this.description;
 			this.placeholder = options.placeholder ?? this.placeholder;
+			this.multiline = options.multiline ?? this.multiline;
 			this.fileInputOptions = options.fileInputOptions ?? this.fileInputOptions;
 			this.dropdownOptions = options.dropdownTypes ?? this.dropdownOptions;
 		}

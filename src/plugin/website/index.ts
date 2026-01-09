@@ -94,6 +94,7 @@ export class Index {
 				rss: options.rssOptions,
 				linkPreview: options.linkPreviewOptions,
 				giscus: options.giscusOptions,
+				copyright: options.copyrightOptions,
 			};
 
 			// set global values

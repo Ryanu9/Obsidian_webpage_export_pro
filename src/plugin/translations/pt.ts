@@ -150,6 +150,16 @@ export const language: i18n =
 			title: "Apelidos",
 			description: "Exibe os apelidos do documento atual."
 		},
+		copyright: {
+			title: "Copyright",
+			description: "Exibe informações de copyright na parte inferior dos artigos.",
+			info_copyrightText: "Texto de copyright, você pode usar as variáveis {year} e {author}",
+			info_copyrightTextPlaceholder: "© {year} {author}. All rights reserved.",
+			info_author: "Nome do autor",
+			info_authorPlaceholder: "Nome do autor",
+			info_authorUrl: "URL do autor (opcional)",
+			info_authorUrlPlaceholder: "https://example.com"
+		},
 		properties: {
 			title: "Propriedades",
 			description: "Exibe todas as propriedades do documento em uma tabela.",

@@ -150,6 +150,16 @@ export const language: i18n =
 			title: "别名",
 			description: "显示当前文档的别名。"
 		},
+		copyright: {
+			title: "版权信息",
+			description: "在文章底部显示版权信息。",
+			info_copyrightText: "版权信息文本，可使用 {year} 和 {author} 变量",
+			info_copyrightTextPlaceholder: "© {year} {author}. All rights reserved.",
+			info_author: "作者名称",
+			info_authorPlaceholder: "作者姓名",
+			info_authorUrl: "作者链接（可选）",
+			info_authorUrlPlaceholder: "https://example.com"
+		},
 		properties: {
 			title: "文档属性显示",
 			description: "以表格形式显示当前文档的所有属性。",

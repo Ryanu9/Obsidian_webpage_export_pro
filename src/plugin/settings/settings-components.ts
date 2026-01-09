@@ -29,7 +29,7 @@ export function createToggle(container: HTMLElement, name: string, get: () => bo
 	return setting;
 }
 
-export function createText(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, desc: string = "", validation?: (value: string) => string, placeholder: string = ""): Setting {
+export function createText(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, desc: string = "", validation?: (value: string) => string, placeholder: string = "", multiline: boolean = false): Setting {
 	const setting = new Setting(container);
 	const errorText = createError(container);
 
@@ -38,18 +38,37 @@ export function createText(container: HTMLElement, name: string, get: () => stri
 
 	setting.setName(name)
 	if (desc != "") setting.setDesc(desc);
-	setting.addText((text) => text
-		.setPlaceholder(placeholder)
-		.setValue(value)
-		.onChange(async (value) => {
-			const error = validation ? validation(value) : "";
-			if (error == "") {
-				set(value);
-				await SettingsPage.saveSettings();
-			}
+	
+	if (multiline) {
+		setting.addTextArea((text) => {
+			text.inputEl.style.width = "100%";
+			text.inputEl.style.height = "120px";
+			text.setPlaceholder(placeholder)
+				.setValue(value)
+				.onChange(async (value) => {
+					const error = validation ? validation(value) : "";
+					if (error == "") {
+						set(value);
+						await SettingsPage.saveSettings();
+					}
 
-			errorText.setText(error);
-		}));
+					errorText.setText(error);
+				});
+		});
+	} else {
+		setting.addText((text) => text
+			.setPlaceholder(placeholder)
+			.setValue(value)
+			.onChange(async (value) => {
+				const error = validation ? validation(value) : "";
+				if (error == "") {
+					set(value);
+					await SettingsPage.saveSettings();
+				}
+
+				errorText.setText(error);
+			}));
+	}
 
 	return setting;
 }
@@ -293,7 +312,7 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 				createToggle(container, name, () => value, (v) => obj[key] = v, description);
 				break;
 			case "string":
-				createText(container, name, () => value, (v) => obj[key] = v, description);
+				createText(container, name, () => value, (v) => obj[key] = v, description, undefined, settinginfo.placeholder, settinginfo.multiline ?? false);
 				break;
 			case "number":
 				createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);

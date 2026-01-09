@@ -12,6 +12,7 @@ import { SearchOptions } from "./features/search";
 import { SidebarOptions } from "./features/sidebar";
 import { TagsOptions } from "./features/tags";
 import { ThemeToggleOptions } from "./features/theme-toggle";
+import { CopyrightOptions } from "./features/copyright";
 
 export enum EmojiStyle {
 	Native = "Native",
@@ -138,6 +139,11 @@ export class WebsiteOptions {
 	 */
 	giscus: GiscusOptions;
 
+	/**
+	 * The options for the copyright feature.
+	 */
+	copyright: CopyrightOptions;
+
 	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
@@ -155,6 +161,7 @@ export class WebsiteOptions {
 		data.rss = Object.assign(new RssOptions(), data.rss);
 		data.linkPreview = Object.assign(new LinkPreviewOptions(), data.linkPreview);
 		data.giscus = Object.assign(new GiscusOptions(), data.giscus);
+		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
 
 		return data;
 	}

@@ -144,6 +144,16 @@ export const language: i18n =
 			title: "Alias",
 			description: "Mostra gli alias del documento attualmente aperto."
 		},
+		copyright: {
+			title: "Copyright",
+			description: "Mostra le informazioni sul copyright in fondo agli articoli.",
+			info_copyrightText: "Testo del copyright, puoi usare le variabili {year} e {author}",
+			info_copyrightTextPlaceholder: "© {year} {author}. All rights reserved.",
+			info_author: "Nome dell'autore",
+			info_authorPlaceholder: "Nome dell'autore",
+			info_authorUrl: "URL dell'autore (opzionale)",
+			info_authorUrlPlaceholder: "https://example.com"
+		},
 		properties: {
 			title: "Proprietà",
 			description: "Mostra tutte le proprietà del documento attualmente aperto in una tabella.",

@@ -154,6 +154,16 @@ export interface i18n {
 			title: string;
 			description: string;
 		},
+		copyright: {
+			title: string;
+			description: string;
+			info_copyrightText: string;
+			info_copyrightTextPlaceholder: string;
+			info_author: string;
+			info_authorPlaceholder: string;
+			info_authorUrl: string;
+			info_authorUrlPlaceholder: string;
+		},
 		properties: {
 			title: string;
 			description: string;

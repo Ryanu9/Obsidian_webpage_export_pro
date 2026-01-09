@@ -15,6 +15,7 @@ import { MarkdownRendererOptions } from "src/plugin/render-api/api-options";
 import { RssOptions } from "src/shared/features/rss";
 import { LinkPreviewOptions } from "src/shared/features/link-preview";
 import { GiscusOptions } from "src/shared/features/giscus";
+import { CopyrightOptions } from "src/shared/features/copyright";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -109,6 +110,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the giscus feature.
 	 */
 	giscusOptions: GiscusOptions = new GiscusOptions();
+
+	/**
+	 * The options for the copyright feature.
+	 */
+	copyrightOptions: CopyrightOptions = new CopyrightOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

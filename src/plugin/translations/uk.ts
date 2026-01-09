@@ -149,6 +149,16 @@ export const language: i18n =
 			title: "Псевдоніми",
 			description: "Показує псевдоніми для поточного відкритого документа."
 		},
+		copyright: {
+			title: "Авторське право",
+			description: "Відображати інформацію про авторські права в нижній частині статей.",
+			info_copyrightText: "Текст авторських прав, ви можете використовувати змінні {year} та {author}",
+			info_copyrightTextPlaceholder: "© {year} {author}. All rights reserved.",
+			info_author: "Ім'я автора",
+			info_authorPlaceholder: "Ім'я автора",
+			info_authorUrl: "URL автора (необов'язково)",
+			info_authorUrlPlaceholder: "https://example.com"
+		},
 		properties: {
 			title: "Властивості",
 			description: "Показує всі властивості поточного відкритого документа у вигляді таблиці.",
