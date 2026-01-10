@@ -1,25 +1,22 @@
 const pathTools = require('upath');
 import { Stats, existsSync, statSync, promises as fs } from 'fs';
 import { FileSystemAdapter } from 'obsidian';
-import internal from 'stream'; 
+import internal from 'stream';
 import { homedir, platform } from 'os';
 import { readdir, rmdir } from 'fs/promises';
 import { i18n } from '../translations/language';
 
-export class Path
-{
+export class Path {
 	private static logQueue: { title: string, message: any, type: "info" | "warn" | "error" | "fatal" }[] = [];
-	private static log(title: string, message: any, type: "info" | "warn" | "error" | "fatal")
-	{
+	private static log(title: string, message: any, type: "info" | "warn" | "error" | "fatal") {
 		this.logQueue.push({ title: title, message: message, type: type });
 	}
-	public static dequeueLog(): { title: string, message: any, type: "info" | "warn" | "error" | "fatal" }[]
-	{
+	public static dequeueLog(): { title: string, message: any, type: "info" | "warn" | "error" | "fatal" }[] {
 		const queue = this.logQueue;
 		this.logQueue = [];
 		return queue;
 	}
-	
+
 	private _root: string = "";
 	private _dir: string = "";
 	private _parent: string = "";
@@ -35,8 +32,7 @@ export class Path
 	private _sourceString: string = "";
 	private _useBackslashes: boolean = false;
 
-	constructor(path: string, workingDirectory: string = Path.vaultPath.path)
-	{
+	constructor(path: string, workingDirectory: string = Path.vaultPath.path) {
 		this._workingDirectory = Path.parsePath(workingDirectory).fullPath;
 
 		this.reparse(path);
@@ -44,20 +40,16 @@ export class Path
 		if (this.isAbsolute) this._workingDirectory = "";
 	}
 
-	public reparse(path: string): Path
-	{
+	public reparse(path: string): Path {
 		let parsed = Path.parsePath(path);
-		if (path == "") parsed = { root: "", dir: "", parent: "", base: "", ext: "", name: "", fullPath: ""}
+		if (path == "") parsed = { root: "", dir: "", parent: "", base: "", ext: "", name: "", fullPath: "" }
 
-		for (const key in parsed)
-		{
-			if (this._useBackslashes)
-			{
+		for (const key in parsed) {
+			if (this._useBackslashes) {
 				// @ts-ignore
-				parsed[key] = parsed[key].replaceAll("/", "\\"); 
+				parsed[key] = parsed[key].replaceAll("/", "\\");
 			}
-			else
-			{
+			else {
 				// @ts-ignore
 				parsed[key] = parsed[key].replaceAll("\\", "/");
 			}
@@ -76,8 +68,7 @@ export class Path
 		this._exists = undefined;
 		this._sourceString = path;
 
-		if (this._base.lastIndexOf("#") > this._base.lastIndexOf("."))
-		{
+		if (this._base.lastIndexOf("#") > this._base.lastIndexOf(".")) {
 			this._base = this._base.split("#")[0] ?? this._base;
 		}
 
@@ -89,8 +80,7 @@ export class Path
 	 * Joins the path with other paths formatted as strings. (returns copy).
 	 * Accepts multiple arguments.
 	 */
-	public joinString(...paths: string[]): Path
-	{
+	public joinString(...paths: string[]): Path {
 		return this.copy.reparse(Path.joinStringPaths(this.path, ...paths));
 	}
 
@@ -98,8 +88,7 @@ export class Path
 	 * Joins the path with other path objects. (returns copy).
 	 * Accepts multiple arguments.
 	 */
-	public join(...paths: Path[]): Path
-	{
+	public join(...paths: Path[]): Path {
 		return new Path(Path.joinStringPaths(this.path, ...paths.map(p => p.path)), this._workingDirectory);
 	}
 
@@ -107,12 +96,10 @@ export class Path
 	 * Makes the path absolute using the working directory. (in-place).
 	 * @param workingDirectory (optional) The working directory to use. If not provided the path's normal working directory will be used.
 	 */
-	absolute(workingDirectory: string | Path = this._workingDirectory): Path
-	{
-		if(workingDirectory instanceof Path && !workingDirectory.isAbsolute) throw new Error("workingDirectory must be an absolute path: " + workingDirectory.path);
+	absolute(workingDirectory: string | Path = this._workingDirectory): Path {
+		if (workingDirectory instanceof Path && !workingDirectory.isAbsolute) throw new Error("workingDirectory must be an absolute path: " + workingDirectory.path);
 
-		if (!this.isAbsolute)
-		{
+		if (!this.isAbsolute) {
 			this._fullPath = Path.joinStringPaths(workingDirectory.toString(), this.path);
 			this._workingDirectory = "";
 			this.reparse(this.path);
@@ -125,8 +112,7 @@ export class Path
 	 * Returns a copy of the path made absolute using the working directory. (returns copy).
 	 * @param workingDirectory (optional) The working directory to use. If not provided the path's normal working directory will be used.
 	 */
-	absoluted(workingDirectory: string | Path = this._workingDirectory): Path
-	{
+	absoluted(workingDirectory: string | Path = this._workingDirectory): Path {
 		if (this.isAbsolute) return this.copy;
 		return this.copy.absolute(workingDirectory);
 	}
@@ -134,10 +120,8 @@ export class Path
 	/**
 	 * Forces the path to be a directory. (in-place).
 	 */
-	folderize(): Path
-	{
-		if (!this.isDirectory)
-		{
+	folderize(): Path {
+		if (!this.isDirectory) {
 			this.reparse(this.path + "/");
 		}
 
@@ -147,26 +131,22 @@ export class Path
 	/**
 	 * Returns a copy of the path forced to be a directory. (returns copy).
 	 */
-	folderized(): Path
-	{
+	folderized(): Path {
 		return this.copy.folderize();
 	}
 
 	/**
 	 * Normalizes the path to remove any redundant parts. (in-place).
 	 */
-	normalize(): Path
-	{
+	normalize(): Path {
 		const fullPath = pathTools.normalizeSafe(this.absoluted().path);
 		let newWorkingDir = "";
 		let newFullPath = "";
 		let reachedEndOfWorkingDir = false;
-		for (let i = 0; i < fullPath.length; i++)
-		{
+		for (let i = 0; i < fullPath.length; i++) {
 			const fullChar = fullPath.charAt(i);
 			const workingChar = this.workingDirectory.charAt(i);
-			if (fullChar == workingChar && !reachedEndOfWorkingDir)
-			{
+			if (fullChar == workingChar && !reachedEndOfWorkingDir) {
 				newWorkingDir += fullChar;
 				continue;
 			}
@@ -184,16 +164,14 @@ export class Path
 	/**
 	 * Returns a normalized copy of the path. (returns copy).
 	 */
-	normalized(): Path
-	{
+	normalized(): Path {
 		return this.copy.normalize();
 	}
 
 	/**
 	 * Sluggifies the path to make it web friendly. (in-place).
 	 */
-	slugify(makeWebStyle: boolean = true): Path
-	{
+	slugify(makeWebStyle: boolean = true): Path {
 		if (!makeWebStyle) return this;
 		this._fullPath = Path.slugify(this.path);
 		this.reparse(this.path);
@@ -203,16 +181,14 @@ export class Path
 	/**
 	 * Returns a sluggified copy of the path. (returns copy).
 	 */
-	slugified(makeWebStyle: boolean = true): Path
-	{
+	slugified(makeWebStyle: boolean = true): Path {
 		return this.copy.slugify(makeWebStyle);
 	}
 
 	/**
 	 * Makes the path use backslashes instead of forward slashes. (in-place).
 	 */
-	backslashify(): Path
-	{
+	backslashify(): Path {
 		this._useBackslashes = true;
 		const path = this.path.replaceAll("/", "\\");
 		this.reparse(path);
@@ -222,13 +198,11 @@ export class Path
 	/**
 	 * Returns a copy of the path using backslashes instead of forward slashes. (returns copy).
 	 */
-	backslashified(): Path
-	{
+	backslashified(): Path {
 		return this.copy.backslashify();
 	}
 
-	makePlatformSafe(): Path
-	{
+	makePlatformSafe(): Path {
 		if (platform() == "win32") return this.backslashify();
 		return this;
 	}
@@ -244,8 +218,7 @@ export class Path
 	/**
 	 * Sets the extension of the file (accepts with or without the dot). (in-place).
 	 */
-	setExtension(extension: string): Path
-	{
+	setExtension(extension: string): Path {
 		if (!extension.contains(".")) extension = "." + extension;
 
 		this._ext = extension;
@@ -256,8 +229,7 @@ export class Path
 		return this;
 	}
 
-	setFileName(name: string): Path
-	{
+	setFileName(name: string): Path {
 		this._name = name;
 		this._base = this._name + this._ext;
 		this._fullPath = Path.joinStringPaths(this._dir, this._base);
@@ -269,8 +241,7 @@ export class Path
 	/**
 	 * Replaces the extension with a new one if it matches the search extension. (in-place).
 	 */
-	replaceExtension(searchExt: string, replaceExt: string): Path
-	{
+	replaceExtension(searchExt: string, replaceExt: string): Path {
 		if (!searchExt.contains(".")) searchExt = "." + searchExt;
 		if (!replaceExt.contains(".")) replaceExt = "." + replaceExt;
 
@@ -283,13 +254,11 @@ export class Path
 	}
 
 	// overide the default toString() method
-	toString(): string
-	{
+	toString(): string {
 		return this.path;
 	}
 
-	public split(): string[]
-	{
+	public split(): string[] {
 		return this.path.split(/[\/\\]/);
 	}
 
@@ -298,8 +267,7 @@ export class Path
 	 * @example
 	 * "C:/" or "/".
 	 */
-	get root(): string
-	{
+	get root(): string {
 		return this._root;
 	}
 
@@ -308,16 +276,14 @@ export class Path
 	 * @example
 	 * "C:/Users/JohnDoe/Documents" or "/home/johndoe/Documents".
 	 */
-	get directory(): Path
-	{
+	get directory(): Path {
 		const newPath = this.copy;
 		newPath.reparse(this._dir);
 		newPath.setWorkingDirectory(this._workingDirectory);
 		return newPath;
 	}
 
-	set directory(dir: Path)
-	{
+	set directory(dir: Path) {
 		this._dir = dir.path;
 		if (!this.isDirectory) this._fullPath = Path.joinStringPaths(this._dir, this._base);
 		else this._fullPath = this._dir;
@@ -328,16 +294,14 @@ export class Path
 	/**
 	 * Same as dir, but if the path is a directory this will be the parent directory not the full path.
 	 */
-	get parent(): Path | undefined
-	{
+	get parent(): Path | undefined {
 		if (this._parent == "") return;
 		const newPath = this.copy;
 		newPath.reparse(this._parent);
 		return newPath;
 	}
 
-	set parent(parent: Path | undefined)
-	{
+	set parent(parent: Path | undefined) {
 		this._parent = parent?.path ?? "";
 		this._fullPath = Path.joinStringPaths(this._parent, this._base);
 		this.reparse(this._fullPath);
@@ -348,13 +312,11 @@ export class Path
 	 * @example
 	 * "file.txt" or "Documents".
 	 */
-	get fullName(): string
-	{
+	get fullName(): string {
 		return this._base;
 	}
 
-	set fullName(name: string)
-	{
+	set fullName(name: string) {
 		this._base = name;
 		this._fullPath = Path.joinStringPaths(this._parent, this._base);
 		this.reparse(this._fullPath);
@@ -365,21 +327,18 @@ export class Path
 	 * @example
 	 * ".txt" or "".
 	 */
-	get extension(): string
-	{
+	get extension(): string {
 		return this._ext;
 	}
 
-	set extension(ext: string)
-	{
+	set extension(ext: string) {
 		this.setExtension(ext);
 	}
 
 	/**
 	 * The extension of the file or folder without the dot.
 	 */
-	get extensionName(): string
-	{
+	get extensionName(): string {
 		return this._ext.replace(".", "");
 	}
 
@@ -388,8 +347,7 @@ export class Path
 	 * @example
 	 * Given, "/path/to/file.txt#hash" -> "#hash"
 	 */
-	get hash(): string
-	{
+	get hash(): string {
 		return this._hash;
 	}
 
@@ -398,8 +356,7 @@ export class Path
 	 * @example
 	 * "file" or "Documents".
 	 */
-	get basename(): string
-	{
+	get basename(): string {
 		return this._name;
 	}
 
@@ -410,19 +367,15 @@ export class Path
 	 * "/home/johndoe/Documents/file.txt" = 4
 	 * "JohnDoe/Documents/Documents" = 2
 	 */
-	get depth(): number
-	{
+	get depth(): number {
 		let depth = 0;
 		const splits = this.path.split("/");
 
-		for (let i = 0; i < splits.length-1; i++)
-		{
-			if (splits[i] == "..") 
-			{
+		for (let i = 0; i < splits.length - 1; i++) {
+			if (splits[i] == "..") {
 				depth--;
 			}
-			else if (splits[i] != ".")
-			{
+			else if (splits[i] != ".") {
 				depth++;
 			}
 		}
@@ -439,22 +392,18 @@ export class Path
 	 * "/home/johndoe/Documents/file.txt" = 4
 	 * "JohnDoe/Documents/Documents" = 2
 	 */
-	get maxDepth(): number
-	{
+	get maxDepth(): number {
 		let initialDirection = 0;
 		let maxDepth = 0;
 		let depth = 0;
 		const splits = this.path.split("/");
 
-		for (let i = 0; i < splits.length-1; i++)
-		{
-			if (splits[i] == "..") 
-			{
+		for (let i = 0; i < splits.length - 1; i++) {
+			if (splits[i] == "..") {
 				depth--;
 				if (initialDirection == 0) initialDirection = -1;
 			}
-			else if (splits[i] != ".")
-			{
+			else if (splits[i] != ".") {
 				depth++;
 				if (initialDirection == 0) initialDirection = 1;
 			}
@@ -473,8 +422,7 @@ export class Path
 	 * @example
 	 * Can be any string: "C:/Users//John Doe/../Documents\file.txt " or ""
 	 */
-	get sourceString(): string
-	{
+	get sourceString(): string {
 		return this._sourceString;
 	}
 
@@ -488,16 +436,14 @@ export class Path
 	 * "relative/path/to/example.txt"
 	 * "relative/path/to/folder"
 	 */
-	get path(): string
-	{
+	get path(): string {
 		return this._fullPath;
 	}
 
 	/**
 	 * Indentical to path, except it leaves out the hash from the end of the path if it exists.
 	 */
-	get pathname(): string
-	{
+	get pathname(): string {
 		if (this.isDirectory) return this.path;
 		return this.directory.joinString(this.fullName).path;
 	}
@@ -505,25 +451,21 @@ export class Path
 	/**
 	 * True if this is a directory.
 	 */
-	get isDirectory(): boolean
-	{
+	get isDirectory(): boolean {
 		return this._isDirectory;
 	}
 
 	/**
 	 * Uses the file system to check if the path is a directory rather than just checking the extension.
 	 */
-	get isDirectoryFS(): boolean
-	{
-		if(this.isDirectory) return true;
+	get isDirectoryFS(): boolean {
+		if (this.isDirectory) return true;
 
-		try
-		{
+		try {
 			const stat = statSync(this.absoluted().pathname);
 			return stat.isDirectory();
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error checking if path is directory: " + this.pathname, error, "error");
 			return false;
 		}
@@ -533,57 +475,47 @@ export class Path
 	 * True if this is an empty path: "".
 	 * AKA is the path just referencing its working directory.
 	 */
-	get isEmpty(): boolean
-	{
+	get isEmpty(): boolean {
 		return this.path == "";
 	}
 
 	/**
 	 * True if this is a file, not a folder.
 	 */
-	get isFile(): boolean
-	{
+	get isFile(): boolean {
 		return this._isFile;
 	}
 
 	/**
 	 * Uses the file system to check if the path is a file rather than just checking the extension.
 	 */
-	get isFileFS(): boolean
-	{
+	get isFileFS(): boolean {
 		if (!this.isFile) return false;
-		
-		try
-		{
+
+		try {
 			const stat = statSync(this.absoluted().pathname);
 			return stat.isFile();
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error checking if path is file: " + this.pathname, error, "error");
 			return false;
 		}
 	}
-	
-	get workingDirectory(): string
-	{
+
+	get workingDirectory(): string {
 		return this._workingDirectory;
 	}
 
 	/**
 	 * True if the file or folder exists on the filesystem.
 	 */
-	get exists(): boolean
-	{
-		if(this._exists == undefined) 
-		{
-			try
-			{
+	get exists(): boolean {
+		if (this._exists == undefined) {
+			try {
 				const absPath = this.absoluted().pathname;
 				this._exists = Path.pathExists(absPath);
 			}
-			catch (error)
-			{
+			catch (error) {
 				this._exists = false;
 				Path.log("Error checking if path exists: " + this.pathname, error, "error");
 			}
@@ -595,18 +527,15 @@ export class Path
 	/**
 	 * The fs stats of the file or folder.
 	 */
-	get stat(): Stats | undefined
-	{
-		if(!this.exists) return;
+	get stat(): Stats | undefined {
+		if (!this.exists) return;
 
-		try
-		{
-		
+		try {
+
 			const stat = statSync(this.absoluted().pathname);
 			return stat;
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error getting stat: " + this.pathname, error, "error");
 			return;
 		}
@@ -615,22 +544,19 @@ export class Path
 	/**
 	 * True if the path is an absolute path.
 	 */
-	get isAbsolute(): boolean
-	{
+	get isAbsolute(): boolean {
 		let asString = this.path;
 		if (asString.startsWith("http:") || asString.startsWith("https:")) return true;
 		if (asString.startsWith("file://")) return true;
 
-		if(platform() == "win32")
-		{
+		if (platform() == "win32") {
 			asString = asString.replaceAll("/", "\\");
 			if (asString.startsWith("\\\\")) return true;
 			if (asString.match(/^[A-Za-z]:\\/)) return true;
 			if (asString.startsWith("\\") && !asString.contains(":")) return true;
 			else return false;
 		}
-		else
-		{
+		else {
 			if (asString.startsWith("/")) return true;
 			else return false;
 		}
@@ -639,24 +565,21 @@ export class Path
 	/**
 	 * True if the path is a relative path.
 	 */
-	get isRelative(): boolean
-	{
+	get isRelative(): boolean {
 		return !this.isAbsolute;
 	}
 
 	/**
 	 * Returns a copy of the path so you can modify it without changing the original.
 	 */
-	get copy(): Path
-	{
+	get copy(): Path {
 		const newPath = new Path(this.path, this._workingDirectory);
 		newPath._useBackslashes = this._useBackslashes;
 		newPath.reparse(this.path);
 		return newPath;
 	}
 
-	validate(options: {allowEmpty?: boolean, requireExists?: boolean, allowAbsolute?: boolean, allowRelative?: boolean, allowTildeHomeDirectory?: boolean, allowFiles?: boolean, allowDirectories?: boolean, requireExtentions?: string[]}): {valid: boolean, isEmpty: boolean, error: string}
-	{
+	validate(options: { allowEmpty?: boolean, requireExists?: boolean, allowAbsolute?: boolean, allowRelative?: boolean, allowTildeHomeDirectory?: boolean, allowFiles?: boolean, allowDirectories?: boolean, requireExtentions?: string[] }): { valid: boolean, isEmpty: boolean, error: string } {
 		let error = "";
 		let valid = true;
 		const isEmpty = this.sourceString.trim() == "";
@@ -667,48 +590,39 @@ export class Path
 
 		const lang = i18n.pathValidations;
 
-		if (!options.allowEmpty && isEmpty)
-		{
+		if (!options.allowEmpty && isEmpty) {
 			error += lang.noEmpty;
 			valid = false;
 		}
-		else if (options.allowEmpty && isEmpty)
-		{
+		else if (options.allowEmpty && isEmpty) {
 			return { valid: true, isEmpty: isEmpty, error: "" };
 		}
-		
-		if (options.requireExists && !this.exists)
-		{
+
+		if (options.requireExists && !this.exists) {
 			error += lang.mustExist;
 			valid = false;
 		}
-		else if (!options.allowTildeHomeDirectory && this.path.startsWith("~"))
-		{
+		else if (!options.allowTildeHomeDirectory && this.path.startsWith("~")) {
 			error += lang.noTilde;
 			valid = false;
 		}
-		else if (!options.allowAbsolute && this.isAbsolute)
-		{
+		else if (!options.allowAbsolute && this.isAbsolute) {
 			error += lang.noAbsolute;
 			valid = false;
 		}
-		else if (!options.allowRelative && this.isRelative)
-		{
+		else if (!options.allowRelative && this.isRelative) {
 			error += lang.noRelative;
 			valid = false;
 		}
-		else if (!options.allowFiles && this.isFileFS)
-		{
+		else if (!options.allowFiles && this.isFileFS) {
 			error += lang.noFiles;
 			valid = false;
 		}
-		else if (!options.allowDirectories && this.isDirectoryFS)
-		{
+		else if (!options.allowDirectories && this.isDirectoryFS) {
 			error += lang.noFolders;
 			valid = false;
 		}
-		else if (options.requireExtentions.length > 0 && !options.requireExtentions.includes(this.extensionName) && !isEmpty)
-		{
+		else if (options.requireExtentions.length > 0 && !options.requireExtentions.includes(this.extensionName) && !isEmpty) {
 			error += lang.mustHaveExtension.format(dottedExtention.join(", "));
 			valid = false;
 		}
@@ -716,18 +630,14 @@ export class Path
 		return { valid: valid, isEmpty: isEmpty, error: error };
 	}
 
-	async createDirectory(): Promise<boolean>
-	{
-		if (!this.exists)
-		{
+	async createDirectory(): Promise<boolean> {
+		if (!this.exists) {
 			const path = this.absoluted().directory.path;
 
-			try
-			{
+			try {
 				await fs.mkdir(path, { recursive: true });
 			}
-			catch (error)
-			{
+			catch (error) {
 				Path.log("Error creating directory: " + path, error, "error");
 				return false;
 			}
@@ -736,123 +646,99 @@ export class Path
 		return true;
 	}
 
-	async readAsString(encoding: "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex" = "utf-8"): Promise<string|undefined>
-	{
-		if(!this.exists || this.isDirectory) return;
+	async readAsString(encoding: "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex" = "utf-8"): Promise<string | undefined> {
+		if (!this.exists || this.isDirectory) return;
 
-		try
-		{
+		try {
 			const data = await fs.readFile(this.absoluted().pathname, { encoding: encoding });
 			return data;
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error reading file: " + this.pathname, error, "error");
 			return;
 		}
 	}
 
-	async readAsBuffer(): Promise<Buffer|undefined>
-	{
-		if(!this.exists || this.isDirectory)
-		{
+	async readAsBuffer(): Promise<Buffer | undefined> {
+		if (!this.exists || this.isDirectory) {
 			console.error("Error reading file buffer: " + this.pathname, (this.isDirectory ? "Path is directory" : "Path does not exist"));
 			return;
 		}
 
-		try
-		{
+		try {
 			const data = await fs.readFile(this.absoluted().pathname);
 			return data;
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error reading file buffer: " + this.pathname, error, "error");
 			return;
 		}
 	}
 
-	async write(data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, encoding: "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex" = "utf-8"): Promise<boolean>
-	{
+	async write(data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, encoding: "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "ucs-2" | "base64" | "base64url" | "latin1" | "binary" | "hex" = "utf-8"): Promise<boolean> {
 		if (this.isDirectory) return false;
 
-		try
-		{
+		try {
 			await fs.writeFile(this.absoluted().pathname, data, { encoding: encoding });
 			return true;
 		}
-		catch (error)
-		{
+		catch (error) {
 			const dirExists = await this.createDirectory();
 			if (!dirExists) return false;
 
-			try
-			{
+			try {
 				await fs.writeFile(this.absoluted().pathname, data, { encoding: encoding });
 				return true;
 			}
-			catch (error)
-			{
+			catch (error) {
 				Path.log("Error writing file: " + this.pathname, error, "error");
 				return false;
 			}
 		}
 	}
 
-	async delete(recursive: boolean = false): Promise<boolean>
-	{
+	async delete(recursive: boolean = false): Promise<boolean> {
 		if (!this.exists) return false;
 
-		try
-		{
+		try {
 			await fs.rm(this.absoluted().pathname, { recursive: recursive });
 			return true;
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Error deleting file: " + this.pathname, error, "error");
 			return false;
 		}
 	}
 
-	private static parsePath(path: string): { root: string, dir: string, parent: string, base: string, ext: string, name: string, fullPath: string }
-	{
+	private static parsePath(path: string): { root: string, dir: string, parent: string, base: string, ext: string, name: string, fullPath: string } {
 		const args = path.split("?")[1] ?? "";
 		path = path.split("?")[0];
 
-		if (process.platform === "win32")
-		{
-			if (path.startsWith("~"))
-			{
+		if (process.platform === "win32") {
+			if (path.startsWith("~")) {
 				path = path.replace("~", homedir());
 			}
 		}
 
-		try
-		{
+		try {
 			path = decodeURI(path);
 		}
-		catch (trash)
-		{
-			try
-			{
+		catch (trash) {
+			try {
 				path = decodeURI(path.replaceAll("%", ""));
 			}
-			catch (e)
-			{
+			catch (e) {
 				this.log("Could not decode path:" + path, e, "info");
 			}
 		}
 
 		const parsed = pathTools.parse(path) as { root: string, dir: string, base: string, ext: string, name: string };
-		
-		if (parsed.ext.contains(" "))
-		{
+
+		if (parsed.ext.contains(" ")) {
 			parsed.ext = "";
 		}
 
-		if(parsed.name.endsWith(" "))
-		{
+		if (parsed.name.endsWith(" ") && (parsed.ext == "." || parsed.ext == "..")) {
 			parsed.name += parsed.ext;
 			parsed.ext = "";
 		}
@@ -860,8 +746,7 @@ export class Path
 		let parent = parsed.dir;
 		let fullPath = "";
 
-		if(path.endsWith("/") || path.endsWith("\\") || parsed.ext == "")
-		{
+		if (path.endsWith("/") || path.endsWith("\\") || parsed.ext == "") {
 			if (path.endsWith("/") || path.endsWith("\\")) path = path.substring(0, path.length - 1);
 
 			parsed.dir = pathTools.normalizeSafe(path);
@@ -872,16 +757,15 @@ export class Path
 			fullPath = parsed.dir;
 			parent = parsed.dir.substring(0, parsed.dir.length - parsed.name.length);
 		}
-		else
-		{
+		else {
 			fullPath = pathTools.join(parent, parsed.base);
 		}
 
 
-		if (args && args.trim() != "") fullPath += "?" + args; 
+		if (args && args.trim() != "") fullPath += "?" + args;
 
-		if(fullPath.startsWith("http:")) parsed.root = "http://";
-		else if(fullPath.startsWith("https:")) parsed.root = "https://"; 
+		if (fullPath.startsWith("http:")) parsed.root = "http://";
+		else if (fullPath.startsWith("https:")) parsed.root = "https://";
 
 		// make sure that protocols use two slashes
 		const protocolRegex = /(https?)[:][\\/](?![\\/])/g;
@@ -892,48 +776,40 @@ export class Path
 		return { root: parsed.root, dir: parsed.dir, parent: parent, base: parsed.base, ext: parsed.ext, name: parsed.name, fullPath: fullPath };
 	}
 
-	private static pathExists(path: string): boolean
-	{
+	private static pathExists(path: string): boolean {
 		return existsSync(path);
 	}
 
-	private static joinStringPaths(...paths: string[]): string
-	{
+	private static joinStringPaths(...paths: string[]): string {
 		let joined = pathTools.join(...paths);
 
-		if (joined.startsWith("http")) 
-		{
+		if (joined.startsWith("http")) {
 			joined = joined.replaceAll(":/", "://");
 		}
 
-		try
-		{
+		try {
 			return decodeURI(joined);
 		}
-		catch (e)
-		{
+		catch (e) {
 			this.log("Could not decode joined paths: " + joined, e, "info");
 			return joined;
 		}
 	}
 
-	public static joinPath(...paths: Path[]): Path
-	{
+	public static joinPath(...paths: Path[]): Path {
 		return new Path(Path.joinStringPaths(...paths.map(p => p.path)), paths[0]._workingDirectory);
 	}
 
-	public static joinStrings(...paths: string[]): Path
-	{
+	public static joinStrings(...paths: string[]): Path {
 		return new Path(Path.joinStringPaths(...paths));
 	}
-	
+
 	/**
 	 * @param from The source path / working directory
 	 * @param to The destination path
 	 * @returns The relative path to the destination from the source
 	 */
-	public static getRelativePath(from: Path, to: Path, useAbsolute: boolean = false): Path
-	{
+	public static getRelativePath(from: Path, to: Path, useAbsolute: boolean = false): Path {
 		const fromUse = useAbsolute ? from.absoluted() : from;
 		const toUse = useAbsolute ? to.absoluted() : to;
 		const relative = pathTools.relative(fromUse.directory.path, toUse.path);
@@ -941,51 +817,43 @@ export class Path
 		return new Path(relative, workingDir);
 	}
 
-	public static getRelativePathFromVault(path: Path, useAbsolute: boolean = false): Path
-	{
+	public static getRelativePathFromVault(path: Path, useAbsolute: boolean = false): Path {
 		return Path.getRelativePath(Path.vaultPath, path, useAbsolute);
 	}
 
 	private static vaultPathCache: Path | undefined = undefined;
-	static get vaultPath(): Path
-	{
+	static get vaultPath(): Path {
 		if (this.vaultPathCache != undefined) return this.vaultPathCache;
 
 		const adapter = app.vault.adapter;
-		if (adapter instanceof FileSystemAdapter) 
-		{
+		if (adapter instanceof FileSystemAdapter) {
 			const basePath = adapter.getBasePath() ?? "";
 			this.vaultPathCache = new Path(basePath, "");
 			return this.vaultPathCache;
 		}
-		
+
 		throw new Error("Vault path could not be determined");
 	}
 
 	private static vaultConfigDirCache: Path | undefined = undefined;
-	static get vaultConfigDir(): Path
-	{
-		if (this.vaultConfigDirCache == undefined) 
-		{
+	static get vaultConfigDir(): Path {
+		if (this.vaultConfigDirCache == undefined) {
 			this.vaultConfigDirCache = new Path(app.vault.configDir, "");
 		}
 
 		return this.vaultConfigDirCache;
 	}
 
-	static get emptyPath(): Path
-	{
+	static get emptyPath(): Path {
 		return new Path("", "");
 	}
 
-	static get rootPath(): Path
-	{
+	static get rootPath(): Path {
 		return new Path("/", "");
 	}
-	
-	static slugify(path: string): string
-	{
-		return path.replaceAll(" ", "-").replaceAll(/-{2,}/g, "-").toLowerCase();
+
+	static slugify(path: string): string {
+		return path.replaceAll(" ", "-").replaceAll(/-[.]/g, ".").replaceAll(/-{2,}/g, "-").toLowerCase();
 	}
 
 	/**
@@ -997,22 +865,19 @@ export class Path
 	 *
 	 * @param {string} directory Path to the directory to clean up
 	 */
-	public static async removeEmptyDirectories(directory: string): Promise<void>
-	{
+	public static async removeEmptyDirectories(directory: string): Promise<void> {
 		const path = new Path(directory);
-		if (!path.isDirectory || !path.exists || path.isFile) 
+		if (!path.isDirectory || !path.exists || path.isFile)
 			return;
 
-		try
-		{
+		try {
 			const stats = await fs.stat(directory);
-			if (!stats?.isDirectory()) 
+			if (!stats?.isDirectory())
 				return;
 
 			let fileNames = await readdir(directory);
 			if (fileNames.length > 0) {
-				const recursiveRemovalPromises = fileNames.map((fileName) => 
-				{
+				const recursiveRemovalPromises = fileNames.map((fileName) => {
 					const newPath = path.joinString(fileName).path;
 					return this.removeEmptyDirectories(newPath);
 				});
@@ -1023,13 +888,11 @@ export class Path
 				fileNames = await readdir(directory);
 			}
 
-			if (fileNames.length === 0) 
-			{
+			if (fileNames.length === 0) {
 				await rmdir(directory);
 			}
 		}
-		catch (error)
-		{
+		catch (error) {
 			Path.log("Problem removing directory", error, "warn");
 		}
 	}
