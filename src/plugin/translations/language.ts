@@ -126,8 +126,6 @@ export interface i18n {
 		outline: {
 			title: string;
 			description: string;
-			info_startCollapsed: string;
-			info_minCollapseDepth: string;
 			info_autoCollapseDepth: string;
 		},
 		graphView: {

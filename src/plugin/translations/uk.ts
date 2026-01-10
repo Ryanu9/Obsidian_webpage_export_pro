@@ -122,8 +122,6 @@ export const language: i18n =
 		outline: {
 			title: "Структура",
 			description: "Показує список заголовків відкритого документа.",
-			info_startCollapsed: "Чи повинна структура починатись згорнутою?",
-			info_minCollapseDepth: "Мінімальна глибина, на якій заголовки можуть бути згорнуті.",
 			info_autoCollapseDepth: "Initial collapse depth (e.g. if 3, level 3 headings and below will be collapsed initially)"
 		},
 		graphView: {

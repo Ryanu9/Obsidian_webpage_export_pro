@@ -123,8 +123,6 @@ export const language: i18n =
 		outline: {
 			title: "Sumário",
 			description: "Exibe uma lista de cabeçalhos do documento aberto.",
-			info_startCollapsed: "O sumário deve começar recolhido?",
-			info_minCollapseDepth: "Permitir recolhimento apenas se o item tiver ao menos esse número de níveis na árvore.",
 			info_autoCollapseDepth: "Initial collapse depth (e.g. if 3, level 3 headings and below will be collapsed initially)"
 		},
 		graphView: {

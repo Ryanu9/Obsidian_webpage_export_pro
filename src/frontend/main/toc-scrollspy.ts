@@ -6,12 +6,14 @@ export class TocScrollSpy {
     private headings: { id: string, element: HTMLElement }[] = [];
     private TOP_OFFSET_PX = 50;
     private scrollContainer: HTMLElement | null = null;
+    private indicatorEl: HTMLElement | null = null;
 
     private currentPathname: string = "";
 
     constructor() {
         this.refreshScrollContainer();
         this.injectStyles();
+        this.createIndicator();
     }
 
     private onScroll = () => this.requestSync();
@@ -71,8 +73,21 @@ export class TocScrollSpy {
                 element: h.headerElement
             })).filter((h: any) => h.id);
 
+            this.createIndicator();
             this.requestSync();
         }, 500);
+    }
+
+    private createIndicator() {
+        const outline = document.querySelector('#outline');
+        if (!outline) return;
+
+        // Remove existing indicator if any
+        outline.querySelector('.outline-indicator')?.remove();
+
+        this.indicatorEl = document.createElement('div');
+        this.indicatorEl.className = 'outline-indicator';
+        outline.appendChild(this.indicatorEl);
     }
 
     private requestSync() {
@@ -89,18 +104,16 @@ export class TocScrollSpy {
 
         const site = (window as any).ObsidianSite;
         const outlineTree = site.outlineTree as Tree;
-        if (!outlineTree) return;
+        if (!outlineTree || !outlineTree.rootEl) return;
 
+        const outlineContainer = outlineTree.rootEl;
         let activeId: string | null = null;
         const containerTop = this.scrollContainer.getBoundingClientRect().top;
         const scrollOffset = this.scrollContainer.scrollTop;
 
-        // If at the very top, select the first heading and scroll the TOC to top
+        // 1. Find the active heading
         if (scrollOffset < 50) {
             activeId = this.headings[0].id;
-            if (outlineTree.rootEl) {
-                this.scheduleOutlineScroll(outlineTree.rootEl, 0);
-            }
         } else {
             for (const h of this.headings) {
                 const rect = h.element.getBoundingClientRect();
@@ -112,58 +125,92 @@ export class TocScrollSpy {
             }
         }
 
-        if (activeId) {
-            const variants = [
-                "#" + activeId,
-                this.currentPathname + "#" + activeId,
-                "#" + encodeURIComponent(activeId),
-                this.currentPathname + "#" + encodeURIComponent(activeId),
-                "#" + decodeURIComponent(activeId),
-                this.currentPathname + "#" + decodeURIComponent(activeId)
-            ];
-
-            let item = null;
-            for (const v of variants) {
-                item = outlineTree.findByPath(v);
-                if (item) break;
-            }
-
-            if (item) {
-                const isNew = item !== outlineTree.activeItem;
-                if (isNew) {
-                    item.setActive();
-                    this.syncExpansion(outlineTree, item);
-                }
-
-                const el = item.itemEl;
-                const outlineContainer = outlineTree.rootEl;
-                if (outlineContainer && el) {
-                    const containerRect = outlineContainer.getBoundingClientRect();
-                    const itemRect = el.getBoundingClientRect();
-                    const itemTop = (itemRect.top - containerRect.top) + outlineContainer.scrollTop;
-                    const containerHeight = containerRect.height;
-                    const targetTop = itemTop - containerHeight * 0.3;
-                    this.scheduleOutlineScroll(outlineContainer, Math.max(0, targetTop));
-                }
-            }
-        } else {
+        if (!activeId) {
+            if (this.indicatorEl) this.indicatorEl.style.display = 'none';
             if (outlineTree.activeItem) {
                 outlineTree.activeItem.selfEl.classList.remove("is-active");
                 outlineTree.activeItem = undefined;
                 this.syncExpansion(outlineTree, undefined);
             }
+            return;
+        }
+
+        // 2. Find the corresponding TOC item in the tree
+        const variants = [
+            "#" + activeId,
+            this.currentPathname + "#" + activeId,
+            "#" + encodeURIComponent(activeId),
+            this.currentPathname + "#" + encodeURIComponent(activeId),
+            "#" + decodeURIComponent(activeId),
+            this.currentPathname + "#" + decodeURIComponent(activeId)
+        ];
+
+        let item = null;
+        for (const v of variants) {
+            item = outlineTree.findByPath(v);
+            if (item) break;
+        }
+
+        if (!item) return;
+
+        // 3. Update active state and expansion
+        const isNew = item !== outlineTree.activeItem;
+        if (isNew) {
+            item.setActive();
+        }
+
+        // Always sync expansion to ensure visibility, especially during initial load or manual interactions.
+        // This O(N) operation is inexpensive for typical TOC sizes and prevents state desync.
+        this.syncExpansion(outlineTree, item);
+
+        // 4. Update the highlight indicator position
+        const el = item.itemEl;
+        if (this.indicatorEl && el) {
+            const selfEl = item.selfEl;
+            const containerRect = outlineContainer.getBoundingClientRect();
+            const selfRect = selfEl.getBoundingClientRect();
+
+            this.indicatorEl.style.display = 'block';
+            this.indicatorEl.style.top = `${(selfRect.top - containerRect.top) + outlineContainer.scrollTop}px`;
+            this.indicatorEl.style.height = `${selfRect.height}px`;
+        }
+
+        // 5. Optimized TOC Scroll Management
+        if (el) {
+            const containerRect = outlineContainer.getBoundingClientRect();
+            const itemRect = el.getBoundingClientRect();
+
+            // Calculate where we WANT the TOC to be (item at 30% of container height)
+            const itemTopInContainer = (itemRect.top - containerRect.top) + outlineContainer.scrollTop;
+            const targetScrollTop = itemTopInContainer - containerRect.height * 0.3;
+            const boundedTarget = Math.max(0, targetScrollTop);
+
+            // "Comfortable Zone" check: Only scroll if the item is near the top or bottom edges
+            // or if it's a newly selected item. This prevents jitter during small scrolls.
+            const margin = containerRect.height * 0.2; // 20% margin from top and bottom
+            const isOutside = itemRect.top < containerRect.top + margin || itemRect.bottom > containerRect.bottom - margin;
+
+            if (isNew || isOutside) {
+                const currentScrollTop = outlineContainer.scrollTop;
+                if (Math.abs(currentScrollTop - boundedTarget) > 10) {
+                    this.scheduleOutlineScroll(outlineContainer, boundedTarget, isNew);
+                }
+            }
         }
     }
 
-    private scheduleOutlineScroll(outlineContainer: HTMLElement, targetTop: number) {
+    private scheduleOutlineScroll(outlineContainer: HTMLElement, targetTop: number, isInitial: boolean) {
         if (this.pendingOutlineScrollFrame !== null) {
             cancelAnimationFrame(this.pendingOutlineScrollFrame);
         }
 
-        const distance = Math.abs(targetTop - outlineContainer.scrollTop);
-        const behavior: ScrollBehavior = distance > 50 ? 'smooth' : 'auto';
-
         this.pendingOutlineScrollFrame = requestAnimationFrame(() => {
+            const currentTop = outlineContainer.scrollTop;
+            const distance = Math.abs(targetTop - currentTop);
+
+            // Use smooth behavior for normal tracking, auto for large jumps or initial load
+            const behavior: ScrollBehavior = (isInitial && distance > 500) ? 'auto' : 'smooth';
+
             outlineContainer.scrollTo({
                 top: targetTop,
                 behavior
@@ -208,6 +255,10 @@ export class TocScrollSpy {
         const style = document.createElement('style');
         style.id = 'toc-scrollspy-styles';
         style.textContent = `
+            #outline {
+                position: relative;
+            }
+
             #outline .tree-item-self {
                 position: relative;
                 transition: color 0.1s ease, font-weight 0.1s ease;
@@ -219,15 +270,17 @@ export class TocScrollSpy {
 
             #outline .tree-item-inner {
                 display: flex !important;
-                align-items: flex-start; /* Align icon to the top of the first line */
+                align-items: flex-start;
                 gap: 4px; 
-                white-space: normal; /* Allow wrapping */
+                white-space: normal;
                 word-break: break-word;
                 padding-right: 4px;
                 flex: 1;
                 line-height: 1.4;
                 padding-top: 2px;
                 padding-bottom: 2px;
+                font-size: 13px; /* Reduced overall size */
+                transition: font-size 0.15s ease-out;
             }
 
             #outline .collapse-icon {
@@ -238,13 +291,29 @@ export class TocScrollSpy {
                 width: 20px !important;
                 height: 24px;
                 flex-shrink: 0;
-                margin-top: -2px; /* Pull icon up slightly to align with the first line better */
+                margin-top: -2px;
             }
 
             #outline .tree-item-self.is-active {
                 color: var(--text-normal);
+                background-color: transparent !important; /* No background highlight */
+            }
+
+            #outline .tree-item-self.is-active .tree-item-inner {
+                font-size: 14.5px; /* Increase font size when active */
                 font-weight: 600;
-                background-color: var(--background-modifier-hover);
+            }
+
+            .outline-indicator {
+                position: absolute;
+                left: 2px; /* Position to the left of level 1 hierarchy */
+                width: 3px;
+                background-color: var(--interactive-accent);
+                transition: top 0.2s cubic-bezier(0.4, 0, 0.2, 1), height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 10;
+                pointer-events: none;
+                border-radius: 4px;
+                display: none;
             }
 
             /* Hide collapse icon for top-level TOC items (depth 0) */

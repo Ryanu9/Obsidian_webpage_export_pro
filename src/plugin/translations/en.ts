@@ -123,8 +123,6 @@ export const language: i18n =
 		outline: {
 			title: "Outline",
 			description: "Shows a list of the open document's headers.",
-			info_startCollapsed: "Should the outline start collapsed?",
-			info_minCollapseDepth: "Only allow outline items to be collapsed if they are at least this many levels deep in the tree.",
 			info_autoCollapseDepth: "Initial collapse depth (e.g. if 3, level 3 headings and below will be collapsed initially)"
 		},
 		graphView: {

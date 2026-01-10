@@ -116,8 +116,6 @@ export const language: i18n =
 		outline: {
 			title: "Struttura",
 			description: "Mostra un elenco dei titoli del documento aperto.",
-			info_startCollapsed: "La struttura deve partire collassata?",
-			info_minCollapseDepth: "Profondità minima a cui i titoli devono essere collassati",
 			info_autoCollapseDepth: "Profondità di collasso iniziale (es. se 3, i titoli di livello 3 e inferiori saranno inizialmente collassati)"
 		},
 		graphView: {

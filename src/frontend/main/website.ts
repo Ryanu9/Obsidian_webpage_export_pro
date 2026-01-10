@@ -136,7 +136,7 @@ export class ObsidianWebsite {
 
 		if (fileTreeEl) this.fileTree = new Tree(fileTreeEl);
 		if (outlineTreeEl) {
-			this.outlineTree = new Tree(outlineTreeEl, this.metadata.featureOptions.outline.minCollapseDepth);
+			this.outlineTree = new Tree(outlineTreeEl, 1);
 		}
 		if (leftSidebarEl) this.leftSidebar = new Sidebar(leftSidebarEl);
 		if (rightSidebarEl) this.rightSidebar = new Sidebar(rightSidebarEl);
@@ -316,7 +316,7 @@ export class ObsidianWebsite {
 		if (this.isHttp) {
 			let initialPath = this.document.pathname;
 			if (initialPath == "index.html") initialPath = "";
-			
+
 			// Preserve query parameters (especially for OAuth callbacks like Giscus)
 			const currentUrl = new URL(window.location.href);
 			const queryString = currentUrl.search;
@@ -324,7 +324,7 @@ export class ObsidianWebsite {
 			if (queryString) {
 				initialPath = initialPath + queryString;
 			}
-			
+
 			history.replaceState(
 				{ pathname: this.document.pathname },
 				this.document.title,
@@ -409,11 +409,11 @@ export class ObsidianWebsite {
 
 		// Find backlinks element and move its content to outline wrapper
 		const backlinksEl = document.querySelector("#backlinks") as HTMLElement;
-		
+
 		// Function to move backlinks content to outline location
 		const moveBacklinksContent = () => {
 			if (!backlinksEl || !outlineWrapper) return;
-			
+
 			// Hide backlinks header (we use outline header for toggle)
 			const backlinksHeader = backlinksEl.querySelector(".feature-header") as HTMLElement;
 			if (backlinksHeader) {
@@ -435,7 +435,7 @@ export class ObsidianWebsite {
 			const nonHeaderChildren = Array.from(outlineWrapper.children).filter(
 				el => el !== outlineHeader
 			);
-			
+
 			if (nonHeaderChildren.length > 0) {
 				// Insert after the first non-header child (tree items usually come after header)
 				outlineWrapper.insertBefore(backlinksContent, nonHeaderChildren[0].nextSibling);
@@ -631,7 +631,7 @@ export class ObsidianWebsite {
 		if (newOutlineEl) {
 			newOutlineEl = document.adoptNode(newOutlineEl);
 			document.querySelector("#outline")?.replaceWith(newOutlineEl);
-			ObsidianSite.outlineTree = new Tree(newOutlineEl, this.metadata.featureOptions.outline.minCollapseDepth);
+			ObsidianSite.outlineTree = new Tree(newOutlineEl, 1);
 		}
 
 		setTimeout(async () => {
