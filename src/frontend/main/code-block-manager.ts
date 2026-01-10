@@ -1103,7 +1103,7 @@ export class CodeBlockManager {
 
 
         const standardColor = isDark ? '#b0b0b0' : '#555555';
-        const adjustedColor = ensureContrast(standardColor, bg, 3.5, container);
+        const adjustedColor = ensureContrast(standardColor, bg, 4, container);
         container.style.setProperty('--code-ui-color', adjustedColor);
 
 
