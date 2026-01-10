@@ -27,7 +27,6 @@ export class CodeBlockManager {
             .markdown-rendered pre .highlight-line {
                 background-color: rgba(${r}, ${g}, ${b}, ${opacity});
 	            display: inline-block;
-                width: 100%;
 	            box-sizing: border-box;
 	            padding: 0 0;
             }
@@ -37,7 +36,6 @@ export class CodeBlockManager {
             .code-block-highlight-preview .highlight-line {
                 background-color: rgba(${r}, ${g}, ${b}, ${opacity}) !important;
 	            display: block;
-                width: 100%;
 	            box-sizing: border-box;
 	            padding: 0;
                 margin: 0;
