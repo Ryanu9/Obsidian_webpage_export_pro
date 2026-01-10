@@ -2,7 +2,7 @@ import { delay } from "./utils";
 
 export class CodeBlockManager {
     private containerEl: HTMLElement;
-    
+
     // 静态方法：更新高亮样式（用于设置预览）
     public static updateHighlightStyles(options: any) {
         const styleId = "code-block-highlight-styles";
@@ -12,7 +12,7 @@ export class CodeBlockManager {
             style.id = styleId;
             document.head.appendChild(style);
         }
-        
+
         // 从 hex 颜色字符串转换为 RGB
         const hexColor = options?.highlightLineColor || "#464646";
         const hex = hexColor.replace('#', '');
@@ -47,7 +47,7 @@ export class CodeBlockManager {
             }
         `;
     }
-    
+
     private getTranslation(key: string, defaultValue: string): string {
         try {
             // Try to get i18n from window (if exposed)
@@ -60,7 +60,7 @@ export class CodeBlockManager {
         }
         return defaultValue;
     }
-    
+
     private getCodeBlockOptions(): any {
         try {
             // Try to get code block options from metadata
@@ -103,9 +103,9 @@ export class CodeBlockManager {
             style.id = styleId;
             document.head.appendChild(style);
         }
-        
+
         const options = this.getCodeBlockOptions();
-        
+
         style.textContent = `
             /* Code Block Header and Features Styles */
             .code-block-container {
@@ -454,7 +454,7 @@ export class CodeBlockManager {
                 display: none !important;
             }
         `;
-        
+
         // 初始化高亮样式
         CodeBlockManager.updateHighlightStyles(options);
     }
@@ -472,15 +472,15 @@ export class CodeBlockManager {
         allPreElements.forEach(pre => {
             if (!pre) return;
             if (pre.getAttribute('data-processed') === 'true') return; // Avoid re-processing
-            
+
             // Skip code blocks inside YAML properties container
             if (pre.closest('.yaml-properties-container')) {
                 return;
             }
-            
+
             // Skip frontmatter elements (they should not have line numbers)
-            if (pre.classList.contains('frontmatter') || 
-                pre.classList.contains('yaml-frontmatter') || 
+            if (pre.classList.contains('frontmatter') ||
+                pre.classList.contains('yaml-frontmatter') ||
                 pre.hasAttribute('data-frontmatter')) {
                 return;
             }
@@ -575,7 +575,7 @@ export class CodeBlockManager {
         // 优先从 code 元素获取语言标识
         const codeElement = pre.querySelector('code');
         let language = '';
-        
+
         if (codeElement) {
             // 从 code 元素的类名中提取语言（例如：language-代码块, language-python）
             const codeClassMatch = codeElement.className.match(/language-([^\s]+)/);
@@ -583,17 +583,17 @@ export class CodeBlockManager {
                 language = codeClassMatch[1];
             }
         }
-        
+
         // 如果 code 元素没有语言标识，尝试从 pre 元素获取
         if (!language) {
             language = pre.className.match(/language-(\w+)/)?.[1] || '';
         }
-        
+
         // 如果是 ANSI 块
         if (!language && pre.classList.contains('ansi-block')) {
             language = 'ansi';
         }
-        
+
         if (language) {
             pre.setAttribute('data-language', language);
         }
@@ -652,7 +652,7 @@ export class CodeBlockManager {
         const options = this.getCodeBlockOptions();
         const lines = this.getLineCount(pre);
         const threshold = options.collapseThreshold || 30;
-        
+
         if (lines > threshold && options.defaultCollapse) {
             // 默认折叠
             this.setupCollapse(pre, container);
@@ -671,13 +671,13 @@ export class CodeBlockManager {
         const wrapBtn = this.createButton('wrap', this.getTranslation('wrap', '自动换行'));
         wrapBtn.innerHTML = this.getIcon('wrap');
         wrapBtn.onclick = () => this.toggleWrap(pre, wrapBtn);
-        
+
         // Apply default wrap setting
         if (options.defaultWrap) {
             pre.classList.add('wrap-code');
             wrapBtn.innerHTML = this.getIcon('text');
         }
-        
+
         controls.appendChild(wrapBtn);
 
         // Copy
@@ -723,7 +723,7 @@ export class CodeBlockManager {
     // Line Numbers Logic
     private addLineNumbers(pre: HTMLPreElement) {
         if (pre.querySelector('.line-numbers-wrapper')) return;
-        
+
         // Check if line numbers should be shown
         const options = this.getCodeBlockOptions();
         if (!options.showLineNumbers) return;
@@ -885,15 +885,15 @@ export class CodeBlockManager {
         container.classList.add('collapsed');
         pre.classList.add('collapsed');
         pre.setAttribute('data-collapsed', 'true');
-        
+
         // 计算20行的实际高度
         this.setCollapsedHeight(pre, 20);
     }
-    
+
     private createBottomExpandButton(container: HTMLElement, pre: HTMLPreElement) {
         // 检查是否已存在底部按钮
         if (container.querySelector('.bottom-expand-button')) return;
-        
+
         const bottomBtn = document.createElement('button');
         bottomBtn.className = 'bottom-expand-button';
         bottomBtn.title = this.getTranslation('expandCollapse', '展开/收起');
@@ -906,7 +906,7 @@ export class CodeBlockManager {
         // 初始状态：折叠时图标不旋转
         this.updateBottomButtonIcon(container, true);
     }
-    
+
     private updateBottomButtonIcon(container: HTMLElement, isCollapsed: boolean) {
         const bottomBtn = container.querySelector('.bottom-expand-button') as HTMLElement;
         if (bottomBtn) {
@@ -915,7 +915,7 @@ export class CodeBlockManager {
             bottomBtn.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
         }
     }
-    
+
     private setCollapsedHeight(pre: HTMLPreElement, lines: number) {
         const computedStyle = window.getComputedStyle(pre);
         const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(computedStyle.fontSize) * 1.6;
@@ -953,7 +953,9 @@ export class CodeBlockManager {
             }
             // 更新底部按钮图标：折叠时不旋转
             this.updateBottomButtonIcon(container, true);
-            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+
+            container.scrollIntoView({ behavior: 'auto', block: 'nearest' });
         }
     }
 
