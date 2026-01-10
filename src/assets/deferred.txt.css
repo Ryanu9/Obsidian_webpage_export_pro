@@ -1,9 +1,9 @@
 /* Define default values for variables */
 body
 {
-    --line-width: 40em;
-    --line-width-adaptive: 40em;
-    --file-line-width: 40em;
+    --line-width: 45em;
+    --line-width-adaptive: 45em;
+    --file-line-width: 45em;
     --sidebar-width: min(20em, 80vw);
     --collapse-arrow-size: 11px;
     --tree-vertical-spacing: 1.3em;

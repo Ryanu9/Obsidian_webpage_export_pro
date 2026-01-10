@@ -5,7 +5,7 @@ export class DocumentOptions extends FeatureOptions
 {
 	allowFoldingLists: boolean = true;
 	allowFoldingHeadings: boolean = true;
-	documentWidth: string = "40em";
+	documentWidth: string = "45em";
 	showCreatedUpdatedTime: boolean = true;
 
 	info_allowFoldingLists = new FeatureSettingInfo({
