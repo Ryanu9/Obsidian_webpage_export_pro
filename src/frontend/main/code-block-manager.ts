@@ -169,7 +169,7 @@ export class CodeBlockManager {
                 font-size: 0.85em;
                 font-weight: 500;
                 color: var(--code-ui-color) !important;
-                opacity: 0.65; /* 降低视觉亮度 */
+                opacity: 0.75; 
                 text-transform: capitalize;
                 user-select: none;
             }
@@ -189,7 +189,7 @@ export class CodeBlockManager {
                 border: none !important;
                 box-shadow: none !important;
                 color: var(--code-ui-color) !important; 
-                opacity: 0.65; /* 默认半透明 */
+                opacity: 0.75; 
                 cursor: pointer;
                 padding: 4px;
                 border-radius: 4px;
@@ -198,7 +198,7 @@ export class CodeBlockManager {
 
             .code-block-button:hover,
             .code-block-button.active {
-                opacity: 1 !important; /* 悬停或激活时全亮 */
+                opacity: 1 !important; 
                 background-color: var(--background-modifier-hover) !important;
                 filter: brightness(1.2);
             }
@@ -335,7 +335,7 @@ export class CodeBlockManager {
                 padding: 1em 0.8em 1em 1em;
                 border-right: 1px solid var(--background-modifier-border);
                 color: var(--code-ui-color);
-                opacity: 0.6; /* 行号也适当降低亮度 */
+                opacity: 0.7; /* 行号透明度调整 */
                 user-select: none;
                 font-family: inherit; /* Sync font with code */
                 background-color: var(--code-background);
