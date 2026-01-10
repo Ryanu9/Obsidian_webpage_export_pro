@@ -4,6 +4,7 @@ import { ensureContrast } from "./color-utils";
 export class CodeBlockManager {
     private containerEl: HTMLElement;
     private processedContainers: HTMLElement[] = [];
+    private observer: IntersectionObserver | null = null;
 
     // 静态方法：更新高亮样式（用于设置预览）
     public static updateHighlightStyles(options: any) {
@@ -88,6 +89,37 @@ export class CodeBlockManager {
 
     constructor(containerEl: HTMLElement) {
         this.containerEl = containerEl;
+        this.initObserver();
+    }
+
+    private initObserver() {
+        if (typeof IntersectionObserver === 'undefined') return;
+
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const container = entry.target as HTMLElement;
+                    this.lazyProcessCodeBlock(container);
+                    this.observer?.unobserve(container);
+                }
+            });
+        }, {
+            rootMargin: '200px 0px', // 提前 200px 开始渲染，提升体验
+        });
+    }
+
+    private lazyProcessCodeBlock(container: HTMLElement) {
+        if (container.getAttribute('data-lazy-processed') === 'true') return;
+
+        const pre = container.querySelector('pre');
+        if (!pre) return;
+
+        this.processHighlightBackground(pre);
+        this.addLineNumbers(pre);
+        this.createHeader(pre);
+        this.adjustContrast(container);
+
+        container.setAttribute('data-lazy-processed', 'true');
     }
 
     public async init() {
@@ -506,13 +538,22 @@ export class CodeBlockManager {
             this.processLanguage(pre);
             this.prepareContainer(pre);
 
-            this.processHighlightBackground(pre);
-            this.addLineNumbers(pre);
-            this.createHeader(pre);
-
             const container = pre.parentElement as HTMLElement;
-            this.adjustContrast(container);
-            this.processedContainers.push(container);
+
+            // 立即处理折叠相关的布局，避免懒加载时产生布局抖动(Layout Shift)
+            const options = this.getCodeBlockOptions();
+            const lines = this.getLineCount(pre);
+            const threshold = options.collapseThreshold || 30;
+            if (lines > threshold && options.defaultCollapse) {
+                this.setupCollapse(pre, container);
+            }
+
+            // 如果支持 IntersectionObserver 则使用懒加载，否则立即渲染
+            if (this.observer) {
+                this.observer.observe(container);
+            } else {
+                this.lazyProcessCodeBlock(container);
+            }
 
             pre.setAttribute('data-processed', 'true');
         });
