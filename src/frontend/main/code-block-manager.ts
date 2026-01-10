@@ -116,7 +116,7 @@ export class CodeBlockManager {
                 border: 1px solid var(--background-modifier-border);
                 border-radius: 8px;
                 overflow: hidden;
-                background-color: var(--background-primary);
+                background-color: var(--code-background);
             }
 
             .code-block-header {
@@ -124,7 +124,7 @@ export class CodeBlockManager {
                 justify-content: space-between;
                 align-items: center;
                 padding: 1px 12px;
-                background-color: inherit;
+                background-color: var(--code-background);
                 border-bottom: none;
                 font-family: var(--font-interface);
                 user-select: none;
@@ -231,6 +231,7 @@ export class CodeBlockManager {
                 clear: both !important;
                 transform: none !important;
                 z-index: auto !important;
+                background-color: var(--code-background);
             }
 
             /* 确保 code 内部的语法高亮元素在无行号时也正常显示 */
@@ -242,6 +243,7 @@ export class CodeBlockManager {
                 left: auto !important;
                 right: auto !important;
                 bottom: auto !important;
+                background-color: transparent; /* 内部元素保持透明，让 code 的背景色显示 */
             }
 
             /* 重置可能影响代码块显示的属性，特别是针对 is-loaded 类 */
@@ -253,6 +255,7 @@ export class CodeBlockManager {
                 bottom: auto !important;
                 transform: none !important;
                 z-index: auto !important;
+                background-color: var(--code-background);
             }
 
             /* 当有行号时，code 元素占据 grid 第二列 */
@@ -270,12 +273,14 @@ export class CodeBlockManager {
                 min-width: 0; /* 防止 grid 项目溢出 */
                 width: 100%;
                 box-sizing: border-box;
+                background-color: var(--code-background);
             }
 
             /* 确保 code 内部的语法高亮元素正常显示，不影响 grid 布局 */
             .markdown-rendered pre.has-line-numbers code * {
                 display: inline;
                 white-space: pre;
+                background-color: transparent; /* 内部元素保持透明，让 code 的背景色显示 */
             }
 
             /* 当换行时，code 内部的语法高亮元素也要换行 */
@@ -291,7 +296,7 @@ export class CodeBlockManager {
                 color: var(--text-faint);
                 user-select: none;
                 font-family: inherit; /* Sync font with code */
-                background-color: transparent; /* Match code block background */
+                background-color: var(--code-background);
                 min-width: 2.5em; 
             }
 
@@ -325,6 +330,7 @@ export class CodeBlockManager {
                 min-width: 0 !important; /* Override min-width: 100% */
                 overflow-x: visible !important;
                 overflow-wrap: break-word !important;
+                background-color: var(--code-background);
             }
 
             /* 当换行时，code 内部的语法高亮元素也要换行（无行号时） */
@@ -343,6 +349,7 @@ export class CodeBlockManager {
                 min-width: 0 !important; /* Override min-width: 100% */
                 overflow-x: visible !important;
                 overflow-wrap: break-word !important;
+                background-color: var(--code-background);
             }
 
             /* Collapse Styles */
@@ -360,7 +367,7 @@ export class CodeBlockManager {
                 left: 0;
                 right: 0;
                 height: calc(3 * var(--code-line-height, 1.6) * 1em + 1em);
-                background: linear-gradient(to bottom, transparent 0%, var(--background-primary) 100%);
+                background: linear-gradient(to bottom, transparent 0%, var(--code-background) 100%);
                 pointer-events: none;
                 z-index: 10;
             }
