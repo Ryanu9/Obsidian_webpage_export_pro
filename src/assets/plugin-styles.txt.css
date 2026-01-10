@@ -1346,10 +1346,23 @@ a.backlink:hover {
 	color: inherit;
 	text-decoration: underline;
 	text-decoration-color: var(--text-muted);
+	font-size: inherit;
 }
 
 #copyright a:hover {
 	opacity: 0.8;
+}
+
+.copyright-content {
+	font-size: inherit;
+}
+
+.copyright-content #copyright {
+	font-size: 15px;
+}
+
+.copyright-content #copyright a {
+	font-size: inherit;
 }
 
 /*#endregion */
