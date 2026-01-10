@@ -131,7 +131,8 @@ export class CodeBlockManager {
             .code-block-header__title {
                 font-size: 0.85em;
                 font-weight: 500;
-                color: var(--text-muted);
+                color: var(--text-normal); 
+                opacity: 0.8; 
                 text-transform: capitalize;
             }
             
@@ -147,15 +148,16 @@ export class CodeBlockManager {
                 justify-content: center;
                 background: transparent;
                 border: none;
-                color: var(--text-muted);
+                color: var(--text-normal); 
+                opacity: 0.7;
                 cursor: pointer;
                 padding: 4px;
                 border-radius: 4px;
-                transition: color 0.2s, background-color 0.2s;
+                transition: opacity 0.2s, background-color 0.2s;
             }
 
             .code-block-button:hover {
-                color: var(--text-normal);
+                opacity: 1; 
                 background-color: var(--background-modifier-hover);
             }
             
@@ -291,7 +293,7 @@ export class CodeBlockManager {
                 text-align: right;
                 padding: 1em 0.8em 1em 1em;
                 border-right: 1px solid var(--background-modifier-border);
-                color: var(--text-faint);
+                color: var(--text-muted); /* 提升行号对比度，从 faint 提升到 muted */
                 user-select: none;
                 font-family: inherit; /* Sync font with code */
                 background-color: var(--code-background);
