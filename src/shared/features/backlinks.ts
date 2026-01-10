@@ -10,8 +10,10 @@ export class BacklinksOptions extends InsertedFeatureOptionsWithTitle {
 		super();
 		this.featureId = "backlinks";
 		this.displayTitle = i18n.settings.backlinks.title;
+		// Place backlinks in the same location as outline (#right-sidebar-content)
+		// so they can share the same header with toggle buttons
 		this.featurePlacement = new FeatureRelation(
-			".footer",
+			"#right-sidebar-content",
 			RelationType.End
 		);
 	}
