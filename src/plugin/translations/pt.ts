@@ -319,6 +319,9 @@ export const language: i18n =
 			info_collapseThreshold: "Limite de número de linhas para recolhimento automático (padrão: 30)",
 			info_defaultWrap: "Habilitar quebra de linha para blocos de código por padrão",
 			info_showBottomExpandButton: "Mostrar botão expandir/recolher no canto inferior direito dos blocos de código",
+			info_enableHighlightLine: "Habilitar destaque de linha de código (linhas que começam com >>>> )",
+			info_highlightLineColor: "Cor de fundo da linha destacada",
+			info_highlightLineOpacity: "Opacidade do fundo da linha destacada (0-1)",
 		},
 		vercelInsights: {
 			title: "Vercel Insights",

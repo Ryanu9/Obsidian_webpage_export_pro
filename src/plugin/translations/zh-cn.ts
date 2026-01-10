@@ -319,6 +319,9 @@ export const language: i18n =
 			info_collapseThreshold: "自动折叠的行数阈值（默认：30）",
 			info_defaultWrap: "默认启用代码块自动换行",
 			info_showBottomExpandButton: "在代码块底部右侧显示展开/收起按钮",
+			info_enableHighlightLine: "启用代码行高亮功能（以 >>>> 开头的行）",
+			info_highlightLineColor: "高亮行背景颜色",
+			info_highlightLineOpacity: "高亮行背景透明度 (0-1)",
 		},
 		vercelInsights: {
 			title: "Vercel Insights",

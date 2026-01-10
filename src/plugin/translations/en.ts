@@ -320,6 +320,9 @@ export const language: i18n =
 			info_collapseThreshold: "Number of lines threshold for auto-collapse (default: 30)",
 			info_defaultWrap: "Enable word wrap for code blocks by default",
 			info_showBottomExpandButton: "Show expand/collapse button at the bottom right of code blocks",
+			info_enableHighlightLine: "Enable code line highlighting (lines starting with >>>> )",
+			info_highlightLineColor: "Highlight line background color",
+			info_highlightLineOpacity: "Highlight line background opacity (0-1)",
 		},
 		vercelInsights: {
 			title: "Vercel Insights",

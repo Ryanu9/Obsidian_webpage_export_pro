@@ -143,14 +143,14 @@ export class Settings {
 			exportOptions: SettingsPage.deepCopy(Settings.exportOptions),
 			openAfterExport: Settings.openAfterExport
 		};
-		
+
 		const existingIndex = Settings.exportConfigs.findIndex(c => c.name === name);
 		if (existingIndex >= 0) {
 			Settings.exportConfigs[existingIndex] = config;
 		} else {
 			Settings.exportConfigs.push(config);
 		}
-		
+
 		SettingsPage.saveSettings();
 	}
 
@@ -162,11 +162,11 @@ export class Settings {
 		Settings.exportOptions.exportPath = config.exportPath;
 		Settings.exportPreset = config.exportPreset;
 		Settings.openAfterExport = config.openAfterExport;
-		
+
 		// Deep copy export options
 		SettingsPage.deepAssign(Settings.exportOptions, config.exportOptions);
 		Settings.exportOptions.reconstructFeatureOptions();
-		
+
 		SettingsPage.saveSettings();
 		return true;
 	}
@@ -269,7 +269,162 @@ export class SettingsPage extends PluginSettingTab {
 		createFeatureSetting(section, lang.footerLinks.title, Settings.exportOptions.footerLinksOptions, lang.footerLinks.description);
 		createFeatureSetting(section, lang.copyright.title, Settings.exportOptions.copyrightOptions, lang.copyright.description);
 		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);
-		createFeatureSetting(section, lang.codeBlock.title, Settings.exportOptions.codeBlockOptions, lang.codeBlock.description);
+		createFeatureSetting(section, lang.codeBlock.title, Settings.exportOptions.codeBlockOptions, lang.codeBlock.description,
+			(container) => {
+				const codeBlockOptions = Settings.exportOptions.codeBlockOptions;
+
+				// 添加代码块高亮预览
+				const previewContainer = container.createDiv({ cls: "code-block-highlight-preview" });
+				previewContainer.style.marginTop = "1em";
+				previewContainer.style.marginBottom = "1em";
+
+				const previewTitle = previewContainer.createDiv();
+				previewTitle.textContent = "Preview:";
+				previewTitle.style.fontWeight = "bold";
+				previewTitle.style.marginBottom = "0.5em";
+
+				const previewCodeBlock = previewContainer.createEl("pre");
+				previewCodeBlock.style.background = "var(--code-background)";
+				previewCodeBlock.style.border = "var(--code-border-width) solid var(--code-border-color)";
+				previewCodeBlock.style.borderRadius = "var(--radius-m)";
+				previewCodeBlock.style.padding = "var(--size-4-4)";
+				previewCodeBlock.style.fontFamily = "var(--font-monospace)";
+				previewCodeBlock.style.fontSize = "var(--code-size)";
+				previewCodeBlock.style.lineHeight = "var(--code-line-height)";
+				previewCodeBlock.style.overflowX = "auto";
+				previewCodeBlock.style.whiteSpace = "pre";
+
+				const previewCode = previewCodeBlock.createEl("code");
+				previewCode.className = "language-python";
+
+				previewCode.innerHTML = `def example():
+<span class="highlight-line">    print("This line is highlighted")</span>
+    normal_line = "This is normal"`;
+
+				// 定义更新预览函数
+				const updatePreview = () => {
+					const options = Settings.exportOptions.codeBlockOptions;
+					// 动态导入并更新样式
+					import("src/frontend/main/code-block-manager").then(module => {
+						module.CodeBlockManager.updateHighlightStyles(options);
+						// 确保样式应用到预览容器内的元素
+						const style = document.getElementById("code-block-highlight-styles") as HTMLStyleElement;
+						if (style) {
+							// 重置内联样式以使用 CSS 类样式
+							previewCodeBlock.querySelectorAll('.highlight-line').forEach(el => {
+								(el as HTMLElement).style.backgroundColor = '';
+							});
+						}
+					});
+				};
+
+				// 初始更新一次样式
+				setTimeout(updatePreview, 100);
+
+				// 创建行高亮设置部分（2级菜单）
+				const highlightSection = container.createDiv({ cls: "highlight-line-settings" });
+				highlightSection.style.marginTop = "1em";
+				highlightSection.style.marginBottom = "1em";
+
+				const highlightTitle = highlightSection.createDiv();
+				highlightTitle.textContent = lang.codeBlock.info_enableHighlightLine || "Highlight Line Settings";
+				highlightTitle.style.fontWeight = "bold";
+				highlightTitle.style.marginBottom = "0.5em";
+
+				// 高亮行颜色设置
+				import("src/plugin/settings/settings-components").then(module => {
+					module.createText(highlightSection,
+						lang.codeBlock.info_highlightLineColor || "Highlight Line Color",
+						() => codeBlockOptions.highlightLineColor || "#464646",
+						async (value) => {
+							codeBlockOptions.highlightLineColor = value;
+							await SettingsPage.saveSettings();
+							updatePreview();
+						},
+						lang.codeBlock.info_highlightLineColor || "Highlight line background color",
+						undefined,
+						"#464646",
+						false,
+						true // isColor
+					);
+
+					// 高亮行透明度设置
+					module.createSlider(highlightSection,
+						lang.codeBlock.info_highlightLineOpacity || "Highlight Line Opacity",
+						() => codeBlockOptions.highlightLineOpacity || 0.5,
+						async (value) => {
+							codeBlockOptions.highlightLineOpacity = value;
+							await SettingsPage.saveSettings();
+							updatePreview();
+						},
+						lang.codeBlock.info_highlightLineOpacity || "Highlight line background opacity (0-1)",
+						0,
+						1,
+						0.01
+					);
+				});
+
+				// 在设置生成后添加监听器
+				setTimeout(() => {
+					// 监听所有输入框的变化（包括颜色选择器、滑动条、数字输入框）
+					const allInputs = container.querySelectorAll('input');
+					allInputs.forEach(input => {
+						// 对于 range 类型（滑动条），使用 input 事件
+						if (input.type === 'range') {
+							input.addEventListener('input', () => {
+								updatePreview();
+							});
+						}
+						// 对于其他类型的输入框
+						else {
+							input.addEventListener('input', () => {
+								setTimeout(updatePreview, 50);
+							});
+							input.addEventListener('change', updatePreview);
+						}
+					});
+
+					// 监听颜色选择器的变化（Obsidian 的颜色选择器可能会触发不同的事件）
+					const colorPickers = container.querySelectorAll('input[type="color"]');
+					colorPickers.forEach(picker => {
+						picker.addEventListener('input', () => {
+							updatePreview();
+						});
+						picker.addEventListener('change', updatePreview);
+					});
+
+					// 使用 MutationObserver 监听容器内的动态变化
+					const observer = new MutationObserver(() => {
+						// 当设置项被添加或修改时，重新绑定事件监听器
+						const newInputs = container.querySelectorAll('input:not([data-listener-attached])');
+						newInputs.forEach(inputEl => {
+							const input = inputEl as HTMLInputElement;
+							input.setAttribute('data-listener-attached', 'true');
+							if (input.type === 'range') {
+								input.addEventListener('input', () => {
+									updatePreview();
+								});
+							} else {
+								input.addEventListener('input', () => {
+									setTimeout(updatePreview, 50);
+								});
+								input.addEventListener('change', updatePreview);
+							}
+						});
+					});
+
+					observer.observe(container, { childList: true, subtree: true });
+
+					// 标记已绑定事件监听器的输入框
+					allInputs.forEach(input => {
+						input.setAttribute('data-listener-attached', 'true');
+					});
+
+					// 初始更新
+					updatePreview();
+				}, 200);
+			}
+		);
 		createFeatureSetting(section, lang.vercelInsights.title, Settings.exportOptions.vercelInsightsOptions, lang.vercelInsights.description);
 		createFeatureSetting(section, lang.rss.title, Settings.exportOptions.rssOptions, lang.rss.description);
 		createFeatureSetting(section, lang.giscus.title, Settings.exportOptions.giscusOptions, lang.giscus.description, (container) => {

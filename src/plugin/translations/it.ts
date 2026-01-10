@@ -313,6 +313,9 @@ export const language: i18n =
 			info_collapseThreshold: "Soglia del numero di righe per la compressione automatica (predefinito: 30)",
 			info_defaultWrap: "Abilita l'avvolgimento delle parole per i blocchi di codice per impostazione predefinita",
 			info_showBottomExpandButton: "Mostra il pulsante espandi/comprimi in basso a destra dei blocchi di codice",
+			info_enableHighlightLine: "Abilita l'evidenziazione delle righe di codice (righe che iniziano con >>>> )",
+			info_highlightLineColor: "Colore di sfondo della riga evidenziata",
+			info_highlightLineOpacity: "Opacità dello sfondo della riga evidenziata (0-1)",
 		},
 		vercelInsights: {
 			title: "Vercel Insights",

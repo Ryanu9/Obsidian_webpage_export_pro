@@ -142,6 +142,60 @@ export function createError(container: HTMLElement): HTMLElement {
 	return error;
 }
 
+export function createSlider(container: HTMLElement, name: string, get: () => number, set: (value: number) => void, desc: string = "", min: number = 0, max: number = 1, step: number = 0.01): Setting {
+	const setting = new Setting(container);
+	setting.setName(name);
+	if (desc != "") setting.setDesc(desc);
+	
+	const sliderContainer = setting.controlEl.createDiv({ cls: "slider-container" });
+	sliderContainer.style.display = "flex";
+	sliderContainer.style.alignItems = "center";
+	sliderContainer.style.gap = "10px";
+	sliderContainer.style.width = "100%";
+	
+	const slider = sliderContainer.createEl("input", { type: "range", attr: { min: min.toString(), max: max.toString(), step: step.toString() } });
+	slider.style.flex = "1";
+	slider.value = get().toString();
+	
+	const input = sliderContainer.createEl("input", { type: "number", attr: { min: min.toString(), max: max.toString(), step: step.toString() } });
+	input.style.width = "80px";
+	input.value = get().toString();
+	
+	const updateValue = async (newValue: number) => {
+		const clampedValue = Math.max(min, Math.min(max, newValue));
+		set(clampedValue);
+		await SettingsPage.saveSettings();
+		slider.value = clampedValue.toString();
+		input.value = clampedValue.toString();
+	};
+	
+	slider.addEventListener("input", (e) => {
+		const target = e.target as HTMLInputElement;
+		const value = parseFloat(target.value);
+		updateValue(value);
+	});
+	
+	input.addEventListener("input", (e) => {
+		const target = e.target as HTMLInputElement;
+		const value = parseFloat(target.value);
+		if (!isNaN(value)) {
+			updateValue(value);
+		}
+	});
+	
+	input.addEventListener("change", (e) => {
+		const target = e.target as HTMLInputElement;
+		const value = parseFloat(target.value);
+		if (isNaN(value)) {
+			const currentValue = get();
+			input.value = currentValue.toString();
+			slider.value = currentValue.toString();
+		}
+	});
+	
+	return setting;
+}
+
 export function createFileInput(container: HTMLElement, get: () => string, set: (value: string) => void,
 	options?: { name?: string, description?: string, placeholder?: string, defaultPath?: Path, makeRelativeToVault?: boolean, pickFolder?: boolean, validation?: (path: Path) => { valid: boolean, isEmpty: boolean, error: string }, browseButton?: boolean, onChanged?: (path: Path) => void }): { fileInput: Setting, textInput: TextComponent, browseButton: HTMLElement | undefined } {
 	const getSafe = () => new Path(get() ?? "").makePlatformSafe();
@@ -425,7 +479,11 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 				createText(container, name, () => value, (v) => obj[key] = v, description, undefined, settinginfo.placeholder, settinginfo.multiline ?? false, settinginfo.isColor ?? false);
 				break;
 			case "number":
-				createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);
+				if (key === "highlightLineOpacity") {
+					createSlider(container, name, () => value, (v) => obj[key] = v, description, 0, 1, 0.01);
+				} else {
+					createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);
+				}
 				break;
 			case "object":
 				generateSettingsFromObject(value, createSection(container, name, description));

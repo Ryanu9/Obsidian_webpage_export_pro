@@ -8,6 +8,9 @@ export class CodeBlockOptions extends FeatureOptions
 	collapseThreshold: number = 30;
 	defaultWrap: boolean = false;
 	showBottomExpandButton: boolean = true;
+	enableHighlightLine: boolean = true;
+	highlightLineColor: string = "#464646"; // 默认 RGB(70,70,70) 的 hex 格式
+	highlightLineOpacity: number = 0.5;
 
 	info_showLineNumbers = new FeatureSettingInfo({
 		show: true,
@@ -28,6 +31,19 @@ export class CodeBlockOptions extends FeatureOptions
 	info_showBottomExpandButton = new FeatureSettingInfo({
 		show: true,
 		description: i18n.settings.codeBlock.info_showBottomExpandButton
+	});
+	info_enableHighlightLine = new FeatureSettingInfo({
+		show: true,
+		description: i18n.settings.codeBlock.info_enableHighlightLine
+	});
+	info_highlightLineColor = new FeatureSettingInfo({
+		show: false, // 隐藏主设置，将在2级菜单中手动创建
+		description: i18n.settings.codeBlock.info_highlightLineColor,
+		isColor: true
+	});
+	info_highlightLineOpacity = new FeatureSettingInfo({
+		show: false, // 隐藏主设置，将在2级菜单中手动创建
+		description: i18n.settings.codeBlock.info_highlightLineOpacity
 	});
 
 	constructor()

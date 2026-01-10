@@ -318,6 +318,9 @@ export const language: i18n =
 			info_collapseThreshold: "Поріг кількості рядків для автоматичного згортання (за замовчуванням: 30)",
 			info_defaultWrap: "Увімкнути перенос слів для блоків коду за замовчуванням",
 			info_showBottomExpandButton: "Показувати кнопку розгорнути/згорнути внизу праворуч блоків коду",
+			info_enableHighlightLine: "Увімкнути підсвічування рядків коду (рядки, що починаються з >>>> )",
+			info_highlightLineColor: "Колір фону підсвіченого рядка",
+			info_highlightLineOpacity: "Прозорість фону підсвіченого рядка (0-1)",
 		},
 		vercelInsights: {
 			title: "Vercel Insights",

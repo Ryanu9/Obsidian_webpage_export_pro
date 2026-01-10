@@ -3,6 +3,53 @@ import { delay } from "./utils";
 export class CodeBlockManager {
     private containerEl: HTMLElement;
     
+    // 静态方法：更新高亮样式（用于设置预览）
+    public static updateHighlightStyles(options: any) {
+        const styleId = "code-block-highlight-styles";
+        let style = document.getElementById(styleId) as HTMLStyleElement;
+        if (!style) {
+            style = document.createElement("style");
+            style.id = styleId;
+            document.head.appendChild(style);
+        }
+        
+        // 从 hex 颜色字符串转换为 RGB
+        const hexColor = options?.highlightLineColor || "#464646";
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2) || "46", 16);
+        const g = parseInt(hex.substring(2, 4) || "46", 16);
+        const b = parseInt(hex.substring(4, 6) || "46", 16);
+        const opacity = options?.highlightLineOpacity ?? 0.5;
+
+        style.textContent = `
+            /* >>>>空格 高亮背景 */
+            .markdown-rendered pre code .highlight-line,
+            .markdown-rendered pre .highlight-line {
+                background-color: rgba(${r}, ${g}, ${b}, ${opacity});
+	            display: inline-block;
+                width: 100%;
+	            box-sizing: border-box;
+	            padding: 0 0;
+            }
+            /* 预览容器中的高亮样式 */
+            .code-block-highlight-preview pre code .highlight-line,
+            .code-block-highlight-preview pre .highlight-line,
+            .code-block-highlight-preview .highlight-line {
+                background-color: rgba(${r}, ${g}, ${b}, ${opacity}) !important;
+	            display: block;
+                width: 100%;
+	            box-sizing: border-box;
+	            padding: 0;
+                margin: 0;
+                line-height: inherit;
+            }
+            .code-block-highlight-preview pre code .highlight-line span,
+            .code-block-highlight-preview pre .highlight-line span {
+                display: inline;
+            }
+        `;
+    }
+    
     private getTranslation(key: string, defaultValue: string): string {
         try {
             // Try to get i18n from window (if exposed)
@@ -33,6 +80,9 @@ export class CodeBlockManager {
             collapseThreshold: 30,
             defaultWrap: false,
             showBottomExpandButton: true,
+            enableHighlightLine: true,
+            highlightLineColor: "#464646",
+            highlightLineOpacity: 0.5,
         };
     }
 
@@ -49,10 +99,15 @@ export class CodeBlockManager {
 
     private injectStyles() {
         const styleId = "code-block-styles";
-        if (document.getElementById(styleId)) return;
-
-        const style = document.createElement("style");
-        style.id = styleId;
+        let style = document.getElementById(styleId) as HTMLStyleElement;
+        if (!style) {
+            style = document.createElement("style");
+            style.id = styleId;
+            document.head.appendChild(style);
+        }
+        
+        const options = this.getCodeBlockOptions();
+        
         style.textContent = `
             /* Code Block Header and Features Styles */
             .code-block-container {
@@ -387,14 +442,16 @@ export class CodeBlockManager {
                 grid-template-columns: 1fr !important;
             }
 
-            /* 隐藏 frontmatter 代码块，因为已经有 yaml-properties 显示了 */
+            /* 隐藏 frontmatter 代码块， */
             .markdown-rendered pre.frontmatter,
             .markdown-rendered pre.yaml-frontmatter,
             .markdown-rendered pre[data-frontmatter] {
                 display: none !important;
             }
         `;
-        document.head.appendChild(style);
+        
+        // 初始化高亮样式
+        CodeBlockManager.updateHighlightStyles(options);
     }
 
     private initCodeBlocks() {
@@ -432,6 +489,7 @@ export class CodeBlockManager {
             this.processLanguage(pre);
             this.prepareContainer(pre);
 
+            this.processHighlightBackground(pre);
             this.addLineNumbers(pre);
             this.createHeader(pre);
 
@@ -456,6 +514,56 @@ export class CodeBlockManager {
             }
             pre.classList.add('language-ansi');
         }
+    }
+
+    // >>>>空格 高亮背景
+    private processHighlightBackground(preElement: HTMLPreElement) {
+        const options = this.getCodeBlockOptions();
+        if (!options.enableHighlightLine) return;
+
+        const codeElement = this.getCodeElement(preElement);
+        if (!codeElement) return;
+
+        const linesHTML = codeElement.innerHTML.split('\n');
+
+        const newLinesHTML = linesHTML.map((lineHTML) => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = lineHTML;
+            const lineText = tempDiv.textContent || '';
+
+            // 改成匹配 ">>>> "（4个 > 加一个空格）
+            if (lineText.startsWith('>>>> ')) {
+                const lineDiv = document.createElement('div');
+                lineDiv.innerHTML = lineHTML;
+
+                // 去掉 ">>>> " 5 个字符，但保留原始缩进
+                let remaining = 5;
+
+                const walker = document.createTreeWalker(lineDiv, NodeFilter.SHOW_TEXT);
+                let node;
+
+                while ((node = walker.nextNode()) && remaining > 0) {
+                    const textNode = node as Text;
+                    const text = textNode.data;
+
+                    if (text.length <= remaining) {
+                        remaining -= text.length;
+                        textNode.data = '';
+                    } else {
+                        // 只去掉 ">>>> " 部分，保留后面的所有内容（包括缩进空格）
+                        const newText = text.substring(remaining);
+                        textNode.data = newText;
+                        remaining = 0;
+                    }
+                }
+
+                return `<span class="highlight-line">${lineDiv.innerHTML}</span>`;
+            } else {
+                return lineHTML;
+            }
+        });
+
+        codeElement.innerHTML = newLinesHTML.join('\n');
     }
 
     private processLanguage(pre: HTMLPreElement) {
