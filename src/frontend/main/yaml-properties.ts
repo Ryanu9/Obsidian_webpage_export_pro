@@ -37,18 +37,18 @@ export class YamlProperties {
         try {
             const frontmatterEl = container.querySelector('.frontmatter, .yaml-frontmatter, pre[data-frontmatter]');
             if (!frontmatterEl) return null;
-            
+
             // Clone the element to avoid modifying the original
             const clone = frontmatterEl.cloneNode(true) as HTMLElement;
-            
+
             // Remove line number elements if they exist
             const lineNumberWrappers = clone.querySelectorAll('.line-numbers-wrapper, .line-number');
             lineNumberWrappers.forEach(el => el.remove());
-            
+
             // Get text content without line numbers
             const textContent = clone.textContent;
             if (!textContent) return null;
-            
+
             return this.parseYaml(textContent);
         } catch (error) {
             console.warn('解析YAML前置属性失败:', error);
@@ -294,7 +294,6 @@ export class YamlProperties {
                 word-break: break-all;
                 width: 70% !important;
                 box-sizing: border-box;
-                display: flex;
                 flex-wrap: wrap;
                 gap: 4px;
                 align-items: center;
