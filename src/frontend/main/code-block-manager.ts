@@ -1,7 +1,9 @@
 import { delay } from "./utils";
+import { ensureContrast } from "./color-utils";
 
 export class CodeBlockManager {
     private containerEl: HTMLElement;
+    private processedContainers: HTMLElement[] = [];
 
     // 静态方法：更新高亮样式（用于设置预览）
     public static updateHighlightStyles(options: any) {
@@ -93,7 +95,9 @@ export class CodeBlockManager {
         // Delay slightly to ensure DOM is ready if needed, similar to other features
         await delay(10);
         this.initCodeBlocks();
+        this.setupThemeObserver();
     }
+
 
     private injectStyles() {
         const styleId = "code-block-styles";
@@ -115,6 +119,7 @@ export class CodeBlockManager {
                 border-radius: 8px;
                 overflow: hidden;
                 background-color: var(--code-background);
+                --code-ui-color: #888; /* 默认灰色 */
             }
 
             .code-block-header {
@@ -131,9 +136,10 @@ export class CodeBlockManager {
             .code-block-header__title {
                 font-size: 0.85em;
                 font-weight: 500;
-                color: var(--text-normal); 
-                opacity: 0.8; 
+                color: var(--code-ui-color) !important;
+                opacity: 0.65; /* 降低视觉亮度 */
                 text-transform: capitalize;
+                user-select: none;
             }
             
             .code-block-controls {
@@ -146,24 +152,27 @@ export class CodeBlockManager {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: transparent;
-                border: none;
-                color: var(--text-normal); 
-                opacity: 0.7;
+                background: transparent !important;
+                background-color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                color: var(--code-ui-color) !important; 
+                opacity: 0.65; /* 默认半透明 */
                 cursor: pointer;
                 padding: 4px;
                 border-radius: 4px;
-                transition: opacity 0.2s, background-color 0.2s;
+                transition: opacity 0.2s, background-color 0.2s, filter 0.2s;
             }
 
-            .code-block-button:hover {
-                opacity: 1; 
-                background-color: var(--background-modifier-hover);
+            .code-block-button:hover,
+            .code-block-button.active {
+                opacity: 1 !important; /* 悬停或激活时全亮 */
+                background-color: var(--background-modifier-hover) !important;
+                filter: brightness(1.2);
             }
             
             .code-block-button.active {
-                color: var(--interactive-accent);
-                background-color: var(--background-modifier-active);
+                color: var(--interactive-accent) !important;
             }
 
 
@@ -178,7 +187,7 @@ export class CodeBlockManager {
             }
 
             .copy-button span {
-                font-size: 0.8em;
+                font-size: 1em;
                 margin-left: 4px;
             }
 
@@ -293,7 +302,8 @@ export class CodeBlockManager {
                 text-align: right;
                 padding: 1em 0.8em 1em 1em;
                 border-right: 1px solid var(--background-modifier-border);
-                color: var(--text-muted); /* 提升行号对比度，从 faint 提升到 muted */
+                color: var(--code-ui-color);
+                opacity: 0.6; /* 行号也适当降低亮度 */
                 user-select: none;
                 font-family: inherit; /* Sync font with code */
                 background-color: var(--code-background);
@@ -499,6 +509,10 @@ export class CodeBlockManager {
             this.processHighlightBackground(pre);
             this.addLineNumbers(pre);
             this.createHeader(pre);
+
+            const container = pre.parentElement as HTMLElement;
+            this.adjustContrast(container);
+            this.processedContainers.push(container);
 
             pre.setAttribute('data-processed', 'true');
         });
@@ -1018,6 +1032,45 @@ export class CodeBlockManager {
     }
 
     // Utils
+
+    private setupThemeObserver() {
+        const debouncedAdjust = this.debounce(() => {
+            // Filter out containers that are no longer in the DOM
+            this.processedContainers = this.processedContainers.filter(container => document.body.contains(container));
+            this.processedContainers.forEach(container => {
+                this.adjustContrast(container);
+            });
+        }, 100); // Debounce for 100ms
+
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    debouncedAdjust();
+                    break; // Only need to react once per class change
+                }
+            }
+        });
+
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    private adjustContrast(container: HTMLElement) {
+        const bg = getComputedStyle(container).backgroundColor;
+
+
+        const isDark = document.body.classList.contains('theme-dark');
+
+
+        const standardColor = isDark ? '#b0b0b0' : '#555555';
+        const adjustedColor = ensureContrast(standardColor, bg, 3.5, container);
+        container.style.setProperty('--code-ui-color', adjustedColor);
+
+
+        if (!this.processedContainers.includes(container)) {
+            this.processedContainers.push(container);
+        }
+    }
+
     private debounce(func: Function, wait: number) {
         let timeout: any;
         return (...args: any[]) => {
