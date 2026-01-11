@@ -601,6 +601,10 @@ export class Webpage extends Attachment {
 			return resolved.path;
 		}
 
+		if (attachment.sourceStat?.size) {
+			linkEl.setAttribute("data-file-size", attachment.sourceStat.size.toString());
+		}
+
 		let hash = (linkEl?.getAttribute("data-href") ?? link).split("#")[1] ?? "";
 		if (hash != "") hash = "#" + hash;
 

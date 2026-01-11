@@ -1,12 +1,10 @@
 //#region Async
 
-export async function delay(ms: number)
-{
+export async function delay(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function waitUntil(predicate: () => boolean, interval: number = 100)
-{
+export async function waitUntil(predicate: () => boolean, interval: number = 100) {
 	while (!predicate()) await delay(interval);
 }
 
@@ -14,14 +12,12 @@ export async function waitUntil(predicate: () => boolean, interval: number = 100
 
 //#region DOM
 
-export function getTextNodes(element: Element) 
-{
+export function getTextNodes(element: Element) {
 	const textNodes: Node[] = [];
 	const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
 
 	let node: Node | null;
-	while (node = walker.nextNode()) 
-	{
+	while (node = walker.nextNode()) {
 		textNodes.push(node);
 	}
 
@@ -42,8 +38,7 @@ export function getLengthInPixels(cssString: string, contextElement: Element): n
 //#endregion
 
 //#region Bounds
-export class Bounds
-{
+export class Bounds {
 	public left: number;
 	public right: number;
 	public top: number;
@@ -62,26 +57,22 @@ export class Bounds
 	public get size(): Vector2 { return new Vector2(this.width, this.height); }
 	public set size(value: Vector2) { this.width = value.x; this.height = value.y; }
 
-	constructor(left: number, top: number, width: number, height: number)
-	{
+	constructor(left: number, top: number, width: number, height: number) {
 		this.left = left;
 		this.top = top;
 		this.right = left + width;
 		this.bottom = top + height;
 	}
 
-	public containsPoint(point: Vector2)
-	{
+	public containsPoint(point: Vector2) {
 		return point.x >= this.left && point.x <= this.right && point.y >= this.top && point.y <= this.bottom;
 	}
 
-	public containsBounds(bounds: Bounds)
-	{
+	public containsBounds(bounds: Bounds) {
 		return bounds.left >= this.left && bounds.right <= this.right && bounds.top >= this.top && bounds.bottom <= this.bottom;
 	}
 
-	public encapsulate(bounds: Bounds)
-	{
+	public encapsulate(bounds: Bounds) {
 		this.left = Math.min(this.left, bounds.left);
 		this.top = Math.min(this.top, bounds.top);
 		this.right = Math.max(this.right, bounds.right);
@@ -89,8 +80,7 @@ export class Bounds
 		return this;
 	}
 
-	public encapsulatePoint(point: Vector2)
-	{
+	public encapsulatePoint(point: Vector2) {
 		if (point.isUndefined) return;
 		this.left = Math.min(this.left, point.x);
 		this.top = Math.min(this.top, point.y);
@@ -99,8 +89,7 @@ export class Bounds
 		return this;
 	}
 
-	public expand(by: number)
-	{
+	public expand(by: number) {
 		this.left -= by;
 		this.right += by;
 		this.top -= by;
@@ -108,8 +97,7 @@ export class Bounds
 		return this;
 	}
 
-	public translate(by: Vector2)
-	{
+	public translate(by: Vector2) {
 		this.left += by.x;
 		this.right += by.x;
 		this.top += by.y;
@@ -117,8 +105,7 @@ export class Bounds
 		return this;
 	}
 
-	public scale(by: number)
-	{
+	public scale(by: number) {
 		let width = this.width;
 		let height = this.height;
 
@@ -129,89 +116,73 @@ export class Bounds
 		return this;
 	}
 
-	public overlaps(bounds: Bounds)
-	{
+	public overlaps(bounds: Bounds) {
 		return this.left < bounds.right && this.right > bounds.left && this.top < bounds.bottom && this.bottom > bounds.top;
 	}
 
-	public static fromElement(el: HTMLElement)
-	{
+	public static fromElement(el: HTMLElement) {
 		const rect = el.getBoundingClientRect();
 		return new Bounds(rect.x, rect.y, rect.width, rect.height);
 	}
 
-	public static get screenBounds()
-	{
+	public static get screenBounds() {
 		return new Bounds(0, 0, window.innerWidth, window.innerHeight);
 	}
 }
 //#endregion
 
 //#region Vector2
-export class Vector2
-{
+export class Vector2 {
 	x: number;
 	y: number;
 
-	constructor(x: number, y: number)
-	{
+	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public add(point: Vector2)
-	{
+	public add(point: Vector2) {
 		return new Vector2(this.x + point.x, this.y + point.y);
 	}
 
-	public sub(point: Vector2)
-	{
+	public sub(point: Vector2) {
 		return new Vector2(this.x - point.x, this.y - point.y);
 	}
 
-	public scale(scalar: number)
-	{
+	public scale(scalar: number) {
 		return new Vector2(this.x * scalar, this.y * scalar);
 	}
 
-	public divide(scalar: number)
-	{
+	public divide(scalar: number) {
 		return new Vector2(this.x / scalar, this.y / scalar);
 	}
 
-	public get isUndefined()
-	{
+	public get isUndefined() {
 		return isNaN(this.x) || isNaN(this.y);
 	}
 
-	public get magnitude()
-	{
+	public get magnitude() {
 		return Math.sqrt(this.sqrMagnitude);
 	}
 
-	public get sqrMagnitude()
-	{
+	public get sqrMagnitude() {
 		return this.x * this.x + this.y * this.y;
 	}
 
-	public get normalized()
-	{
+	public get normalized() {
 		const mag = this.magnitude;
 		return new Vector2(this.x / mag, this.y / mag);
 	}
 
-	public get inverse()
-	{
+	public get inverse() {
 		return new Vector2(-this.x, -this.y);
 	}
 
-	public static distance(a: Vector2, b: Vector2)
-	{
+	public static distance(a: Vector2, b: Vector2) {
 		return a.sub(b).magnitude;
 	}
 
-	public static dot(a: Vector2, b: Vector2)
-	{
+	public static dot(a: Vector2, b: Vector2) {
 		return a.x * b.x + a.y * b.y;
 	}
 
@@ -220,8 +191,7 @@ export class Vector2
 //#endregion
 
 //#region Ticker
-export class Ticker
-{
+export class Ticker {
 	private _lastTime: number;
 	private _deltaTime: number;
 	private _time: number;
@@ -233,22 +203,19 @@ export class Ticker
 	public get time() { return this._time; }
 	private callbacks: ((deltaTime: number) => void)[] = [];
 
-	constructor(targetFPS: number)
-	{
+	constructor(targetFPS: number) {
 		this.targetFPS = targetFPS;
 		this.measuredFPS = targetFPS;
 		this._lastTime = performance.now();
 		this._deltaTime = 1 / targetFPS;
 		this._time = this._lastTime;
 	}
-	
 
-	public async start()
-	{
-		while (true)
-		{
+
+	public async start() {
+		while (true) {
 			this._time = performance.now();
-		
+
 			requestAnimationFrame(() => {
 				for (let callback of this.callbacks) {
 					callback(this.deltaTime);
@@ -259,25 +226,23 @@ export class Ticker
 			const dt = this._time - this._lastTime;
 			let deltaDiff = dt - (1000 / this.targetFPS);
 			this._lastTime = this._time + Math.max(deltaDiff, 0);
-			
+
 			await delay(Math.max(0, deltaDiff));
-		
+
 			this._deltaTime = Math.min(dt + Math.max(deltaDiff, 0), 1000 / this.targetFPS * 3);
-			
+
 			this.measuredFPS = (1 / this.deltaTime) * 0.1 + this.measuredFPS * 0.9;
 		}
 	}
 
-	public add(callback: (deltaTime: number) => void)
-	{
+	public add(callback: (deltaTime: number) => void) {
 		this.callbacks.push(callback);
 	}
 }
 //#endregion
 
 //#region Animation
-export function slideUp(target: HTMLElement, duration: number = 500)
-{
+export function slideUp(target: HTMLElement, duration: number = 500) {
 	if (target.style.display === 'none') return;
 	target.style.transitionProperty = 'height, margin, padding';
 	target.style.transitionTimingFunction = "ease-in-out";
@@ -292,20 +257,19 @@ export function slideUp(target: HTMLElement, duration: number = 500)
 	target.style.marginTop = "0";
 	target.style.marginBottom = "0";
 	window.setTimeout(async () => {
-			target.style.display = 'none';
-			target.style.removeProperty('height');
-			target.style.removeProperty('padding-top');
-			target.style.removeProperty('padding-bottom');
-			target.style.removeProperty('margin-top');
-			target.style.removeProperty('margin-bottom');
-			target.style.removeProperty('overflow');
-			target.style.removeProperty('transition-duration');
-			target.style.removeProperty('transition-property');
+		target.style.display = 'none';
+		target.style.removeProperty('height');
+		target.style.removeProperty('padding-top');
+		target.style.removeProperty('padding-bottom');
+		target.style.removeProperty('margin-top');
+		target.style.removeProperty('margin-bottom');
+		target.style.removeProperty('overflow');
+		target.style.removeProperty('transition-duration');
+		target.style.removeProperty('transition-property');
 	}, duration);
 }
 
-export function slideUpAll(targets: HTMLElement[], duration: number = 500)
-{
+export function slideUpAll(targets: HTMLElement[], duration: number = 500) {
 	targets.forEach(async target => {
 		if (!target) return;
 		target.style.transitionProperty = 'height, margin, padding';
@@ -338,8 +302,7 @@ export function slideUpAll(targets: HTMLElement[], duration: number = 500)
 	}, duration);
 }
 
-export function slideDown(target: HTMLElement, duration: number = 500)
-{
+export function slideDown(target: HTMLElement, duration: number = 500) {
 	if (window.getComputedStyle(target).display !== 'none') return;
 	target.style.removeProperty('display');
 	let display = window.getComputedStyle(target).display;
@@ -370,8 +333,7 @@ export function slideDown(target: HTMLElement, duration: number = 500)
 	}, duration);
 }
 
-export function slideDownAll(targets: HTMLElement[], duration: number = 500)
-{
+export function slideDownAll(targets: HTMLElement[], duration: number = 500) {
 	targets.forEach(async target => {
 		if (!target) return;
 		target.style.removeProperty('display');
@@ -397,7 +359,7 @@ export function slideDownAll(targets: HTMLElement[], duration: number = 500)
 		target.style.removeProperty('margin-bottom');
 	});
 
-	window.setTimeout( async () => {
+	window.setTimeout(async () => {
 		targets.forEach(async target => {
 			if (!target) return;
 			target.style.removeProperty('height');
@@ -408,24 +370,18 @@ export function slideDownAll(targets: HTMLElement[], duration: number = 500)
 	}, duration);
 }
 
-export function slideToggle(target: HTMLElement, duration: number = 500)
-{
-	if (window.getComputedStyle(target).display === 'none') 
-	{
+export function slideToggle(target: HTMLElement, duration: number = 500) {
+	if (window.getComputedStyle(target).display === 'none') {
 		return slideDown(target, duration);
-	} else 
-	{
+	} else {
 		return slideUp(target, duration);
 	}
 }
 
-export function slideToggleAll(targets: HTMLElement[], duration: number = 500)
-{
-	if (window.getComputedStyle(targets[0]).display === 'none') 
-	{
+export function slideToggleAll(targets: HTMLElement[], duration: number = 500) {
+	if (window.getComputedStyle(targets[0]).display === 'none') {
 		return slideDownAll(targets, duration);
-	} else 
-	{
+	} else {
 		return slideUpAll(targets, duration);
 	}
 }
@@ -434,29 +390,25 @@ export function slideToggleAll(targets: HTMLElement[], duration: number = 500)
 
 //#region Events
 
-export function getTouchPosition(event: TouchEvent)
-{
+export function getTouchPosition(event: TouchEvent) {
 	const touches = Array.from(event.touches);
 	const x = touches.reduce((acc, cur) => acc + cur.clientX, 0) / touches.length;
 	const y = touches.reduce((acc, cur) => acc + cur.clientY, 0) / touches.length;
 	return new Vector2(x, y);
 }
 
-export function getPointerPosition(event: MouseEvent)
-{
+export function getPointerPosition(event: MouseEvent) {
 	return new Vector2(event.clientX, event.clientY);
 }
 
-export function getTouchPositionVector(touch: Touch)
-{
-	return {x: touch.clientX, y: touch.clientY};
+export function getTouchPositionVector(touch: Touch) {
+	return { x: touch.clientX, y: touch.clientY };
 }
 
 //#endregion
 
 //#region Math
-export function inOutQuadBlend(start: number, end: number, t: number): number
-{
+export function inOutQuadBlend(start: number, end: number, t: number): number {
 	t /= 2;
 	let t2 = 2.0 * t * (1.0 - t) + 0.5;
 	t2 -= 0.5;
@@ -464,33 +416,28 @@ export function inOutQuadBlend(start: number, end: number, t: number): number
 	return start + (end - start) * t2;
 }
 
-export function inOutQuadBlendv(start: Vector2, end: Vector2, t: number): Vector2
-{
+export function inOutQuadBlendv(start: Vector2, end: Vector2, t: number): Vector2 {
 	return new Vector2(inOutQuadBlend(start.x, end.x, t), inOutQuadBlend(start.y, end.y, t));
 }
 
-export function clamp(value: number, min: number, max: number): number
-{
+export function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(value, max));
 }
 
-export function lerp(start: number, end: number, t: number): number
-{
+export function lerp(start: number, end: number, t: number): number {
 	return start + (end - start) * t;
 }
 
-export function lerpc(start: number, end: number, t: number): number
-{
+export function lerpc(start: number, end: number, t: number): number {
 	return lerp(start, end, clamp(t, 0, 1));
 }
 
-export function lerpv(start: Vector2, end: Vector2, t: number): Vector2
-{
+export function lerpv(start: Vector2, end: Vector2, t: number): Vector2 {
 	return new Vector2(lerp(start.x, end.x, t), lerp(start.y, end.y, t));
 }
 
 export function mapRange(value: number, low1: number, high1: number, low2: number, high2: number) {
-    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+	return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
 export function mapRangeClamped(value: number, low1: number, high1: number, low2: number, high2: number) {
