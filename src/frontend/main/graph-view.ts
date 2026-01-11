@@ -387,15 +387,8 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 	public async showGraph(paths?: string[]) {
 		this.paused = true;
 
-		// 检查页面是否加密：如果存在解密容器，则认为页面处于锁定状态
-		const isPageEncrypted = document.querySelector('#password-lock-container') !== null;
-
 		let linked: string[] = [];
-		if (isPageEncrypted && paths) {
-			// 加密状态下：仅显示当前路径节点，不显示任何关联节点
-			linked = [...paths];
-		}
-		else if (paths) {
+		if (paths) {
 			for (const element of paths) {
 				const fileInfo = ObsidianSite.getWebpageData(element);
 				if (fileInfo?.backlinks)
@@ -419,13 +412,12 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 		linked = linked.filter((l) => {
 			let data = ObsidianSite.getWebpageData(l);
-			if (!data?.backlinks || !data?.links || !data?.type) return false;
+			if (!data || !data.type) return false;
 
-			if (data.backlinks.length == 0) {
-				console.log("No backlinks for", l);
-			}
+			const backlinks = data.backlinks || [];
+			const links = data.links || [];
 
-			if (!this.options.showOrphanNodes && data.backlinks.length == 0 && data.links.length == 0)
+			if (!this.options.showOrphanNodes && backlinks.length == 0 && links.length == 0)
 				return false;
 
 			if (!this.options.showAttachments && (data.type == "attachment" || data.type == "media" || data.type == "other"))

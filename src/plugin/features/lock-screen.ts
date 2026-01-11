@@ -116,7 +116,6 @@ export class LockScreen {
         try {
             const htmlContent = await decrypt(password, encryptedData);
             
-            // 停止强力隐藏观察者
             if (window.__tocHideObserver) {
                 window.__tocHideObserver.disconnect();
                 delete window.__tocHideObserver;

@@ -80,8 +80,29 @@ export class Webpage extends Attachment {
 	public outputData: WebpageOutputData = new WebpageOutputData();
 
 	public async generateOutput() {
+		const output = new WebpageOutputData();
+		output.title = this.title;
+		output.icon = this.icon;
+		output.description = this.descriptionOrShortenedContent;
+		output.author = this.author;
+		output.fullURL = this.fullURL;
+		output.rssDate = this.rssDate;
+		output.pathToRoot = this.pathToRoot.path;
+		output.coverImageURL = this.coverImageURL ?? "";
+		output.allTags = this.allTags;
+		output.frontmatterTags = this.frontmatterTags;
+		output.aliases = this.aliases;
+		output.backlinks = this.backlinks;
+		output.headings = this.headings;
+		output.renderedHeadings = await this.getRenderedHeadings();
+		output.descriptionOrShortenedContent = this.descriptionOrShortenedContent;
+		output.searchContent = this.searchContent;
+		output.srcLinks = this.srcLinks;
+		output.hrefLinks = this.hrefLinks;
+		output.linksToOtherFiles = this.linksToOtherFiles;
+
 		// --------------------------------------------------------------------------------
-		// Page Encryption Logic
+		// Page Encryption Logic (在提取 metadata 之后执行)
 		// --------------------------------------------------------------------------------
 		if (this.exportOptions.enablePageEncryption) {
 			const locked = this.frontmatter?.["locked"] === true;
@@ -153,28 +174,8 @@ export class Webpage extends Attachment {
 			}
 		}
 
-		const output = new WebpageOutputData();
+		// 获取最终的 HTML（可能已加密）
 		output.html = this.html;
-		output.title = this.title;
-		output.icon = this.icon;
-		output.description = this.descriptionOrShortenedContent;
-		output.author = this.author;
-		output.fullURL = this.fullURL;
-		output.rssDate = this.rssDate;
-		output.pathToRoot = this.pathToRoot.path;
-		output.coverImageURL = this.coverImageURL ?? "";
-		output.allTags = this.allTags;
-		output.frontmatterTags = this.frontmatterTags;
-		output.aliases = this.aliases;
-		output.backlinks = this.backlinks;
-		output.headings = this.headings;
-		output.renderedHeadings = await this.getRenderedHeadings();
-		output.descriptionOrShortenedContent = this.descriptionOrShortenedContent;
-		output.searchContent = this.searchContent;
-		output.srcLinks = this.srcLinks;
-		output.hrefLinks = this.hrefLinks;
-		output.linksToOtherFiles = this.linksToOtherFiles;
-
 		this.data = output.html;
 
 		this.outputData = output;
