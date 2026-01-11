@@ -651,12 +651,39 @@ export class Webpage extends Attachment {
 
 	private remapEmbedLinks() {
 		const links = this.srcLinkElements;
+		let imgIndex = 0;
+		const eagerLoadCount = 2;
+
 		for (const link of links) {
 			const src = link.getAttribute("src");
 			const newSrc = this.resolveLink(src, link, true);
 			link.setAttribute("src", newSrc ?? src ?? "");
 			link.setAttribute("target", "_self");
 			link.classList.toggle("is-unresolved", !newSrc);
+
+
+			if (link.tagName.toLowerCase() === "img") {
+				if (imgIndex >= eagerLoadCount) {
+					link.setAttribute("loading", "lazy");
+					// 添加 decoding="async" 优化渲染性能
+					link.setAttribute("decoding", "async");
+				} else {
+					// 首屏图片使用 eager 加载以优化 LCP
+					link.setAttribute("loading", "eager");
+					link.setAttribute("fetchpriority", "high");
+				}
+				imgIndex++;
+			}
+
+			// 为 iframe 添加懒加载
+			if (link.tagName.toLowerCase() === "iframe") {
+				link.setAttribute("loading", "lazy");
+			}
+
+			// 为视频和音频添加懒加载
+			if (link.tagName.toLowerCase() === "video" || link.tagName.toLowerCase() === "audio") {
+				link.setAttribute("preload", "metadata");
+			}
 		}
 	}
 
