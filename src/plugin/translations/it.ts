@@ -328,5 +328,9 @@ export const language: i18n =
 		copied: "Copiato",
 		wrap: "A capo automatico",
 		expandCollapse: "Espandi/Comprimi",
+	},
+	longImage: {
+		expand: "Espandi immagine",
+		collapse: "Comprimi immagine",
 	}
 };

@@ -335,5 +335,9 @@ export const language: i18n =
 		copied: "Copied",
 		wrap: "Wrap",
 		expandCollapse: "Expand/Collapse",
+	},
+	longImage: {
+		expand: "Expand Image",
+		collapse: "Collapse Image",
 	}
 }

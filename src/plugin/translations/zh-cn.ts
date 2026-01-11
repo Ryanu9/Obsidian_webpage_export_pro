@@ -334,5 +334,9 @@ export const language: i18n =
 		copied: "已复制",
 		wrap: "自动换行",
 		expandCollapse: "展开/收起",
+	},
+	longImage: {
+		expand: "展开长图",
+		collapse: "收起长图",
 	}
 }

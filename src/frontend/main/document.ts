@@ -15,6 +15,7 @@ import { Giscus } from "./giscus";
 import { CodeBlockManager } from "./code-block-manager";
 import { MediaManager } from "./media";
 import { ImageZoom } from "./image-zoom";
+import { LongImageCollapse } from "./long-image-collapse";
 
 
 export class WebpageDocument {
@@ -357,6 +358,9 @@ export class WebpageDocument {
 
 	private initNewImageZoom() {
 		if (!this.documentEl) return;
+		// 初始化长图片折叠功能（需要在图片缩放之前处理，因为会包裹图片元素）
+		LongImageCollapse.getInstance().initImagesInElement(this.documentEl);
+		// 初始化图片缩放功能
 		ImageZoom.getInstance().initImagesInElement(this.documentEl);
 	}
 

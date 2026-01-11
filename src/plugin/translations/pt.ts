@@ -334,5 +334,9 @@ export const language: i18n =
 		copied: "Copiado",
 		wrap: "Quebra de linha",
 		expandCollapse: "Expandir/Recolher",
+	},
+	longImage: {
+		expand: "Expandir imagem",
+		collapse: "Recolher imagem",
 	}
 }

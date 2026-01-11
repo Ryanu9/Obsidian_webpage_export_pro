@@ -333,5 +333,9 @@ export const language: i18n =
 		copied: "Скопійовано",
 		wrap: "Перенос рядків",
 		expandCollapse: "Розгорнути/Згорнути",
+	},
+	longImage: {
+		expand: "Розгорнути зображення",
+		collapse: "Згорнути зображення",
 	}
 }

@@ -338,6 +338,10 @@ export interface i18n {
 		copied: string;
 		wrap: string;
 		expandCollapse: string;
+	},
+	longImage: {
+		expand: string;
+		collapse: string;
 	}
 }
 
