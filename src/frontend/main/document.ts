@@ -13,6 +13,7 @@ import { Aliases } from "./aliases";
 import { YamlProperties } from "./yaml-properties";
 import { Giscus } from "./giscus";
 import { CodeBlockManager } from "./code-block-manager";
+import { MediaManager } from "./media";
 
 
 export class WebpageDocument {
@@ -580,6 +581,7 @@ export class WebpageDocument {
 		// Initialize Code Blocks
 		if (this.documentEl) {
 			await new CodeBlockManager(this.documentEl).init();
+			await new MediaManager(this.documentEl).init();
 		}
 	}
 

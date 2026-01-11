@@ -168,7 +168,7 @@ export class WebsiteOptions {
 	 */
 	vercelInsights: VercelInsightsOptions;
 
-public static fromJSON(json: string): WebsiteOptions {
+	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
 		data.tags = Object.assign(new TagsOptions(), data.tags);
