@@ -165,6 +165,7 @@ export interface i18n {
 		backlinks: {
 			title: string;
 			description: string;
+			noBacklinks: string;
 		},
 		tags: {
 			title: string;

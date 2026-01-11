@@ -1257,6 +1257,15 @@ a.backlink:hover {
 	align-items: center;
 }
 
+.backlinks-empty-message {
+	color: var(--text-muted);
+	font-size: 0.9em;
+	font-style: italic;
+	text-align: center;
+	padding: 1em;
+	opacity: 0.8;
+}
+
 /*#endregion */
 
 /*#region Tags */
@@ -1345,7 +1354,7 @@ a.backlink:hover {
 	margin-left: 0.5em;
 }
 
-.header .data-bar> #tags {
+.header .data-bar>#tags {
 	border-left: none !important;
 	padding-left: 0;
 	margin-left: 0;

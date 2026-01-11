@@ -160,7 +160,8 @@ export const language: i18n =
 		},
 		backlinks: {
 			title: "反向链接",
-			description: "显示链接到当前文档的所有文档。"
+			description: "显示链接到当前文档的所有文档。",
+			noBacklinks: "此笔记无任何反向链接"
 		},
 		tags: {
 			title: "标签",

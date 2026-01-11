@@ -154,7 +154,8 @@ export const language: i18n =
 		},
 		backlinks: {
 			title: "Collegamenti di ritorno",
-			description: "Mostra tutti i documenti che si collegano al documento attualmente aperto."
+			description: "Mostra tutti i documenti che si collegano al documento attualmente aperto.",
+			noBacklinks: "Nessun collegamento di ritorno per questo articolo"
 		},
 		tags: {
 			title: "Etichette",

@@ -477,8 +477,7 @@ export class Webpage extends Attachment {
 		if (this.exportOptions.outlineOptions.enabled) {
 			const headerTree = new OutlineTree(this, 1);
 			headerTree.id = "outline";
-			headerTree.title = "Table Of Contents";
-			headerTree.showNestingIndicator = false;
+			headerTree.showNestingIndicator = true;
 			headerTree.minCollapsableDepth = 1;
 			this.exportOptions.outlineOptions.insertFeature(this.pageDocument.documentElement, await headerTree.generate());
 		}

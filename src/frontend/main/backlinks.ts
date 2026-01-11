@@ -63,6 +63,19 @@ export class BacklinkList extends DynamicInsertedFeature<
 	protected generateContent(container: HTMLElement) {
 		const deps = this.getDependencies();
 
+		// If no backlinks, show empty message
+		if (deps.backlinkPaths.length === 0) {
+			const emptyMessage = document.createElement("div");
+			emptyMessage.className = "backlinks-empty-message";
+			// Get i18n text from metadata, fallback to English
+			const noBacklinksText = ObsidianSite.metadata?.featureOptions?.backlinks?.noBacklinks
+				|| "No backlinks for this article";
+			emptyMessage.textContent = noBacklinksText;
+			container.appendChild(emptyMessage);
+			this.backlinks = [];
+			return;
+		}
+
 		this.backlinks = deps.backlinkPaths.map(
 			(url) => new Backlink(container, url)
 		);

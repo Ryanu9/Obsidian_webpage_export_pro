@@ -160,7 +160,8 @@ export const language: i18n =
 		},
 		backlinks: {
 			title: "Links de Retorno",
-			description: "Mostra os documentos que fazem referência ao documento atual."
+			description: "Mostra os documentos que fazem referência ao documento atual.",
+			noBacklinks: "Nenhum link de retorno para este artigo"
 		},
 		tags: {
 			title: "Tags",

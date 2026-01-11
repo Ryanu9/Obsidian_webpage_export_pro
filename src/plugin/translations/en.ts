@@ -161,7 +161,8 @@ export const language: i18n =
 		},
 		backlinks: {
 			title: "Backlinks",
-			description: "Displays all the documents which link to the currently opened document."
+			description: "Displays all the documents which link to the currently opened document.",
+			noBacklinks: "No backlinks for this article"
 		},
 		tags: {
 			title: "Tags",

@@ -66,18 +66,44 @@ export abstract class DynamicInsertedFeature<
 	 * Update the feature's content
 	 */
 	protected updateContent(): void {
-		const contentEl = this.getElement(InsertedFeature.CONTENT_KEY);
+		let contentEl = this.getElement(InsertedFeature.CONTENT_KEY);
+		const featureEl = this.getElement(InsertedFeature.FEATURE_KEY);
+
+		if (!featureEl) return;
+
+		// Check if feature element is disconnected from DOM
+		if (!featureEl.isConnected) {
+			// Reinsert the feature element
+			this.options.insertFeature(document.body, featureEl);
+		}
+
+
+		if (!contentEl?.isConnected || !featureEl.contains(contentEl)) {
+			// Content element is missing or was moved elsewhere and deleted
+			// We need to recreate it
+			const contentClassName = `${this.options.featureId}-content`;
+
+			// First check if it still exists inside featureEl (unlikely but possible)
+			let existingContent = featureEl.querySelector(`.${contentClassName}`) as HTMLElement;
+
+			if (existingContent) {
+				contentEl = existingContent;
+			} else {
+				// Create new content element
+				contentEl = document.createElement("div");
+				contentEl.className = contentClassName;
+				featureEl.appendChild(contentEl);
+			}
+
+			// Update the reference in the elements map
+			this.elements.set(InsertedFeature.CONTENT_KEY, contentEl);
+		}
+
 		if (!contentEl) return;
 
 		// Clear existing content
 		while (contentEl.firstChild) {
 			contentEl.removeChild(contentEl.firstChild);
-		}
-
-		// check if feature exists in the document, and if not reinsert it
-		const featureEl = this.getElement(InsertedFeature.FEATURE_KEY);
-		if (!featureEl?.isConnected && featureEl) {
-			this.options.insertFeature(document.body, featureEl);
 		}
 
 		this.generateContent(contentEl);
