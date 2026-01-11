@@ -204,18 +204,15 @@ export class SettingsPage extends PluginSettingTab {
 		const supportContainer = container.createDiv();
 		supportContainer.style.marginBottom = '15px';
 		const supportLink = container.createEl('a');
-		const buttonColor = "3ebba4";
-		const buttonTextColor = "ffffff";
-		// @ts-ignore
 		supportLink.href = `https://www.buymeacoffee.com/c1trus`;
-		supportLink.style.height = "40px"
-		supportLink.innerHTML = `<img style="height:40px;" src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=c1trus&button_colour=${buttonColor}&font_colour=${buttonTextColor}&font_family=Poppins&outline_colour=${buttonTextColor}&coffee_colour=FFDD00">`;
+		supportLink.target = "_blank";
+		supportLink.innerHTML = `<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >`;
 		const supportHeader = container.createDiv({ text: lang.support, cls: "setting-item-description" });
 		supportHeader.style.display = 'block';
 
 		supportContainer.style.display = 'grid';
 		supportContainer.style.gridTemplateColumns = "0.5fr 0.5fr";
-		supportContainer.style.gridTemplateRows = "40px 20px";
+		supportContainer.style.gridTemplateRows = "60px 20px";
 		supportContainer.appendChild(supportLink);
 
 		// debug info button
