@@ -1,5 +1,5 @@
 // imports from obsidian API
-import { Notice, Plugin, TFile, TFolder, requestUrl,moment, MarkdownPreviewRenderer, MarkdownPreviewView, MarkdownRenderer, Component} from 'obsidian';
+import { Notice, Plugin, TFile, TFolder, requestUrl, moment, MarkdownPreviewRenderer, MarkdownPreviewView, MarkdownRenderer, Component } from 'obsidian';
 
 // modules that are part of the plugin
 import { AssetHandler } from 'src/plugin/asset-loaders/asset-handler';
@@ -21,11 +21,11 @@ export default class HTMLExportPlugin extends Plugin {
 		currentVersion: string;
 		updateNote: string;
 	} = {
-		updateAvailable: false,
-		latestVersion: "0",
-		currentVersion: "0",
-		updateNote: "",
-	};
+			updateAvailable: false,
+			latestVersion: "0",
+			currentVersion: "0",
+			updateNote: "",
+		};
 	static pluginVersion: string = "0.0.0";
 	public api = MarkdownRendererAPI;
 	public internalAPI = _MarkdownRendererInternal;
@@ -44,7 +44,7 @@ export default class HTMLExportPlugin extends Plugin {
 	}
 
 	async onload() {
-		console.log("Loading webpage-html-export plugin");
+		console.log("Loading Webpage HTML Export Pro plugin");
 		this.checkForUpdates();
 		HTMLExportPlugin.pluginVersion = this.manifest.version;
 
@@ -120,13 +120,13 @@ export default class HTMLExportPlugin extends Plugin {
 							} else {
 								ExportLog.error(
 									"File is not a TFile or TFolder! Invalid type: " +
-										typeof file +
-										""
+									typeof file +
+									""
 								);
 								new Notice(
 									"File is not a File or Folder! Invalid type: " +
-										typeof file +
-										"",
+									typeof file +
+									"",
 									5000
 								);
 							}
@@ -146,12 +146,12 @@ export default class HTMLExportPlugin extends Plugin {
 
 		try {
 			let url =
-				"https://raw.githubusercontent.com/KosmosisDire/obsidian-webpage-export/master/manifest.json?cache=" +
+				"https://raw.githubusercontent.com/c1trus/obsidian-webpage-export/master/manifest.json?cache=" +
 				Date.now() +
 				"";
 			if (this.manifest.version.endsWith("b"))
 				url =
-					"https://raw.githubusercontent.com/KosmosisDire/obsidian-webpage-export/master/manifest-beta.json?cache=" +
+					"https://raw.githubusercontent.com/c1trus/obsidian-webpage-export/master/manifest-beta.json?cache=" +
 					Date.now() +
 					"";
 			const manifestResp = await requestUrl(url);
@@ -188,6 +188,6 @@ export default class HTMLExportPlugin extends Plugin {
 	}
 
 	onunload() {
-		ExportLog.log("unloading webpage-html-export plugin");
+		ExportLog.log("unloading Webpage HTML Export Pro plugin");
 	}
 }

@@ -1,6 +1,6 @@
-# Webpage HTML Export
+# Webpage HTML Export Pro
 
-Export html from single files, canvas pages, or whole vaults. Direct access to the exported HTML files allows you to publish your digital garden anywhere. Focuses on flexibility, features, and style parity.
+A feature-enhanced fork of webpage-html-export for exporting Obsidian notes and vaults into WYSIWYG HTML webpages.
 Demo / docs: [docs.obsidianweb.net](https://docs.obsidianweb.net/)
 
 ![image](https://github.com/KosmosisDire/obsidian-webpage-export/assets/39423700/b8e227e4-b12c-47fb-b341-5c5c2f092ffa)
@@ -53,7 +53,7 @@ A contribution guide may come soon.
 
 This plugin takes a lot of work to maintain and continue adding features. If you want to fund the continued development of this plugin you can do so here:
 
-<a href="https://www.buymeacoffee.com/nathangeorge"><img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=nathangeorge&button_colour=3ebba4&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00"></a>
+<a href="https://www.buymeacoffee.com/c1trus"><img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=c1trus&button_colour=3ebba4&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00"></a>
 
 or if you prefer paypal: 
 

@@ -177,7 +177,7 @@ export class Index {
 			{
 				title: this.exportOptions.siteName ?? app.vault.getName(),
 				description: "Obsidian digital garden",
-				generator: "Webpage HTML Export plugin for Obsidian",
+				generator: "Webpage HTML Export Pro plugin for Obsidian",
 				feed_url: this.rssURL.path,
 				site_url: this.exportOptions.rssOptions.siteUrl ?? "",
 				image_url: Path.joinStrings(this.exportOptions.rssOptions.siteUrl ?? "", AssetHandler.favicon.targetPath.path).path,

@@ -207,9 +207,9 @@ export class SettingsPage extends PluginSettingTab {
 		const buttonColor = "3ebba4";
 		const buttonTextColor = "ffffff";
 		// @ts-ignore
-		supportLink.href = `https://www.buymeacoffee.com/nathangeorge`;
+		supportLink.href = `https://www.buymeacoffee.com/c1trus`;
 		supportLink.style.height = "40px"
-		supportLink.innerHTML = `<img style="height:40px;" src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=nathangeorge&button_colour=${buttonColor}&font_colour=${buttonTextColor}&font_family=Poppins&outline_colour=${buttonTextColor}&coffee_colour=FFDD00">`;
+		supportLink.innerHTML = `<img style="height:40px;" src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=c1trus&button_colour=${buttonColor}&font_colour=${buttonTextColor}&font_family=Poppins&outline_colour=${buttonTextColor}&coffee_colour=FFDD00">`;
 		const supportHeader = container.createDiv({ text: lang.support, cls: "setting-item-description" });
 		supportHeader.style.display = 'block';
 
