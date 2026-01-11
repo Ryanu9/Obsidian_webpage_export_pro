@@ -78,7 +78,7 @@ export const language: i18n =
 	settings:
 	{
 		title: "HTML导出设置",
-		support: "支持该插件的持续开发。",
+		support: "支持该插件的持续开发(赞助的一部分会给到原作者)",
 		debug: "将调试信息复制到剪贴板",
 		unavailableSetting: "⚠️ 此功能在 {0} 模式下不可用。",
 		pageFeatures: {
@@ -279,11 +279,11 @@ export const language: i18n =
 		pageEncryption: {
 			title: "页面加密",
 			description: "密码保护页面的设置。",
-			info_enablePageEncryption: "启用对前置元数据中标记为 'locked: true' 的页面的加密。",
-			info_defaultEncryptionPassword: "如果页面前置元数据中未指定密码，则使用此后备密码。",
-			info_encryptionPromptText: "锁屏界面显示的标题文本。",
-			info_encryptionDescriptionText: "锁屏界面显示的描述文本。",
-			info_enableGiscusOnEncryptedPages: "如果启用，Giscus 评论将在页面解锁前加载。如果评论包含敏感信息，请禁用此项。",
+			info_enablePageEncryption: "开启加密文章功能",
+			info_defaultEncryptionPassword: "加密文章的默认密码",
+			info_encryptionPromptText: "解锁界面标题",
+			info_encryptionDescriptionText: "解锁界面提示",
+			info_enableGiscusOnEncryptedPages: "开启加密文章的 Giscus 评论区",
 		},
 		lockScreen: {
 			title: "此内容已加密",

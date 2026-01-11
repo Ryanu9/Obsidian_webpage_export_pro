@@ -79,7 +79,7 @@ export const language: i18n =
 	settings:
 	{
 		title: "HTML Export Settings",
-		support: "Support the continued development of this plugin.",
+		support: "Support the continued development of this plugin (Part of the sponsorship will be given to the original author).",
 		debug: "Copy debug info to clipboard",
 		unavailableSetting: "⚠️ This feature is not available in {0} mode.",
 		pageFeatures: {
@@ -280,11 +280,11 @@ export const language: i18n =
 		pageEncryption: {
 			title: "Page Encryption",
 			description: "Settings for password-protected pages.",
-			info_enablePageEncryption: "Enable encryption for pages marked with 'locked: true' in frontmatter.",
-			info_defaultEncryptionPassword: "Fallback password if none is specified in the page frontmatter.",
-			info_encryptionPromptText: "Title text shown on the lock screen.",
-			info_encryptionDescriptionText: "Description text shown on the lock screen.",
-			info_enableGiscusOnEncryptedPages: "If enabled, Giscus comments will load even before the page is unlocked. Disable this if comments contain sensitive info.",
+			info_enablePageEncryption: "Enable page encryption",
+			info_defaultEncryptionPassword: "Default encryption password",
+			info_encryptionPromptText: "Unlock screen title",
+			info_encryptionDescriptionText: "Unlock screen description",
+			info_enableGiscusOnEncryptedPages: "Enable Giscus comments on encrypted pages",
 		},
 		lockScreen: {
 			title: "This content is encrypted",

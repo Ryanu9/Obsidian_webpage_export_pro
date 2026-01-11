@@ -73,7 +73,7 @@ export const language: i18n =
 	},
 	settings: {
 		title: "Impostazioni Esportazione HTML",
-		support: "Supporta lo sviluppo continuo di questo plugin.",
+		support: "Sostieni lo sviluppo continuo di questo plugin (Parte della sponsorizzazione sarà devoluta all'autore originale).",
 		debug: "Copia info di debug negli appunti",
 		unavailableSetting: "⚠️ Questa funzionalità non è disponibile in modalità {0}.",
 		pageFeatures: {
@@ -273,11 +273,11 @@ export const language: i18n =
 		pageEncryption: {
 			title: "Crittografia Pagina",
 			description: "Impostazioni per le pagine protette da password.",
-			info_enablePageEncryption: "Abilita la crittografia per le pagine contrassegnate con 'locked: true' nel frontmatter.",
-			info_defaultEncryptionPassword: "Password di riserva se nessuna è specificata nel frontmatter della pagina.",
-			info_encryptionPromptText: "Testo del titolo mostrato nella schermata di blocco.",
-			info_encryptionDescriptionText: "Testo della descrizione mostrato nella schermata di blocco.",
-			info_enableGiscusOnEncryptedPages: "Se abilitato, i commenti di Giscus verranno caricati anche prima che la pagina venga sbloccata. Disabilita se i commenti contengono informazioni sensibili.",
+			info_enablePageEncryption: "Abilita la crittografia della pagina",
+			info_defaultEncryptionPassword: "Password di crittografia predefinita",
+			info_encryptionPromptText: "Titolo schermata di sblocco",
+			info_encryptionDescriptionText: "Descrizione schermata di sblocco",
+			info_enableGiscusOnEncryptedPages: "Abilita i commenti di Giscus sulle pagine crittografate",
 		},
 		lockScreen: {
 			title: "Questo contenuto è crittografato",
