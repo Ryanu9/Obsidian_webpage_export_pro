@@ -1,8 +1,7 @@
 import { i18n } from "src/plugin/translations/language";
 import { FeatureOptions, FeatureSettingInfo } from "./feature-options-base";
 
-export class CodeBlockOptions extends FeatureOptions
-{
+export class CodeBlockOptions extends FeatureOptions {
 	showLineNumbers: boolean = true;
 	defaultCollapse: boolean = true;
 	collapseThreshold: number = 30;
@@ -33,21 +32,20 @@ export class CodeBlockOptions extends FeatureOptions
 		description: i18n.settings.codeBlock.info_showBottomExpandButton
 	});
 	info_enableHighlightLine = new FeatureSettingInfo({
-		show: true,
+		show: false,
 		description: i18n.settings.codeBlock.info_enableHighlightLine
 	});
 	info_highlightLineColor = new FeatureSettingInfo({
-		show: false, // 隐藏主设置，将在2级菜单中手动创建
+		show: false,
 		description: i18n.settings.codeBlock.info_highlightLineColor,
 		isColor: true
 	});
 	info_highlightLineOpacity = new FeatureSettingInfo({
-		show: false, // 隐藏主设置，将在2级菜单中手动创建
+		show: false,
 		description: i18n.settings.codeBlock.info_highlightLineOpacity
 	});
 
-	constructor()
-	{
+	constructor() {
 		super();
 		this.featureId = "code-block";
 		this.alwaysEnabled = true;
