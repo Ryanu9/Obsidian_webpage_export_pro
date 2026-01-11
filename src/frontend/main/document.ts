@@ -1,4 +1,5 @@
 import { WebpageData, DocumentType } from "src/shared/website-data";
+import { Shared } from "src/shared/shared";
 import { BacklinkList } from "./backlinks";
 import { Callout } from "./callouts";
 import { Canvas } from "./canvas";
@@ -16,6 +17,7 @@ import { CodeBlockManager } from "./code-block-manager";
 import { MediaManager } from "./media";
 import { ImageZoom } from "./image-zoom";
 import { LongImageCollapse } from "./long-image-collapse";
+import { MachineGalleryFilters } from "./machine-gallery";
 
 
 export class WebpageDocument {
@@ -255,11 +257,14 @@ export class WebpageDocument {
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			LinkHandler.initializeLinks(this.documentEl ?? this.containerEl);
+			MachineGalleryFilters.initialize(this.containerEl ?? this.documentEl);
+			this.initMachineTypeTags();
 			this.initFootnotes();
 		}
 
 		return this;
 	}
+
 
 	private renderCreatedUpdatedBar() {
 		if (!this.headerEl) return;
@@ -489,4 +494,117 @@ export class WebpageDocument {
 		);
 		return fontSize * 30;
 	}
+
+	/**
+ * 初始化机器类型标签图标
+ * 根据 machine-type-tag 的 title 属性显示对应的 SVG 图标
+ */
+	private initMachineTypeTags() {
+		const scope = this.containerEl ?? this.documentEl;
+		if (!scope) return;
+
+		const tags = Array.from(scope.querySelectorAll<HTMLElement>('.machine-type-tag'));
+
+		for (const tag of tags) {
+			const title = tag.getAttribute('title')?.toLowerCase() || '';
+
+			// 清空原有内容
+			tag.replaceChildren();
+
+			// 根据 title 显示对应的图标
+			if (title === 'windows') {
+				this.createSVGIcon(tag, 'windows');
+			} else if (title === 'linux') {
+				this.createSVGIcon(tag, 'linux');
+			} else if (title === 'both') {
+				this.createSVGIcon(tag, 'both');
+			}
+		}
+	}
+
+	/**
+	 * 创建 SVG 图标
+	 */
+	private createSVGIcon(container: HTMLElement, type: 'windows' | 'linux' | 'both') {
+		// 创建图标并设置基础属性
+		const img = document.createElement('img');
+		img.classList.add('machine-type-icon__image', `machine-type-icon__image--${type}`);
+		const filename = type === 'both' ? 'both.svg' : `${type}.svg`;
+		img.src = `${Shared.libFolderName}/${Shared.mediaFolderName}/${filename}`;
+		switch (type) {
+			case 'both':
+				img.alt = 'Windows 和 Linux';
+				break;
+			case 'windows':
+				img.alt = 'Windows';
+				break;
+			default:
+				img.alt = 'Linux';
+		}
+		img.decoding = 'async';
+		img.loading = 'lazy';
+
+		if (!this.moveMachineTypeIconToTitle(container, img)) {
+			container.appendChild(img);
+		}
+	}
+
+	// 将系统图标移动到标题前方
+	private moveMachineTypeIconToTitle(container: HTMLElement, icon: HTMLImageElement): boolean {
+		const card = container.closest<HTMLElement>('.machine-card');
+		if (!card) {
+			return false;
+		}
+		const titleLink = card.querySelector<HTMLAnchorElement>('.machine-title');
+		if (!titleLink) {
+			return false;
+		}
+
+		const iconWrapper = this.ensureMachineTitleIconWrapper(titleLink);
+		iconWrapper.replaceChildren(icon);
+		this.ensureMachineTitleTextWrapper(titleLink);
+		container.remove();
+		return true;
+	}
+
+	// 确保标题存在用于放置图标的容器
+	private ensureMachineTitleIconWrapper(titleLink: HTMLAnchorElement): HTMLSpanElement {
+		let wrapper = titleLink.querySelector<HTMLSpanElement>('.machine-title__icon');
+		if (!wrapper) {
+			wrapper = document.createElement('span');
+			wrapper.className = 'machine-title__icon';
+			titleLink.insertBefore(wrapper, titleLink.firstChild);
+		}
+		return wrapper;
+	}
+
+	// 确保标题文本被包裹，方便实现省略号效果
+	private ensureMachineTitleTextWrapper(titleLink: HTMLAnchorElement): void {
+		let textWrapper = titleLink.querySelector<HTMLSpanElement>('.machine-title__text');
+		const iconWrapper = titleLink.querySelector<HTMLSpanElement>('.machine-title__icon');
+		if (!textWrapper) {
+			textWrapper = document.createElement('span');
+			textWrapper.className = 'machine-title__text';
+			titleLink.appendChild(textWrapper);
+		}
+
+		const nodesToWrap = Array.from(titleLink.childNodes).filter((node) => {
+			if (node === textWrapper || node === iconWrapper) {
+				return false;
+			}
+			if (node instanceof HTMLElement && node.classList.contains('machine-title__icon')) {
+				return false;
+			}
+			return true;
+		});
+
+		if (nodesToWrap.length > 0) {
+			for (const node of nodesToWrap) {
+				textWrapper.appendChild(node);
+			}
+		}
+
+		titleLink.classList.add('machine-title--with-icon');
+	}
 }
+

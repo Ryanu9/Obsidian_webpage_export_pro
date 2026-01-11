@@ -1648,3 +1648,40 @@ body.theme-light .excalidraw-plugin svg.light {
 .markdown-preview-view.is-readable-line-width .markdown-preview-sizer>div:has(.image-embed) img {
 	max-width: fit-content;
 }
+
+/*#region 靶机画廊标题图标布局 */
+.machine-title--with-icon {
+	display: flex;
+	align-items: center;
+	gap: 0.1rem;
+	width: 100%;
+}
+
+.machine-title--with-icon .machine-title__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-width: 1.25rem;
+	max-height: 1.25rem;
+}
+
+.machine-title--with-icon .machine-title__icon img {
+	height: 1.25rem;
+	width: auto;
+	max-width: 2.5rem;
+	object-fit: contain;
+}
+
+.machine-title--with-icon .machine-title__text {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/*#endregion */
