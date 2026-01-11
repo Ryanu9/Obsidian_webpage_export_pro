@@ -479,7 +479,7 @@ export class ObsidianWebsite {
 				backlinksHeader.style.display = "none";
 			}
 
-			// Find backlinks content
+			// Find backlinks content from the backlinks feature element
 			const backlinksContent = backlinksEl.querySelector(".backlinks-content") as HTMLElement;
 			if (!backlinksContent) return;
 
@@ -487,6 +487,13 @@ export class ObsidianWebsite {
 			if (outlineWrapper.contains(backlinksContent)) {
 				return; // Already moved
 			}
+
+			const oldBacklinksContents = outlineWrapper.querySelectorAll(".backlinks-content");
+			oldBacklinksContents.forEach(el => {
+				if (el !== backlinksContent) {
+					el.remove();
+				}
+			});
 
 			// Move backlinks content into outline wrapper
 			// Find where to insert: after feature-header
