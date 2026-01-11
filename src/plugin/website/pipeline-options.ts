@@ -225,7 +225,7 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	/**
 	 * Default password for encrypted pages if not specified in frontmatter.
 	 */
-	defaultEncryptionPassword: string = "";
+	defaultEncryptionPassword: string = "123456";
 
 	/**
 	 * Title text for the encryption lock screen.
