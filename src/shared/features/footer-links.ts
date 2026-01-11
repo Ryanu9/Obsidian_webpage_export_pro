@@ -12,9 +12,7 @@ export interface FooterLinkItem {
 }
 
 export class FooterLinksOptions extends InsertedFeatureOptions {
-	links: FooterLinkItem[] = [
-		{ text: "RSS", url: "site-lib/rss.xml" },
-	];
+	links: FooterLinkItem[] = [];
 	info_links = new FeatureSettingInfo({
 		show: true,
 		description: i18n.settings.footerLinks.info_links,
