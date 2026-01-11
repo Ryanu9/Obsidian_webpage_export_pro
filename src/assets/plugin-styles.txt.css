@@ -1639,3 +1639,12 @@ body.theme-light .excalidraw-plugin svg.light {
 }
 
 /*#endregion  */
+
+/*#region Images */
+
+/* Fix image size to match Obsidian's display */
+/* Override theme's --img-max-width to ensure images display at their natural size */
+.markdown-preview-view.is-readable-line-width .markdown-preview-sizer>.image-embed img,
+.markdown-preview-view.is-readable-line-width .markdown-preview-sizer>div:has(.image-embed) img {
+	max-width: fit-content;
+}
