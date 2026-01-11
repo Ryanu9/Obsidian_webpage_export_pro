@@ -1,65 +1,36 @@
 # Webpage HTML Export Pro
 
-A feature-enhanced fork of webpage-html-export for exporting Obsidian notes and vaults into WYSIWYG HTML webpages.
-Demo / docs: [docs.obsidianweb.net](https://docs.obsidianweb.net/)
+[English](README.md) | [中文](README-zh.md)
 
-![image](https://github.com/KosmosisDire/obsidian-webpage-export/assets/39423700/b8e227e4-b12c-47fb-b341-5c5c2f092ffa)
+This plugin is a fork of [obsidian-webpage-export](https://github.com/KosmosisDire/obsidian-webpage-export) by KosmosisDire, with many new features and optimizations added to make it more suitable for use as a blog.
 
-![image](https://github.com/KosmosisDire/obsidian-webpage-export/assets/39423700/06f29e1a-c067-45e7-9882-f9d6aa83776f)
+## Usage
+1. Install the plugin.
+2. Fill in your basic configurations and enable your preferred features in the plugin settings.
+3. Press `ctrl+p` and select `set html export settings`.
+4. Select the notes you want to export and click the Export button.
 
-> [!NOTE]  
-> Although the plugin is fully functional it is still under development, so there may be frequent large changes between updates that could effect your workflow! Bugs are also not uncommon, please report anything you find, I am working to make the plugin more stable.
+## New Features
+look this:https://myblog-livid-iota.vercel.app/00-home/blog/webpage-html-export-pro.html
 
-## Features:
-- Full text search
-- File navigation tree
-- Document outline
-- Graph view
-- Theme toggle
-- Optimized for web and mobile
-- Most plugins supported (dataview, tasks, etc...)
-- Option to export html and dependencies into one single file
+**This plugin supports i18n, so don't worry about language issues.**
 
-## Using the Plugin
-Check out the new docs for details on using the plugin:
-https://docs.obsidianweb.net/
+- **Code Block Enhancements**: Supports one-click copy, word wrap, default collapse/expand, and clear language identifiers.
+- **Line Highlighting**: Supports background highlighting of specific lines using the `>>>> ` syntax to improve code readability.
+- **Interactive Image Viewer**: Click images to enter zoom mode, and use the mouse wheel for real-time zooming.
+- **Long Image Auto-Collapse**: Automatically collapses large images to prevent pages from becoming too long and maintain a beautiful layout.
+- **Frontmatter Display**: Shows YAML properties directly below the article title, with customizable default display states.
+- **Smart Outline View**: Automatically highlights the corresponding title based on reading progress and allows setting the default collapse level for headings.
+- **Folder Note Count**: Displays the total count of notes in each folder within the sidebar file tree in real-time.
+- **Attachment Download Support**: Allows downloading attachment files linked in the notes directly from the exported webpage.
+- **Standard Footnote Rendering**: Perfectly supports and renders the standard Obsidian footnote syntax.
+- **Giscus Comments Integration**: Built-in comment system; just paste the script code from Giscus for automatic parsing and loading.
+- **Private Page Encryption**: Supports password-protecting specific notes via frontmatter properties (`locked: true`, `password: "..."`) for precise content permission control.
+- **Footer Customization**: Customizable copyright information and functional links at the bottom of the page.
+- **Global Navigation Bar**: Supports a sticky navigation menu for quick jumps to friend links, changelogs, bios, etc. (simply use the relative path of the note).
+- **Modal Search**: Use `Ctrl+K` to quickly trigger search and use `Tab` to preview context snippets of the results.
+- **Document Timestamp Display**: Shows the creation date and last update date prominently in the article.
+- **Vercel Insights Support**: Integrated Vercel deployment analysis to track traffic and performance data if you deploy via Vercel.
+- **Configuration Persistence**: Supports saving, updating, and switching between multiple export configuration presets.
 
-## Installation
 
-Install from Obsidian Community Plugins: [Open in Obsidian](https://obsidian.md/plugins?id=webpage-html-export)
-
-### Manual Installation
-
-1. Download the `.zip` file from the [Latest Release](https://github.com/KosmosisDire/obsidian-webpage-export/releases/latest), or from any other release version.
-2. Unzip into: `{VaultFolder}/.obsidian/plugins/`
-3. Reload obsidian
-
-### Beta Installation
-
-Either follow the instructions above for a beta release, or:
-
-1. Install the [BRAT plugin](https://obsidian.md/plugins?id=obsidian42-brat)
-2. Open the brat settings
-3. Select add beta plugin
-4. Enter `https://github.com/KosmosisDire/obsidian-webpage-export` as the repository.
-5. Select Add Plugin
-
-## Contributing
-
-Only start work on features which have an issue created for them and have been accepted by me!
-A contribution guide may come soon.
-
-## Support This Plugin
-
-This plugin takes a lot of work to maintain and continue adding features. If you want to fund the continued development of this plugin you can do so here:
-
-<a href="https://www.buymeacoffee.com/c1trus"><img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=&slug=c1trus&button_colour=3ebba4&font_colour=ffffff&font_family=Poppins&outline_colour=ffffff&coffee_colour=FFDD00"></a>
-
-or if you prefer paypal: 
-
-<a href="https://www.paypal.com/donate/?business=HHQBAXQQXT84Q&no_recurring=0&item_name=Hey+%F0%9F%91%8B+I+am+a+Computer+Science+student+working+on+obsidian+plugins.+Thanks+for+your+support%21&currency_code=USD"><img src="https://pics.paypal.com/00/s/MGNjZDA4MDItYzk3MC00NTQ1LTg4ZDAtMzM5MTc4ZmFlMGIy/file.PNG" style="width: 150px;"></a>
-
-## Testing
-
-This project is tested with BrowserStack.
-[BrowserStack](https://www.browserstack.com/open-source) offers free web testing to open source projects, but does not support this project in any other way.
