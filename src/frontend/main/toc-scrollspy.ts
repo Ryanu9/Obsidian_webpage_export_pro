@@ -77,7 +77,7 @@ export class TocScrollSpy {
     }
 
     private syncActiveHeading(): void {
-        // 从可见标题中选择文档顺序最靠前的一个
+        // 优先从 IntersectionObserver 检测到的可见标题中选择
         let activeId: string | null = null;
         for (const h of this.headings) {
             if (this.visibleHeadings.has(h.id)) {
@@ -86,9 +86,9 @@ export class TocScrollSpy {
             }
         }
 
-        // 如果没有可见标题，回退到第一个
+        // 如果没有可见标题，使用位置计算找到最后一个已滚过顶部的标题
         if (!activeId && this.headings.length > 0) {
-            activeId = this.headings[0].id;
+            activeId = this.findActiveByPosition();
         }
 
         if (!activeId) {
@@ -97,6 +97,22 @@ export class TocScrollSpy {
         }
 
         this.activateTocItem(activeId);
+    }
+
+    private findActiveByPosition(): string | null {
+        const TOP_OFFSET = 80; // 顶部偏移量
+        let lastPassedId: string | null = null;
+
+        for (const h of this.headings) {
+            const rect = h.element.getBoundingClientRect();
+            if (rect.top <= TOP_OFFSET) {
+                lastPassedId = h.id;
+            } else {
+                break; // 标题按文档顺序排列，一旦遇到还没滚过的就停止
+            }
+        }
+
+        return lastPassedId;
     }
 
     private activateTocItem(activeId: string): void {
