@@ -1642,11 +1642,18 @@ body.theme-light .excalidraw-plugin svg.light {
 
 /*#region Images */
 
-/* Fix image size to match Obsidian's display */
-/* Override theme's --img-max-width to ensure images display at their natural size */
+/* 图片保持原始尺寸，最大宽度受 --img-max-width 限制 */
 .markdown-preview-view.is-readable-line-width .markdown-preview-sizer>.image-embed img,
 .markdown-preview-view.is-readable-line-width .markdown-preview-sizer>div:has(.image-embed) img {
-	max-width: fit-content;
+	width: auto;
+	max-width: 800px;
+	height: auto;
+}
+
+/* 确保 image-embed 容器不会强制拉伸图片 */
+.image-embed {
+	width: fit-content !important;
+	max-width: 100%;
 }
 
 /*#region 靶机画廊标题图标布局 */

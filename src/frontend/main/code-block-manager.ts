@@ -37,7 +37,7 @@ export class CodeBlockManager {
             .code-block-highlight-preview pre code .highlight-line,
             .code-block-highlight-preview pre .highlight-line,
             .code-block-highlight-preview .highlight-line {
-                background-color: rgba(${r}, ${g}, ${b}, ${opacity}) !important;
+                background-color: rgba(${r}, ${g}, ${b}, ${opacity}) ;
 	            display: block;
 	            box-sizing: border-box;
 	            padding: 0;
