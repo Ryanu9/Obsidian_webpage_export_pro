@@ -409,6 +409,23 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     align-items: center;
 }
 
+/*#region Image Performance */
+
+
+.obsidian-document img {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px;
+}
+
+
+.obsidian-document .markdown-preview-sizer>div:first-child img,
+.obsidian-document .markdown-preview-sizer>div:nth-child(2) img {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+}
+
+/*#endregion */
+
 /*#endregion */
 
 /*#region Notices */
