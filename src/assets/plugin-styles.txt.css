@@ -1284,6 +1284,7 @@ a.backlink:hover {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5em;
+	align-items: center;
 }
 
 #aliases .aliases-content .alias {

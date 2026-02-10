@@ -32,6 +32,14 @@ body {
     contain: size;
 }
 
+/* Suppress all layout transitions during initial page load */
+body.no-transition .sidebar,
+body.no-transition .sidebar .sidebar-topbar,
+body.no-transition .sidebar .topbar-content,
+body.no-transition .sidebar .leaf-content {
+    transition-duration: 0s !important;
+}
+
 #left-sidebar {
     left: 0;
 }

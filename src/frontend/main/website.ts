@@ -114,6 +114,7 @@ export class ObsidianWebsite {
 		this.theme = new Theme();
 
 		this.bodyEl = document.body;
+		this.bodyEl.classList.add("no-transition");
 		this.horizontalLayout = document.querySelector("#main-horizontal") as HTMLElement;
 		this.centerContentEl = document.querySelector(
 			"#center-content"
@@ -153,6 +154,7 @@ export class ObsidianWebsite {
 				?.getAttribute("content") ?? "unknown";
 		this.entryPage = pathname;
 
+		this.centerContentEl.style.visibility = "hidden";
 		this.document = await new ObsidianDocument(pathname);
 		await this.document.loadChildDocuments();
 		await this.document.postLoadInit();
@@ -330,6 +332,7 @@ export class ObsidianWebsite {
 			);
 		}
 
+		this.centerContentEl.style.visibility = "";
 		this.isLoaded = true;
 		this.onloadCallbacks.forEach((cb) => cb(this.document));
 	}
@@ -575,6 +578,9 @@ export class ObsidianWebsite {
 			});
 		});
 		this.onResize();
+		requestAnimationFrame(() => {
+			document.body.classList.remove("no-transition");
+		});
 
 		document.addEventListener('contentDecrypted', () => {
 			if (this.graphView && this.document) {

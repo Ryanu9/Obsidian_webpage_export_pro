@@ -28,6 +28,9 @@ export class TocScrollSpy {
 
         this.currentPathname = doc.pathname || "";
 
+        // Pre-collapse tree items immediately to avoid expand-then-collapse flash
+        this.preCollapseItems();
+
         // 延迟初始化，确保 DOM 渲染完成
         setTimeout(() => {
             this.initHeadings(doc);
@@ -147,6 +150,23 @@ export class TocScrollSpy {
         return null;
     }
 
+    private preCollapseItems(): void {
+        const site = (window as any).ObsidianSite;
+        const outlineTree = site?.outlineTree as Tree;
+        if (!outlineTree) return;
+
+        const autoCollapseDepth = site?.metadata?.featureOptions?.outline?.autoCollapseDepth ?? 1;
+        if (autoCollapseDepth >= 100) return;
+
+        outlineTree.overrideAnimationLength(0);
+        outlineTree.forAllChildren((item) => {
+            if (item.collapsable && item.depth >= autoCollapseDepth) {
+                item.collapsed = true;
+            }
+        });
+        outlineTree.restoreAnimationLength();
+    }
+
     private syncExpansion(tree: Tree, activeItem: TreeItem): void {
         const site = (window as any).ObsidianSite;
         const autoCollapseDepth = site?.metadata?.featureOptions?.outline?.autoCollapseDepth ?? 1;
@@ -232,7 +252,7 @@ export class TocScrollSpy {
                 border-radius: 4px;
                 display: flex !important;
                 align-items: center;
-                padding-left: 8px !important;
+                padding-left: 16px !important;
                 color: var(--text-normal);
             }
             #outline .tree-item-inner {
@@ -241,8 +261,8 @@ export class TocScrollSpy {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 flex: 1;
-                line-height: 1.5;
-                padding: 3px 4px 3px 0;
+                line-height: 1.35;
+                padding: 2px 4px 2px 0;
                 font-size: 13px;
             }
             #outline .collapse-icon {
@@ -252,6 +272,9 @@ export class TocScrollSpy {
                 color: #70ACEA;
                 background-color: transparent !important;
                 background: none !important;
+            }
+            .theme-light #outline .tree-item-self.is-active {
+                color: #2365B8;
             }
             #outline .tree-item-self.is-active .tree-item-inner {
                 font-size: 13px;
@@ -268,9 +291,63 @@ export class TocScrollSpy {
                 border-radius: 4px;
                 display: none;
             }
+            .theme-light .outline-indicator {
+                background-color: #2365B8;
+            }
             #outline .tree-item-self:hover {
                 color: #6599CF;
                 background-color: transparent !important;
+            }
+            .theme-light #outline .tree-item-self:hover {
+                color: #5C8DCA;
+            }
+
+            /* Title (H1 / first heading) - bold, larger, never highlighted */
+            #outline .tree-item[data-depth="0"] > .tree-item-self,
+            #outline .tree-item[data-depth="1"] > .tree-item-self {
+                color: var(--text-normal) !important;
+                background-color: transparent !important;
+                background: none !important;
+                pointer-events: auto;
+                border-radius: 0;
+                padding-left: 16px !important;
+                margin-bottom: 6px;
+            }
+            #outline .tree-item[data-depth="0"] > .tree-item-self .tree-item-inner,
+            #outline .tree-item[data-depth="1"] > .tree-item-self .tree-item-inner {
+                font-size: 16px !important;
+                font-weight: 800 !important;
+            }
+            #outline .tree-item[data-depth="0"] > .tree-item-self.is-active,
+            #outline .tree-item[data-depth="1"] > .tree-item-self.is-active {
+                color: var(--text-normal) !important;
+            }
+            #outline .tree-item[data-depth="0"] > .tree-item-self:hover,
+            #outline .tree-item[data-depth="1"] > .tree-item-self:hover {
+                color: var(--text-normal) !important;
+            }
+
+            /* Feature header title */
+            #outline .feature-header .feature-title {
+                font-weight: 700;
+                font-size: 15px;
+                color: var(--text-normal) !important;
+                text-transform: none;
+                letter-spacing: normal;
+                border-radius: 0;
+            }
+
+            /* Remove tree hierarchy indentation guide lines */
+            #outline .tree-item-children {
+                border-left: none !important;
+                margin-left: 0 !important;
+            }
+            #outline .tree-item-children::before,
+            #outline .tree-item-children::after,
+            #outline .tree-item::before,
+            #outline .tree-item::after {
+                display: none !important;
+                border: none !important;
             }
         `;
         document.head.appendChild(style);
