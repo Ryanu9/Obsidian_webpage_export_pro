@@ -127,67 +127,70 @@ export class ModalSearch {
 			.search-result-title { font-weight: 600; font-size: 15px; color: var(--text-normal); }
 			.search-modal-result-item.selected .search-result-title { color: var(--interactive-accent); }
 			.search-result-excerpt {
-				font-size: 13px; color: var(--text-muted, #666); line-height: 1.6;
+				font-size: 13px; color: var(--text-muted); line-height: 1.65;
 				margin-top: 4px; word-break: break-word;
+				padding: 6px 0;
+				max-height: 12em;
+				overflow: hidden;
 			}
-			/* 摘要内的富文本样式还原 (加粗与斜体) */
+			.search-result-excerpt .search-excerpt-line {
+				margin: 1px 0;
+			}
 			.search-result-excerpt strong {
-				font-weight: 600; color: var(--text-normal, #333);
+				font-weight: 700; color: var(--text-normal);
 			}
 			.search-result-excerpt em {
-				font-style: italic; color: var(--text-normal, #555);
+				font-style: italic; color: var(--text-normal);
 			}
-			/* 摘要内的代码展示 (行内与块级) */
+			.search-result-excerpt del {
+				opacity: 0.5;
+			}
 			.search-result-excerpt code.inline-code {
-				background: var(--code-background, #f5f5f5);
-				color: var(--code-normal, #e83e8c);
-				padding: 2px 6px; border-radius: 3px;
-				font-size: 0.9em;
+				background: var(--code-background, rgba(135,131,120,0.15));
+				color: var(--code-normal, #e06c75);
+				padding: 1px 5px; border-radius: 3px;
+				font-size: 0.88em;
 				font-family: var(--font-monospace, 'Consolas', 'Monaco', monospace);
 			}
-			/* 摘要中的代码块预览 */
 			.search-result-excerpt pre.search-excerpt-code {
-				margin: 0.5rem 0; padding: 0.75rem;
-				background: var(--code-block-background, #f3f4f6);
-				border-radius: 6px; font-size: 0.9em;
+				margin: 6px 0; padding: 10px 12px;
+				background: var(--code-background, rgba(0,0,0,0.15));
+				border-radius: 6px; font-size: 12px;
 				line-height: 1.5; white-space: pre-wrap;
-				color: var(--code-block-text, #1f2933);
+				color: var(--text-muted);
+				font-family: var(--font-monospace, 'Consolas', 'Monaco', monospace);
+				position: relative;
+				overflow: hidden;
+				max-height: 6em;
 			}
-			/* 搜索命中词的高亮 (通用样式，适用于所有位置) */
+			.search-result-excerpt pre.search-excerpt-code code {
+				font-family: inherit; font-size: inherit;
+			}
+			.search-result-excerpt .code-lang-label {
+				position: absolute; top: 4px; right: 8px;
+				font-size: 10px; color: var(--text-faint);
+				text-transform: lowercase; opacity: 0.7;
+			}
 			mark.search-excerpt-highlight {
 				background: var(--text-highlight-bg, #ffd60a);
-				color: var(--text-normal, #333);
-				padding: 2px 4px; border-radius: 2px;
+				color: var(--text-normal);
+				padding: 1px 3px; border-radius: 2px;
 			}
-			/* 摘要内的 mark 标签（如果没有 search-excerpt-highlight 类） */
 			.search-result-excerpt mark:not(.search-excerpt-highlight) {
-				background: transparent; color: var(--text-accent); font-weight: bold;
+				background: rgba(255,214,10,0.3); color: var(--text-normal); font-weight: 500;
 			}
-			/* 摘要中的省略符号 (三个点) 样式 */
 			.search-result-excerpt .search-excerpt-ellipsis {
-				color: var(--text-faint, #999); font-style: italic; margin: 0 2px;
+				color: var(--text-faint); font-size: 12px; margin: 2px 0;
 			}
-			/* 摘要中的链接样式 */
-			.search-result-excerpt a.search-excerpt-link {
-				color: var(--text-accent, #4a9eff);
-				text-decoration: underline;
+			.search-result-excerpt .search-excerpt-link {
+				color: var(--text-accent); text-decoration: underline;
 			}
-			/* 摘要中的标题样式 */
 			.search-result-excerpt .search-excerpt-heading {
-				display: block; font-weight: 600;
-				margin: 0.25rem 0; color: var(--text-normal, #333);
+				font-weight: 700; color: var(--text-normal);
+				margin: 4px 0 2px 0; font-size: 13.5px;
 			}
-			/* 摘要中的列表项样式 */
-			.search-result-excerpt .search-excerpt-list-item {
-				display: block; margin: 0.2rem 0;
-			}
-			.search-result-excerpt .search-excerpt-list-item--ordered {
-				display: flex; gap: 0.5rem;
-			}
-			/* 摘要中的图片标记样式 */
-			.search-result-excerpt .search-excerpt-image {
-				color: var(--text-muted, #666);
-				font-style: italic;
+			.search-result-excerpt .search-excerpt-heading .heading-marker {
+				color: var(--text-faint); margin-right: 4px; font-weight: 400;
 			}
 			.search-result-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 			.search-tag {
@@ -348,15 +351,20 @@ export class ModalSearch {
         title.className = 'search-result-title';
         title.innerHTML = this.highlight(result.title, query);
 
-        content.append(pathEl, title);
-
-			if (this.showDetailedView) {
+        if (this.showDetailedView) {
+            // In detail mode, only show compact path, no separate title
+            content.append(pathEl);
             if (result.content) {
                 const excerpt = document.createElement('div');
                 excerpt.className = 'search-result-excerpt';
                 excerpt.innerHTML = this.getExcerpt(result.content, query);
                 content.append(excerpt);
             }
+        } else {
+            content.append(pathEl, title);
+        }
+
+		if (this.showDetailedView) {
 
             const meta = document.createElement('div');
             meta.className = 'search-result-meta';
@@ -467,288 +475,76 @@ export class ModalSearch {
 
     private getExcerpt(content: string, query: string): string {
         if (!content) return "";
-        // 使用 HTML 格式的摘要，支持 Markdown 语法转换和富文本展示
-        return this.getHtmlExcerpt(content, query, 200);
+        return this.getFormattedExcerpt(content, query);
     }
 
     /**
-     * 生成 HTML 格式的摘要，支持 Markdown 语法转换和富文本展示
+     * Generate a readable excerpt that preserves line structure from the search content.
+     * Content now has \n from block-level elements (headings, paragraphs, list items).
      */
-    private getHtmlExcerpt(text: string, query: string, maxLength: number = 200): string {
+    private getFormattedExcerpt(text: string, query: string): string {
         if (!text) return "";
 
-        // 获取纯文本版本用于定位
-        const cleanText = this.cleanTextContent(text);
-        const excerptInfo = this.findBestExcerptPosition(cleanText, query, maxLength);
+        // Clean up placeholder strings
+        let cleaned = text.replace(/__[A-Z_]+_\d+__/g, "").trim();
+        if (!cleaned) return "";
 
-        // 转换 Markdown 格式为 HTML
-        let html = text;
-        const codeBlocks: string[] = [];
+        // Split by newlines (preserved from block-level DOM elements)
+        let lines = cleaned.split("\n").map(s => s.trim()).filter(s => s.length > 0);
 
-        // 先保护已有的 HTML 标签（如果有）
-        const htmlTagPattern = /<[^>]+>/g;
-        const htmlTags: string[] = [];
-        html = html.replace(htmlTagPattern, (match) => {
-            htmlTags.push(match);
-            return `__HTML_TAG_${htmlTags.length - 1}__`;
-        });
-
-        // 提取并占位代码块，防止后续格式化破坏结构
-        html = html.replace(
-            /```(?:([\w+-]+)\s*)?([\s\S]*?)```/g,
-            (_match: string, language: string | undefined, codeContent: string) => {
-                const languageClass = language
-                    ? ` search-excerpt-code--${language.trim().toLowerCase()}`
-                    : "";
-                const normalizedCode = `${codeContent}`
-                    .replace(/^\s*[\r\n]+/, "")
-                    .replace(/[\r\n]+\s*$/, "")
-                    .replace(/\r\n/g, "\n")
-                    .replace(/\r/g, "\n");
-                const escapedCode = this.escape(normalizedCode);
-                const codeHtml = `<pre class="search-excerpt-code${languageClass}"><code>${escapedCode}</code></pre>`;
-                codeBlocks.push(codeHtml);
-                return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
-            },
-        );
-
-        // 转换基本的 Markdown 语法为 HTML
-        // 加粗 **text** 或 __text__
-        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-        html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
-
-        // 斜体 *text* 或 _text_ （避免与加粗冲突）
-        html = html.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
-        html = html.replace(/(?<!_)_([^_]+)_(?!_)/g, "<em>$1</em>");
-
-        // 行内代码 `code`
-        html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-
-        // 链接 [text](url) - 保留为链接样式
-        html = html.replace(
-            /\[([^\]]+)\]\(([^\)]+)\)/g,
-            '<a href="$2" class="search-excerpt-link">$1</a>',
-        );
-
-        // 图片 ![alt](url) - 显示为图片标记
-        html = html.replace(
-            /!\[([^\]]*)\]\([^\)]+\)/g,
-            '<span class="search-excerpt-image">🖼️ $1</span>',
-        );
-
-        // 标题 # Header
-        html = html.replace(
-            /^#{1,6}\s+(.+)$/gm,
-            '<strong class="search-excerpt-heading">$1</strong>',
-        );
-
-        // 删除线 ~~text~~
-        html = html.replace(/~~([^~]+)~~/g, "<del>$1</del>");
-
-        // 高亮 ==text==
-        html = html.replace(
-            /==([^=]+)==/g,
-            '<mark class="search-excerpt-highlight">$1</mark>',
-        );
-
-        // 列表项 - * item 或 - item
-        html = html.replace(
-            /^\s*[-*+]\s+(.+)$/gm,
-            '<span class="search-excerpt-list-item">• $1</span>',
-        );
-
-        // 有序列表 1. 项目 或 1.1. 项目
-        html = html.replace(
-            /^\s*(\d+(?:\.\d+)*)(?:[\.)])\s+(.+)$/gm,
-            (_match, indexToken: string, listContent: string) => {
-                const normalizedIndex = `${indexToken}`.replace(/\.$/, "");
-                const normalizedContent = listContent.trim();
-                return `<span class="search-excerpt-list-item search-excerpt-list-item--ordered"><span class="search-excerpt-list-index">${normalizedIndex}.</span><span class="search-excerpt-list-content">${normalizedContent}</span></span>`;
-            },
-        );
-
-        // 恢复 HTML 标签
-        htmlTags.forEach((tag, index) => {
-            html = html.replace(`__HTML_TAG_${index}__`, tag);
-        });
-
-        // 将换行转换为<br />以保留原始段落结构
-        html = html.replace(/\r\n/g, "\n");
-        html = html.replace(/\n/g, "<br />");
-        html = html.replace(
-            /<\/span><br \/><span class="search-excerpt-list-item/g,
-            '</span><span class="search-excerpt-list-item',
-        );
-
-        // 清理多余的空白但保留换行
-        html = html.replace(/[ \t]+/g, " ").trim();
-
-        // 还原代码块并保持其原始换行
-        codeBlocks.forEach((codeHtml, index) => {
-            html = html.replace(`__CODE_BLOCK_${index}__`, codeHtml);
-        });
-
-        if (excerptInfo.start === -1 || excerptInfo.start === 0) {
-            // 没有找到匹配或从开头开始，使用 HTML 版本截取
-            const excerptHtml = this.truncateHtml(html, maxLength);
-            return this.highlightQueryInHtml(excerptHtml, query);
+        // Fallback: if no newlines, chunk by ~100 chars
+        if (lines.length <= 1 && cleaned.length > 100) {
+            lines = [];
+            let remaining = cleaned;
+            while (remaining.length > 0) {
+                if (remaining.length <= 100) {
+                    lines.push(remaining);
+                    break;
+                }
+                let breakAt = remaining.lastIndexOf(" ", 100);
+                if (breakAt < 50) breakAt = 100;
+                lines.push(remaining.substring(0, breakAt));
+                remaining = remaining.substring(breakAt).trimStart();
+            }
         }
 
-        // 尝试在 HTML 中找到对应位置
-        const prefix =
-            excerptInfo.start > 0
-                ? '<span class="search-excerpt-ellipsis">...</span>'
-                : "";
-        const suffix =
-            excerptInfo.end < cleanText.length
-                ? '<span class="search-excerpt-ellipsis">...</span>'
-                : "";
+        if (lines.length === 0) return "";
 
-        // 简化处理：基于字符位置估算 HTML 位置
-        const ratio = html.length / cleanText.length;
-        const htmlStart = Math.floor(excerptInfo.start * ratio);
-        const htmlEnd = Math.floor(excerptInfo.end * ratio);
-
-        let excerptHtml = html.substring(htmlStart, htmlEnd);
-
-        // 清理可能被截断的 HTML 标签
-        excerptHtml = this.cleanBrokenHtmlTags(excerptHtml);
-
-        // 在 HTML 中高亮查询词
-        return prefix + this.highlightQueryInHtml(excerptHtml, query) + suffix;
-    }
-
-    /**
-     * 清理文本内容，移除 HTML 标签和 Markdown 语法
-     */
-    private cleanTextContent(text: string): string {
-        if (!text) return "";
-
-        let cleaned = text;
-
-        // Remove HTML tags
-        cleaned = cleaned.replace(/<[^>]*>/g, " ");
-
-        // Decode common HTML entities
-        const htmlEntities: { [key: string]: string } = {
-            "&nbsp;": " ",
-            "&amp;": "&",
-            "&lt;": "<",
-            "&gt;": ">",
-            "&quot;": '"',
-            "&#39;": "'",
-            "&apos;": "'",
-            "&mdash;": "—",
-            "&ndash;": "–",
-            "&hellip;": "...",
-        };
-
-        for (const [entity, char] of Object.entries(htmlEntities)) {
-            cleaned = cleaned.replace(new RegExp(entity, "g"), char);
-        }
-
-        // Clean Markdown syntax
-        cleaned = cleaned.replace(/```([\s\S]*?)```/g, (_match, codeBlock: string) => {
-            const normalizedCode = `${codeBlock}`
-                .replace(/^\s*[\r\n]+/, "")
-                .replace(/[\r\n]+\s*$/, "");
-            return ` ${normalizedCode.replace(/\s+/g, " ").trim()} `;
-        }); // Code blocks
-        cleaned = cleaned.replace(/`([^`]+)`/g, "$1"); // Inline code
-        cleaned = cleaned.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "$1"); // Images
-        cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1"); // Links
-        cleaned = cleaned.replace(/^#{1,6}\s+/gm, ""); // Headers
-        cleaned = cleaned.replace(/^\s*[-*+]\s+/gm, ""); // Lists
-        cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, ""); // Numbered lists
-        cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, "$1"); // Bold
-        cleaned = cleaned.replace(/__([^_]+)__/g, "$1"); // Bold underscore
-        cleaned = cleaned.replace(/\*([^*]+)\*/g, "$1"); // Italic
-        cleaned = cleaned.replace(/_([^_]+)_/g, "$1"); // Italic underscore
-        cleaned = cleaned.replace(/~~([^~]+)~~/g, "$1"); // Strikethrough
-        cleaned = cleaned.replace(/==([^=]+)==/g, "$1"); // Highlight
-
-        // Normalize whitespace
-        cleaned = cleaned.replace(/\s+/g, " ").trim();
-
-        return cleaned;
-    }
-
-    /**
-     * 查找最佳摘要位置，尽量包含查询词
-     */
-    private findBestExcerptPosition(
-        text: string,
-        query: string,
-        maxLength: number,
-    ): { start: number; end: number } {
-        if (!query || text.length <= maxLength) {
-            return { start: 0, end: Math.min(text.length, maxLength) };
-        }
-
-        const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
-        const lowerText = text.toLowerCase();
-
-        if (queryWords.length === 0) {
-            return { start: 0, end: Math.min(text.length, maxLength) };
-        }
-
-        let bestMatchStart = -1;
-        let bestMatchScore = -1;
-
-        // 查找最佳匹配位置
-        for (const word of queryWords) {
-            const matchIndex = lowerText.indexOf(word);
-            if (matchIndex !== -1) {
-                const regionStart = Math.max(0, matchIndex - Math.floor(maxLength / 2));
-                const regionEnd = Math.min(
-                    lowerText.length,
-                    matchIndex + Math.floor(maxLength / 2),
-                );
-                const regionText = lowerText.substring(regionStart, regionEnd);
-
+        // Find the best line containing query words
+        const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+        let bestIdx = 0;
+        if (queryWords.length > 0) {
+            let bestScore = -1;
+            for (let i = 0; i < lines.length; i++) {
+                const lower = lines[i].toLowerCase();
                 let score = 0;
-                for (const qw of queryWords) {
-                    if (regionText.indexOf(qw) !== -1) {
-                        score += 1;
-                    }
+                for (const w of queryWords) {
+                    if (lower.includes(w)) score++;
                 }
-
-                if (score > bestMatchScore) {
-                    bestMatchScore = score;
-                    bestMatchStart = matchIndex;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIdx = i;
                 }
             }
         }
 
-        if (bestMatchStart === -1) {
-            return { start: 0, end: Math.min(text.length, maxLength) };
-        }
+        // Take up to 6 lines around the best match
+        const startLine = Math.max(0, bestIdx - 1);
+        const endLine = Math.min(lines.length, startLine + 6);
+        const excerptLines = lines.slice(startLine, endLine);
 
-        // 计算摘要范围
-        const halfLength = Math.floor(maxLength / 2);
-        let start = Math.max(0, bestMatchStart - halfLength);
-        let end = Math.min(text.length, start + maxLength);
+        // Build HTML with each line as a div
+        const parts = excerptLines.map(line => {
+            const escaped = this.escape(line.length > 150 ? line.substring(0, 150) + "…" : line);
+            return `<div class="search-excerpt-line">${escaped}</div>`;
+        });
 
-        if (end === text.length) {
-            start = Math.max(0, end - maxLength);
-        }
+        let html = "";
+        if (startLine > 0) html += '<div class="search-excerpt-ellipsis">…</div>';
+        html += parts.join("");
+        if (endLine < lines.length) html += '<div class="search-excerpt-ellipsis">…</div>';
 
-        // 尝试在单词边界处开始和结束
-        if (start > 0) {
-            const spaceIndex = text.indexOf(" ", start);
-            if (spaceIndex !== -1 && spaceIndex < start + 30) {
-                start = spaceIndex + 1;
-            }
-        }
-
-        if (end < text.length) {
-            const spaceIndex = text.lastIndexOf(" ", end);
-            if (spaceIndex !== -1 && spaceIndex > end - 30) {
-                end = spaceIndex;
-            }
-        }
-
-        return { start, end };
+        return this.highlightQueryInHtml(html, query);
     }
 
     /**
@@ -818,63 +614,6 @@ export class ModalSearch {
 
         // 清理可能嵌套的 mark 标签（避免重复高亮）
         html = html.replace(/<mark[^>]*>(<mark[^>]*>([^<]*)<\/mark>)<\/mark>/gi, "$1");
-
-        return html;
-    }
-
-    /**
-     * 截断 HTML 但保留标签完整性
-     */
-    private truncateHtml(html: string, maxLength: number): string {
-        if (html.length <= maxLength) return html;
-
-        let truncated = html.substring(0, maxLength);
-        const lastTagStart = truncated.lastIndexOf("<");
-        const lastTagEnd = truncated.lastIndexOf(">");
-
-        // 如果有未闭合的标签，截取到最后一个完整标签
-        if (lastTagStart > lastTagEnd) {
-            truncated = truncated.substring(0, lastTagStart);
-        }
-
-        return truncated + '<span class="search-excerpt-ellipsis">...</span>';
-    }
-
-    /**
-     * 清理被截断的 HTML 标签
-     */
-    private cleanBrokenHtmlTags(html: string): string {
-        // 移除开头的不完整标签
-        html = html.replace(/^[^<]*>/, "");
-        // 移除结尾的不完整标签
-        html = html.replace(/<[^>]*$/, "");
-
-        // 检查并闭合未闭合的标签
-        const openTags: string[] = [];
-        const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
-        let match;
-
-        while ((match = tagRegex.exec(html)) !== null) {
-            const tag = match[1].toLowerCase();
-            if (match[0].startsWith("</")) {
-                // 闭合标签
-                const lastOpen = openTags.lastIndexOf(tag);
-                if (lastOpen !== -1) {
-                    openTags.splice(lastOpen, 1);
-                }
-            } else if (
-                !match[0].endsWith("/>") &&
-                !["br", "img", "hr"].includes(tag)
-            ) {
-                // 开放标签（非自闭合）
-                openTags.push(tag);
-            }
-        }
-
-        // 为未闭合的标签添加闭合标签
-        for (let i = openTags.length - 1; i >= 0; i--) {
-            html += `</${openTags[i]}>`;
-        }
 
         return html;
     }

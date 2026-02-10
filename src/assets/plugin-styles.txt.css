@@ -1301,30 +1301,27 @@ a.backlink:hover {
 
 /* 别名样式调整： */
 .header .data-bar #aliases {
-	position: absolute;
-	left: 0;
-	top: 97px;
-	width: auto;
-	z-index: 1;
-	font-size: 0.8em;
-	color: var(--text-muted);
-	text-align: left;
-	justify-content: flex-start;
+	width: 100%;
+	text-align: center;
+	justify-content: center;
+	gap: 0.4em;
+	margin-top: -0.2em;
+	margin-bottom: 0.3em;
 }
 
-.header .data-bar #aliases .feature-title {
-	font-size: 0.95em;
-	color: var(--text-muted);
-	font-weight: 400;
+.header .data-bar #aliases .feature-header {
+	display: none;
 }
 
 .header .data-bar #aliases .aliases-content {
-	font-size: 0.9em;
+	font-size: 0.82em;
+	justify-content: center;
 }
 
 .header .data-bar #aliases .aliases-content .alias {
-	font-size: 0.9em;
-	color: var(--text-muted);
+	font-size: 0.82em;
+	color: var(--text-faint);
+	font-style: italic;
 }
 
 /*#endregion */

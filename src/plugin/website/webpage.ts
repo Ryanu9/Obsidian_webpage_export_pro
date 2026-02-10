@@ -187,34 +187,43 @@ export class Webpage extends Attachment {
 			return "";
 		}
 
-		const skipSelector = ".math, svg, img, .frontmatter, .metadata-container, .heading-after, style, script";
-		function getTextNodes(element: HTMLElement): Node[] {
-			const textNodes = [];
-			const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+		const skipSelector = ".math, svg, img, .frontmatter, .metadata-container, .heading-after, style, script, .heading-collapse-indicator, .heading-anchor-copy-button, .list-bullet, .copy-code-button, .code-lang-label";
+		const blockTags = new Set(['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'TR', 'BLOCKQUOTE', 'PRE', 'HR', 'BR', 'UL', 'OL', 'TABLE', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER']);
 
-			let node;
-			while (node = walker.nextNode()) {
-				if (node.parentElement?.closest(skipSelector)) {
-					continue;
+		function extractText(element: Element): string {
+			if (element.matches && element.matches(skipSelector)) return '';
+
+			let result = '';
+			for (const child of Array.from(element.childNodes)) {
+				if (child.nodeType === 3) { // TEXT_NODE
+					if (child.parentElement?.closest(skipSelector)) continue;
+					const text = child.textContent?.trim() || '';
+					if (text) result += text + ' ';
+				} else if (child.nodeType === 1) { // ELEMENT_NODE
+					const el = child as Element;
+					const tagName = el.tagName;
+					const childText = extractText(el);
+					if (childText.trim()) {
+						if (blockTags.has(tagName)) {
+							result += '\n' + childText.trim() + '\n';
+						} else {
+							result += childText;
+						}
+					}
 				}
-
-				textNodes.push(node);
 			}
-
-			return textNodes;
+			return result;
 		}
 
-		const textNodes = getTextNodes(contentElement);
+		let content = extractText(contentElement);
 
-		let content = '';
-		for (const node of textNodes) {
-			content += ' ' + node.textContent + ' ';
-		}
+		content += '\n' + this.hrefLinks.join(" ");
+		content += '\n' + this.srcLinks.join(" ");
 
-		content += this.hrefLinks.join(" ");
-		content += this.srcLinks.join(" ");
-
-		content = content.trim().replace(/\s+/g, ' ');
+		// Collapse multiple newlines but preserve single ones
+		content = content.replace(/[ \t]+/g, ' ');
+		content = content.replace(/\n\s*\n+/g, '\n');
+		content = content.trim();
 
 		return content;
 	}
