@@ -120,8 +120,8 @@ export class YamlProperties {
         toggleButton.className = 'yaml-properties-toggle';
         toggleButton.innerHTML = defaultExpanded ? collapseIcon : expandIcon;
 
-        header.appendChild(title);
         header.appendChild(toggleButton);
+        header.appendChild(title);
 
         const content = document.createElement('div');
         content.className = 'yaml-properties-content';
@@ -226,33 +226,41 @@ export class YamlProperties {
         style.id = 'yaml-properties-styles';
         style.textContent = `
             .yaml-properties-container {
-                border: 1px solid var(--background-modifier-border);
-                border-radius: 4px;
-                margin: 1em 0;
+                border: none;
+                border-radius: 0;
+                margin: 0.5em 0;
                 padding: 0;
                 overflow: hidden;
                 width: 100%;
                 box-sizing: border-box;
+                opacity: 0.85;
+                transition: opacity 0.15s ease;
+            }
+            .yaml-properties-container:hover {
+                opacity: 1;
             }
             .yaml-properties-header {
                 background-color: transparent;
-                padding: 8px 12px;
+                padding: 4px 0;
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
-                border-bottom: 1px solid var(--background-modifier-border);
+                border-bottom: none;
+                gap: 2px;
             }
             .yaml-properties-title {
-                font-weight: bold;
-                font-size: 0.9em;
+                font-weight: 600;
+                font-size: 0.85em;
                 color: var(--text-muted);
+                letter-spacing: 0.02em;
             }
             .yaml-properties-toggle {
                 background: none;
                 border: none;
-                color: var(--text-muted);
+                color: var(--text-faint);
                 cursor: pointer;
-                padding: 0 16px;
+                padding: 0;
+                margin-right: 4px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -262,18 +270,18 @@ export class YamlProperties {
                 color: var(--text-normal);
             }
             .yaml-properties-toggle svg {
-                width: 18px;
-                height: 18px;
+                width: 14px;
+                height: 14px;
             }
             .yaml-properties-content {
-                padding: 8px 12px;
+                padding: 4px 0;
                 width: 100%;
                 box-sizing: border-box;
             }
             .yaml-properties-table {
                 width: 100% !important;
                 border-collapse: collapse;
-                font-size: 0.9em;
+                font-size: 0.82em;
                 table-layout: fixed;
                 margin: 0;
                 display: table;
@@ -283,24 +291,31 @@ export class YamlProperties {
                 display: table-row;
             }
             .yaml-property-key {
-                color: var(--text-muted);
-                width: 30% !important;
-                padding: 4px 8px 4px 0;
+                color: var(--text-faint);
+                width: 25% !important;
+                padding: 3px 8px 3px 0;
                 vertical-align: top;
                 box-sizing: border-box;
+                font-size: 0.9em;
             }
             .yaml-property-value {
-                padding: 4px 0;
+                padding: 3px 0;
                 word-break: break-all;
-                width: 70% !important;
+                width: 75% !important;
                 box-sizing: border-box;
                 flex-wrap: wrap;
                 gap: 4px;
                 align-items: center;
                 overflow-wrap: break-word;
+                color: var(--text-muted);
+                font-size: 0.9em;
             }
             .yaml-properties-table td {
                 box-sizing: border-box;
+                border-bottom: 1px solid color-mix(in srgb, var(--background-modifier-border) 40%, transparent);
+            }
+            .yaml-properties-table tr:last-child td {
+                border-bottom: none;
             }
             .yaml-property-value .tag,
             .yaml-property-value .property-list-item {
@@ -326,12 +341,14 @@ export class YamlProperties {
                 color: var(--link-color-hover);
             }
             .yaml-property-value .property-boolean.is-true {
-                color: #22c55e;
-                font-weight: bold;
+                color: #4ade80;
+                font-weight: 500;
+                font-size: 0.85em;
             }
             .yaml-property-value .property-boolean.is-false {
-                color: #ef4444;
-                font-weight: bold;
+                color: var(--text-faint);
+                font-weight: 400;
+                font-size: 0.85em;
             }
         `;
         document.head.appendChild(style);
