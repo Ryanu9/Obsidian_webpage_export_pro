@@ -553,6 +553,8 @@ export class ObsidianWebsite {
 				}
 			});
 			observer.observe(document.body, { childList: true, subtree: true });
+			// Auto-disconnect after 5s to avoid long-running performance drain
+			setTimeout(() => observer.disconnect(), 5000);
 		}
 	}
 
@@ -566,7 +568,11 @@ export class ObsidianWebsite {
 
 		const localThis = this;
 		window.addEventListener("resize", () => {
-			localThis.onResize();
+			if (localThis.resizeRAF) return;
+			localThis.resizeRAF = requestAnimationFrame(() => {
+				localThis.resizeRAF = null;
+				localThis.onResize();
+			});
 		});
 		this.onResize();
 
@@ -867,6 +873,7 @@ export class ObsidianWebsite {
 	private lastScreenWidth: number | undefined = undefined;
 	private isResizing = false;
 	private checkStillResizingTimeout: NodeJS.Timeout | undefined = undefined;
+	private resizeRAF: number | null = null;
 	private _deviceSize: string = "large-screen";
 	public get deviceSize(): string {
 		return this._deviceSize;

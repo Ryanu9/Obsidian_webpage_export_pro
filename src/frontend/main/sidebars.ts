@@ -17,6 +17,7 @@ export class Sidebar
 	get isLeft(): boolean { return this._isLeft; }
 	private _resizing: boolean;
 	get resizing(): boolean { return this._resizing; }
+	private _resizeCanvasRAF: number | null = null;
 	private _collapsed: boolean;
 	get collapsed(): boolean { return this._collapsed; }
 		set collapsed(collapse: boolean)
@@ -89,7 +90,12 @@ export class Sidebar
 			if (width > this.minResizeWidth) this.containerEl.style.transitionDuration = "0s";
 		}
 
-		if(ObsidianSite.graphView) ObsidianSite.graphView.graphRenderer.autoResizeCanvas();
+		if(ObsidianSite.graphView && !this._resizeCanvasRAF) {
+			this._resizeCanvasRAF = requestAnimationFrame(() => {
+				this._resizeCanvasRAF = null;
+				ObsidianSite.graphView?.graphRenderer?.autoResizeCanvas();
+			});
+		}
 	}
 
 		constructor(container: HTMLElement)

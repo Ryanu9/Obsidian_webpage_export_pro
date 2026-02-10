@@ -319,6 +319,8 @@ body:has(.website-navbar) .sidebar-topbar {
     flex-direction: column !important;
     align-items: center !important;
     contain: inline-size;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
 }
 
 body #center-content>.obsidian-document>.markdown-preview-sizer {
@@ -334,6 +336,8 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     width: 100% !important;
     transition: background-color var(--color-fade-speed) ease-in-out;
     contain: inline-size;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 100px;
 }
 
 /* If the markdown view is displaying a raw file or embed then increase it's size to make everything as large as possible */

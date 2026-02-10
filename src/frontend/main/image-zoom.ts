@@ -129,17 +129,9 @@ export class ImageZoom {
             this.handleZoom(e);
         }, { passive: false });
 
-        // 拖拽事件
+        // 拖拽事件 - pointermove/pointerup only attached during active drag
         this.zoomImage.addEventListener("pointerdown", (e) => {
             this.startDrag(e);
-        });
-
-        document.addEventListener("pointermove", (e) => {
-            this.drag(e);
-        });
-
-        document.addEventListener("pointerup", () => {
-            this.endDrag();
         });
 
         // ESC 关闭
@@ -257,6 +249,9 @@ export class ImageZoom {
     /**
      * 开始拖拽
      */
+    private boundDrag = (e: PointerEvent) => this.drag(e);
+    private boundEndDrag = () => this.endDrag();
+
     private startDrag(e: PointerEvent): void {
         if (!this.zoomImage) return;
 
@@ -265,6 +260,9 @@ export class ImageZoom {
         this.zoomImage.classList.add("dragging");
         this.zoomImage.setPointerCapture(e.pointerId);
         e.preventDefault();
+
+        document.addEventListener("pointermove", this.boundDrag);
+        document.addEventListener("pointerup", this.boundEndDrag);
     }
 
     /**
@@ -291,6 +289,9 @@ export class ImageZoom {
 
         this.isDragging = false;
         this.zoomImage.classList.remove("dragging");
+
+        document.removeEventListener("pointermove", this.boundDrag);
+        document.removeEventListener("pointerup", this.boundEndDrag);
     }
 
     /**

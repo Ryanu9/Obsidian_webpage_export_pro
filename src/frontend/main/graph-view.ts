@@ -116,6 +116,8 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 	private mouseWorldPos = new Vector2(0, 0);
 	private scrollVelocity = 0;
+	private _visible: boolean = true;
+	private visibilityObserver: IntersectionObserver | null = null;
 
 	constructor(featureEl: HTMLElement) {
 		super(ObsidianSite.metadata.featureOptions.graphView, featureEl);
@@ -129,6 +131,8 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		this.ticker.start();
 
 		requestAnimationFrame(this.draw.bind(this));
+
+		this.initVisibilityObserver();
 	}
 
 	private initEvents() {
@@ -476,9 +480,22 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		this.graphSim.settleness = 1;
 	}
 
+	private initVisibilityObserver() {
+		if (typeof IntersectionObserver === 'undefined' || !this.graphContainer) return;
+		this.visibilityObserver = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					this._visible = entry.isIntersecting;
+				}
+			},
+			{ threshold: 0 }
+		);
+		this.visibilityObserver.observe(this.graphContainer);
+	}
+
 	private firstUpdate = true;
 	private update(dt: number) {
-		if (this.paused || !this.graphRenderer || !this.graphSim) {
+		if (this.paused || !this._visible || !this.graphRenderer || !this.graphSim) {
 			return;
 		}
 
@@ -498,7 +515,15 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 	private drawLastTime = 0;
 	private async draw(time: number) {
-		if (!this.graphRenderer || !this.graphSim || this.paths.length == 0) return;
+		if (!this.graphRenderer || !this.graphSim || this.paths.length == 0) {
+			requestAnimationFrame(this.draw.bind(this));
+			return;
+		}
+
+		if (!this._visible && !this.graphExpanded) {
+			requestAnimationFrame(this.draw.bind(this));
+			return;
+		}
 
 		const dt = (time - this.drawLastTime) / 1000;
 		this.drawLastTime = time;
