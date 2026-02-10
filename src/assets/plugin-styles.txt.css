@@ -1186,33 +1186,35 @@ input[type=search]::-moz-search-clear-button {
 
 .outline-backlinks-toggle .toggle-button {
 	background: transparent;
-	border: 1px solid var(--background-modifier-border);
-	color: var(--text-muted);
+	border: none;
+	color: var(--text-faint);
 	cursor: pointer;
-	padding: 6px 12px;
-	border-radius: var(--radius-s);
-	font-size: 0.9em;
-	font-weight: 500;
-	transition: all 0.2s ease-in-out;
-	flex: 1;
+	padding: 4px 0;
+	border-radius: 0;
+	font-size: 0.85em;
+	font-weight: 400;
+	transition: color 0.15s ease;
+	flex: none;
 	text-align: center;
+	border-bottom: 2px solid transparent;
 }
 
 .outline-backlinks-toggle .toggle-button:hover {
-	background-color: var(--background-modifier-hover);
+	background-color: transparent;
 	color: var(--text-normal);
-	border-color: var(--interactive-accent);
+	border-color: transparent;
 }
 
 .outline-backlinks-toggle .toggle-button.active {
-	background-color: var(--interactive-accent);
-	color: var(--text-on-accent, var(--text-normal));
-	border-color: var(--interactive-accent);
+	background-color: transparent;
+	color: var(--text-normal);
+	border-color: transparent;
+	font-weight: 600;
 }
 
 .outline-backlinks-toggle .toggle-button:focus {
 	outline: none;
-	box-shadow: 0 0 0 2px var(--interactive-accent);
+	box-shadow: none;
 }
 
 .backlinks-content {

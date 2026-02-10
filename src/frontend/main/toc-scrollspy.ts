@@ -228,52 +228,49 @@ export class TocScrollSpy {
             #outline { position: relative; }
             #outline .tree-item-self {
                 position: relative;
-                transition: color 0.1s ease;
+                transition: color 0.15s ease;
                 border-radius: 4px;
                 display: flex !important;
                 align-items: center;
                 padding-left: 8px !important;
+                color: var(--text-normal);
             }
             #outline .tree-item-inner {
-                display: flex !important;
-                align-items: flex-start;
-                gap: 4px;
-                white-space: normal;
-                word-break: break-word;
+                display: block !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 flex: 1;
-                line-height: 1.4;
-                padding: 2px 4px 2px 0;
+                line-height: 1.5;
+                padding: 3px 4px 3px 0;
                 font-size: 13px;
-                transition: font-size 0.15s ease-out;
             }
             #outline .collapse-icon {
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                width: 20px !important;
-                height: 24px;
-                flex-shrink: 0;
-                margin-top: -2px;
+                display: none !important;
             }
-            #outline .tree-item-self.is-active { color: var(--text-normal); }
+            #outline .tree-item-self.is-active {
+                color: #70ACEA;
+                background-color: transparent !important;
+                background: none !important;
+            }
             #outline .tree-item-self.is-active .tree-item-inner {
-                font-size: 14.5px;
-                font-weight: 600;
+                font-size: 13px;
+                font-weight: 500;
             }
             .outline-indicator {
                 position: absolute;
                 left: 2px;
                 width: 3px;
-                background-color: var(--interactive-accent);
+                background-color: #70ACEA;
                 transition: top 0.2s cubic-bezier(0.4,0,0.2,1), height 0.2s cubic-bezier(0.4,0,0.2,1);
                 z-index: 10;
                 pointer-events: none;
                 border-radius: 4px;
                 display: none;
             }
-            #outline .tree-item[data-depth="0"] > .tree-item-self .collapse-icon,
-            #outline .tree-item[data-depth="1"] > .tree-item-self .collapse-icon {
-                display: none !important;
+            #outline .tree-item-self:hover {
+                color: #6599CF;
+                background-color: transparent !important;
             }
         `;
         document.head.appendChild(style);
