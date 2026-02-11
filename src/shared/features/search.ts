@@ -11,7 +11,7 @@ export class SearchOptions extends InsertedFeatureOptionsWithTitle {
 		this.featureId = "search";
 		this.displayTitle = i18n.settings.search.placeholder;
 		this.featurePlacement = new FeatureRelation(
-			"#left-sidebar .topbar-content",
+			"#left-sidebar .sidebar-toolbar",
 			RelationType.Start
 		);
 	}

@@ -1,6 +1,7 @@
 import { WebpageData } from "src/shared/website-data";
 import { DynamicInsertedFeature } from "src/shared/dynamic-inserted-feature";
 import { BacklinksOptions } from "src/shared/features/backlinks";
+import { FilePreviewPopover } from "./link-preview";
 
 export class Backlink {
 	public backlinkEl: HTMLAnchorElement;
@@ -41,6 +42,12 @@ export class Backlink {
 			e.preventDefault();
 			ObsidianSite.loadURL(this.url);
 		});
+
+		// Initialize hover preview for backlinks
+		if (!ObsidianSite.metadata?.ignoreMetadata &&
+			ObsidianSite.metadata?.featureOptions?.linkPreview?.enabled) {
+			FilePreviewPopover.initializeLink(this.backlinkEl, targetURL);
+		}
 	}
 }
 

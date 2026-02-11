@@ -52,12 +52,31 @@ export class WebpageTemplate
 			const leftContent = mainHorizontal.createDiv({attr: {id: "left-content", class: "leaf"}});
 				const leftSidebar = leftContent.createDiv({attr: {id: "left-sidebar", class: "sidebar"}});
 					const leftSidebarHandle = leftSidebar.createDiv({attr: {class: "sidebar-handle"}});
-					const leftTopbar = leftSidebar.createDiv({attr: {class: "sidebar-topbar"}});
-						const leftTopbarContent = leftTopbar.createDiv({attr: {class: "topbar-content"}});
-						const leftCollapseIcon = leftTopbar.createDiv({attr: {class: "clickable-icon sidebar-collapse-icon"}});
-							leftCollapseIcon.innerHTML = collapseSidebarIcon;
-					const leftSidebarContentWrapper = leftSidebar.createDiv({attr: {class: "sidebar-content-wrapper"}});
-						const leftSidebarContent = leftSidebarContentWrapper.createDiv({attr: {id: "left-sidebar-content", class: "leaf-content"}});
+				const leftTopbar = leftSidebar.createDiv({attr: {class: "sidebar-topbar"}});
+					const leftTopbarContent = leftTopbar.createDiv({attr: {class: "topbar-content"}});
+					const leftCollapseIcon = leftTopbar.createDiv({attr: {class: "clickable-icon sidebar-collapse-icon"}});
+						leftCollapseIcon.innerHTML = collapseSidebarIcon;
+				const leftSidebarToolbar = leftSidebar.createDiv({attr: {class: "sidebar-toolbar"}});
+			if (this.options.searchOptions.enabled)
+			{
+				const searchContainer = leftSidebarToolbar.createDiv({attr: {id: "search-container"}});
+				const searchIcon = searchContainer.createDiv({attr: {id: "search-icon", "aria-label": "Open search modal"}});
+				searchIcon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+				const searchWrapper = searchContainer.createDiv({attr: {id: "search-wrapper"}});
+				const searchInput = searchWrapper.createEl("input");
+				searchInput.setAttribute("type", "search");
+				searchInput.setAttribute("placeholder", "Ctrl+K");
+				searchInput.setAttribute("spellcheck", "false");
+				searchInput.setAttribute("enterkeyhint", "search");
+				searchWrapper.createDiv({attr: {id: "search-clear-button", "aria-label": "Clear search"}});
+			}
+			const toolbarActions = leftSidebarToolbar.createDiv({attr: {class: "sidebar-toolbar-actions"}});
+						const toolbarThemeBtn = toolbarActions.createDiv({attr: {class: "sidebar-toolbar-btn", id: "sidebar-theme-toggle", "aria-label": "Toggle theme"}});
+							toolbarThemeBtn.innerHTML = `<svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+						const toolbarRightSidebarBtn = toolbarActions.createDiv({attr: {class: "sidebar-toolbar-btn", id: "sidebar-right-toggle", "aria-label": "Toggle right sidebar"}});
+							toolbarRightSidebarBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="M17 9h2"/><path d="M17 14h2"/></svg>`;
+				const leftSidebarContentWrapper = leftSidebar.createDiv({attr: {class: "sidebar-content-wrapper"}});
+					const leftSidebarContent = leftSidebarContentWrapper.createDiv({attr: {id: "left-sidebar-content", class: "leaf-content"}});
 			const centerContent = mainHorizontal.createDiv({attr: {id: "center-content", class: "leaf"}});
 			const rightContent = mainHorizontal.createDiv({attr: {id: "right-content", class: "leaf"}});
 				const rightSidebar = rightContent.createDiv({attr: {id: "right-sidebar", class: "sidebar"}});

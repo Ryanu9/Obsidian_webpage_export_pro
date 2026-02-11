@@ -18,18 +18,18 @@ body {
 /*#region Sidebars */
 
 .sidebar {
-    height: 100%;
+    align-self: stretch;
     font-size: 14px;
     z-index: 10;
-    min-width: calc(var(--sidebar-width) + var(--divider-width-hover));
-    max-width: calc(var(--sidebar-width) + var(--divider-width-hover));
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
     position: relative;
-    overflow: hidden;
-    overflow: clip;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
 
     transition: min-width ease-in-out, max-width ease-in-out;
     transition-duration: .2s;
-    contain: size;
 }
 
 /* Suppress all layout transitions during initial page load */
@@ -42,53 +42,147 @@ body.no-transition .sidebar .leaf-content {
 
 #left-sidebar {
     left: 0;
+    padding-right: 0;
 }
 
 #right-sidebar {
     right: 0;
+    padding-left: 0;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
 }
 
-.sidebar.is-collapsed {
+/* Left sidebar: collapse by shrinking width */
+#left-sidebar.is-collapsed {
     min-width: 0;
     max-width: 0;
+    overflow: hidden;
+}
+
+/* Right sidebar: fade out in-place, keep layout space */
+#right-sidebar.is-collapsed {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Fade out left sidebar content when collapsing */
+#left-sidebar .sidebar-content-wrapper,
+#left-sidebar .sidebar-toolbar {
+    transition: opacity 0.15s ease-in-out;
+}
+
+#left-sidebar.is-collapsed .sidebar-content-wrapper {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .sidebar.floating {
     position: absolute;
 }
 
+.sidebar-content-wrapper {
+    flex: 1 1 auto;
+    overflow: hidden;
+    min-width: var(--sidebar-width);
+}
+
 .sidebar .leaf-content {
-    height: 100%;
-    min-width: calc(var(--sidebar-width) - var(--divider-width-hover));
-    top: 0;
-    padding: var(--sidebar-margin);
-    padding-top: 4em;
+    min-width: var(--sidebar-width);
+    padding: 0;
+    padding-top: 1em;
     line-height: var(--line-height-tight);
-    background-color: var(--background-secondary);
-    transition: background-color, border-right, border-left, box-shadow;
-    transition-duration: var(--color-fade-speed);
-    transition-timing-function: ease-in-out;
-    position: absolute;
+    background-color: transparent;
     display: flex;
     flex-direction: column;
+    gap: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
+.sidebar .leaf-content::-webkit-scrollbar {
+    display: none;
 }
 
 /* If the sidebar isn't collapsed the content should have the same width as it */
 .sidebar:not(.is-collapsed) .leaf-content {
-    min-width: calc(max(100%, var(--sidebar-width)) - 3px);
-    max-width: calc(max(100%, var(--sidebar-width)) - 3px);
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
 }
 
 #left-sidebar-content {
     left: 0;
-    border-top-right-radius: var(--radius-l);
-    border-bottom-right-radius: var(--radius-l);
+}
+
+/* Left sidebar: shifted down, scrollable with bottom fade */
+#left-sidebar .leaf-content {
+    padding-top: 0.5em;
+    padding-bottom: 1em;
+    max-height: 85vh;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(140, 140, 140, 0.4) transparent;
+}
+
+/* Bottom fade only when content overflows and not scrolled to bottom */
+#left-sidebar .leaf-content.has-bottom-fade {
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 40px), transparent 100%);
+}
+
+#left-sidebar .leaf-content::-webkit-scrollbar {
+    display: block;
+    width: 5px;
+}
+
+#left-sidebar .leaf-content::-webkit-scrollbar-track {
+    background: rgba(128, 128, 128, 0.08);
+    border-radius: 6px;
+}
+
+#left-sidebar .leaf-content::-webkit-scrollbar-thumb {
+    background-color: rgba(140, 140, 140, 0.35);
+    border-radius: 6px;
+}
+
+#left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(140, 140, 140, 0.55);
+}
+
+body.theme-dark #left-sidebar .leaf-content {
+    scrollbar-color: rgba(180, 180, 180, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark #left-sidebar .leaf-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark #left-sidebar .leaf-content::-webkit-scrollbar-thumb {
+    background-color: rgba(180, 180, 180, 0.3);
+}
+
+body.theme-dark #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(200, 200, 200, 0.5);
+}
+
+body.theme-light #left-sidebar .leaf-content {
+    scrollbar-color: rgba(100, 100, 100, 0.3) rgba(0, 0, 0, 0.04);
+}
+
+body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.3);
+}
+
+body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(80, 80, 80, 0.5);
 }
 
 #right-sidebar-content {
     right: 0;
-    border-top-left-radius: var(--radius-l);
-    border-bottom-left-radius: var(--radius-l);
 }
 
 .sidebar #right-sidebar-content,
@@ -98,102 +192,71 @@ body.no-transition .sidebar .leaf-content {
     animation: none !important;
 }
 
-/* Hide empty sidebars */
-.sidebar:has(.leaf-content:empty):has(.topbar-content:empty) {
+/* Hide empty sidebars (but keep left sidebar if toolbar is present) */
+.sidebar:has(.leaf-content:empty):has(.topbar-content:empty):not(:has(.sidebar-toolbar)) {
     display: none;
 }
 
-.sidebar-topbar {
-    height: calc(1em + 2 * var(--sidebar-margin));
-    width: var(--sidebar-width);
-    padding: var(--sidebar-margin);
-    z-index: 1;
+/* Hide toolbar when sidebar is collapsed */
+.sidebar.is-collapsed .sidebar-toolbar {
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
 
+/* In floating mode, toolbar stays inside the fixed panel (left sidebar only) */
+body.floating-sidebars #left-sidebar .sidebar-toolbar {
     position: fixed;
-    display: flex;
-    align-items: center;
-
-    transition: width ease-in-out;
-    transition-duration: inherit;
-}
-
-.sidebar.is-collapsed .sidebar-topbar {
-    width: calc(2.3em + var(--sidebar-margin) * 2);
-}
-
-.sidebar .sidebar-topbar.is-collapsed {
-    width: 0;
-}
-
-#left-sidebar .sidebar-topbar {
+    top: 0.5em;
     left: 0;
-    flex-direction: row;
-    border-top-right-radius: var(--radius-l);
+    z-index: 101;
+    padding: 0 var(--sidebar-margin);
+    min-width: var(--sidebar-width);
 }
 
-#right-sidebar .sidebar-topbar {
-    right: 0;
-    flex-direction: row-reverse;
-    border-top-left-radius: var(--radius-l);
+body.floating-sidebars #left-sidebar .leaf-content {
+    padding-top: 3.5em;
 }
 
-#left-sidebar .topbar-content {
-    margin-right: calc(2.3em + var(--sidebar-margin));
-    flex-direction: row;
+/* Hide topbar, collapse icon, and resize handle in floating mode */
+.sidebar .sidebar-topbar {
+    display: none;
 }
 
-#right-sidebar .topbar-content {
-    margin-left: calc(2.3em + var(--sidebar-margin));
-    flex-direction: row-reverse;
-}
-
-.topbar-content {
-    overflow: hidden visible;
-    overflow: clip visible;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    transition: inherit;
-}
-
-.sidebar.is-collapsed .topbar-content {
-    width: 0;
-    transition: inherit;
+.sidebar .sidebar-handle {
+    display: none;
 }
 
 .clickable-icon.sidebar-collapse-icon {
-    background-color: transparent;
-    color: var(--icon-color-focused);
-    padding: 2px !important;
-    margin: 0 !important;
-    height: 100% !important;
-    width: 2.3em !important;
-    margin-inline: 0.14em !important;
-    position: absolute;
-}
-
-#left-sidebar .clickable-icon.sidebar-collapse-icon {
-    transform: rotateY(180deg);
-    right: var(--sidebar-margin);
-}
-
-#right-sidebar .clickable-icon.sidebar-collapse-icon {
-    transform: rotateY(180deg);
-    left: var(--sidebar-margin);
-}
-
-.clickable-icon.sidebar-collapse-icon svg.svg-icon {
-    width: 100%;
-    height: 100%;
+    display: none;
 }
 
 .feature-title {
-    margin-left: 1px;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-top: 0.75em;
-    margin-bottom: 0.75em;
+    margin-left: 0;
+    font-size: 1.05em;
+    font-weight: 700;
+    color: var(--text-normal);
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+/* Larger TOC title */
+#outline .feature-title {
+    font-size: 1.25em;
+}
+
+/* No divider between outline and backlinks */
+#outline {
+    border-bottom: none !important;
+}
+
+#outline + #backlinks {
+    padding-top: 0;
 }
 
 .feature-header {
@@ -202,10 +265,68 @@ body.no-transition .sidebar .leaf-content {
     padding-top: 0;
     font-size: 1em;
     padding-left: 0;
+    cursor: pointer;
+}
+
+/* Sidebar card style for each feature section */
+.sidebar .leaf-content > * {
+    background-color: transparent;
+    border-radius: 0;
+    border: none;
+    padding: var(--sidebar-margin) 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+    transition: background-color var(--color-fade-speed) ease-in-out,
+                border-color var(--color-fade-speed) ease-in-out;
+}
+
+.sidebar .leaf-content > *:last-child {
+    border-bottom: none;
+}
+
+/* Graph view wrapper padding */
+.sidebar .leaf-content > .graph-view-wrapper {
+    padding: var(--sidebar-margin) 0;
+    padding-bottom: calc(var(--sidebar-margin) / 2);
 }
 
 body.floating-sidebars .sidebar {
     position: absolute;
+}
+
+/* On floating/mobile, restore solid panel for overlay */
+body.floating-sidebars .sidebar .leaf-content {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    max-height: 100vh;
+    background-color: var(--background-secondary);
+    z-index: 100;
+    padding-top: 1em;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+body.floating-sidebars #left-sidebar .leaf-content {
+    left: 0;
+    border-top-right-radius: var(--radius-l);
+    border-bottom-right-radius: var(--radius-l);
+}
+
+body.floating-sidebars #right-sidebar .leaf-content {
+    right: 0;
+    border-top-left-radius: var(--radius-l);
+    border-bottom-left-radius: var(--radius-l);
+}
+
+/* In floating/mobile mode, cards don't need individual borders */
+body.floating-sidebars .sidebar .leaf-content > * {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+body.floating-sidebars .sidebar .leaf-content > *:last-child {
+    border-bottom: none;
 }
 
 /*#endregion */
@@ -263,16 +384,25 @@ body {
     text-decoration: underline;
 }
 
-/* When navbar exists, offset body and sidebar headers to avoid overlap */
+/* When navbar exists, offset body to avoid overlap */
 body:has(.website-navbar) {
     padding-top: var(--navbar-height, 40px);
 }
 
-body:has(.website-navbar) .sidebar-topbar {
-    top: calc(var(--navbar-height, 40px) + var(--sidebar-margin));
+body:has(.website-navbar) .sidebar .leaf-content {
+    max-height: calc(100vh - var(--navbar-height, 40px));
+}
+
+body:has(.website-navbar) #left-sidebar .leaf-content {
+    max-height: calc(85vh - var(--navbar-height, 40px));
 }
 
 /* #endregion */
+
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
 
 #main {
     display: flex;
@@ -288,15 +418,23 @@ body:has(.website-navbar) .sidebar-topbar {
     flex-direction: row;
     flex-grow: 1;
     width: 100%;
-    align-items: stretch;
+    height: 100%;
+    align-items: flex-start;
     justify-content: center;
+    margin: 0 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#left-content, #right-content {
+    position: sticky;
+    top: 0;
+    height: fit-content;
 }
 
 #center-content {
-    flex-basis: 100%;
-    max-width: 100%;
-    width: 100%;
-    height: 100%;
+    flex: 1 1 var(--line-width);
+    max-width: calc(var(--line-width) + 6em);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -322,13 +460,11 @@ body:has(.website-navbar) .sidebar-topbar {
     border-top-right-radius: var(--window-radius, var(--radius-m));
     border-top-left-radius: var(--window-radius, var(--radius-m));
     overflow-x: hidden !important;
-    overflow-y: auto !important;
+    overflow-y: visible !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     contain: inline-size;
-    -webkit-overflow-scrolling: touch;
-    will-change: scroll-position;
 }
 
 body #center-content>.obsidian-document>.markdown-preview-sizer {

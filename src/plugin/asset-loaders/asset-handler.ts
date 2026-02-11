@@ -17,6 +17,7 @@ import { MathjaxStyles } from "./mathjax-styles.js";
 import { CustomHeadContent } from "./custom-head-content.js";
 import { GlobalVariableStyles } from "./global-variable-styles.js";
 import { Favicon } from "./favicon.js";
+import { BackgroundImage } from "./background-image.js";
 import { FetchBuffer } from "./local-fetch-buffer.js";
 import { SupportedPluginStyles } from "./supported-plugin-styles.js";
 import { ExportLog } from "src/plugin/render-api/render-api.js";
@@ -103,6 +104,8 @@ export class AssetHandler
 	 
 	// other
 	public static favicon: Favicon;
+	public static backgroundImageLight: BackgroundImage;
+	public static backgroundImageDark: BackgroundImage;
 	public static customHeadContent: CustomHeadContent;
 	public static mainJsModTime: number = 0;
 	public static mainJsPath: Path;
@@ -134,6 +137,8 @@ export class AssetHandler
 		this.deferredJS = new AssetLoader("deferred.js", deferredJS, null, AssetType.Script, InlinePolicy.InlineHead, true, Mutability.Static, LoadMethod.Defer, -1000);
 		this.themeLoadJS = new AssetLoader("theme-load.js", themeLoadJS, null, AssetType.Script, InlinePolicy.Inline, true, Mutability.Static, LoadMethod.Defer);
 		this.favicon = new Favicon();
+		this.backgroundImageLight = new BackgroundImage("light");
+		this.backgroundImageDark = new BackgroundImage("dark");
 		this.customHeadContent = new CustomHeadContent();
 
 

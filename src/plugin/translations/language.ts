@@ -240,6 +240,22 @@ export interface i18n {
 			title: string;
 			description: string;
 		},
+		backgroundImage: {
+			title: string;
+			description: string;
+			lightPathLabel: string;
+			lightPathDescription: string;
+			lightUrlLabel: string;
+			lightUrlDescription: string;
+			darkPathLabel: string;
+			darkPathDescription: string;
+			darkUrlLabel: string;
+			darkUrlDescription: string;
+			blurLabel: string;
+			blurDescription: string;
+			opacityLabel: string;
+			opacityDescription: string;
+		},
 		siteName: {
 			title: string;
 			description: string;

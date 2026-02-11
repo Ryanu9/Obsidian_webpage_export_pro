@@ -74,11 +74,7 @@ export class Website
 			placement.type = originalType;
 		}
 
-		// inject search bar
-		if (this.exportOptions.searchOptions.enabled)
-		{
-			template.insertFeature(await new SearchInput().generate(), this.exportOptions.searchOptions);
-		}
+		// Search bar is now created directly in loadLayout() to avoid cross-document issues
 
 		// inject file tree
 		if (this.exportOptions.fileNavigationOptions.enabled)

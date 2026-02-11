@@ -110,18 +110,25 @@ export class Sidebar
 		this._isLeft = container.id == "left-sidebar";
 		this._sidebarID = container.id;
 
-		this.collapseEl.addEventListener("click", () =>
-		{
-			this.collapsed = !this.collapsed;
-		});
+		if (this.collapseEl) {
+			this.collapseEl.addEventListener("click", () =>
+			{
+				this.collapsed = !this.collapsed;
+			});
+		}
 
 		// Bind the clickOutsideCollapse method to this instance
 		this.clickOutsideCollapse = this.clickOutsideCollapse.bind(this);
 
-		this.minResizeWidth = parseFloat(getComputedStyle(this.resizeHandleEl?.parentElement ?? this.resizeHandleEl).fontSize) * this.minWidthEm;
+		const refEl = this.resizeHandleEl?.parentElement ?? this.containerEl;
+		this.minResizeWidth = parseFloat(getComputedStyle(refEl).fontSize) * this.minWidthEm;
 		this.collapseWidth = this.minResizeWidth / 4.0;
 
 		this.setupSidebarResize();
+
+		if (this._isLeft) {
+			this.setupBottomFade();
+		}
 	}
 
 	private setupSidebarResize()
@@ -180,6 +187,31 @@ export class Sidebar
 				ObsidianSite.graphView.graphRenderer.centerCamera();
 			}
 		}, 500);
+	}
+
+	private setupBottomFade()
+	{
+		const el = this.contentEl;
+		if (!el) return;
+
+		const update = () => {
+			const overflows = el.scrollHeight > el.clientHeight + 1;
+			const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 2;
+			el.classList.toggle("has-bottom-fade", overflows && !atBottom);
+		};
+
+		el.addEventListener("scroll", update, { passive: true });
+
+		// Re-check whenever the content or layout might change
+		const ro = new ResizeObserver(update);
+		ro.observe(el);
+
+		// Also observe mutations (tree expand/collapse)
+		const mo = new MutationObserver(update);
+		mo.observe(el, { childList: true, subtree: true });
+
+		// Initial check
+		update();
 	}
 
 	private clickOutsideCollapse(event: MouseEvent)

@@ -2,7 +2,7 @@ import { Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, getIc
 import { Path } from 'src/plugin/utils/path';
 import pluginStylesBlacklist from 'src/assets/third-party-styles-blacklist.txt';
 import { ExportLog } from 'src/plugin/render-api/render-api';
-import { createDivider, createDropdown, createFeatureSetting, createFileInput, createSection, createText, createToggle, generateSettingsFromObject } from './settings-components';
+import { createDivider, createDropdown, createFeatureSetting, createFileInput, createSection, createSlider, createText, createToggle, generateSettingsFromObject } from './settings-components';
 import { ExportPipelineOptions } from "src/plugin/website/pipeline-options.js";
 import { FlowList } from 'src/plugin/features/flow-list';
 import { i18n } from '../translations/language';
@@ -481,6 +481,83 @@ export class SettingsPage extends PluginSettingTab {
 			() => Settings.exportOptions.siteName,
 			(value) => Settings.exportOptions.siteName = value,
 			lang.siteName.description);
+
+		// Background Image settings
+		new Setting(section)
+			.setName(lang.backgroundImage.title)
+			.setDesc(lang.backgroundImage.description)
+			.setHeading();
+
+		// Light theme background
+		createFileInput(section,
+			() => Settings.exportOptions.backgroundImageLightPath,
+			(value) => Settings.exportOptions.backgroundImageLightPath = value,
+			{
+				name: lang.backgroundImage.lightPathLabel,
+				description: lang.backgroundImage.lightPathDescription,
+				placeholder: i18n.pathInputPlaceholder,
+				makeRelativeToVault: true,
+				pickFolder: false,
+				validation: (path) => path.validate(
+					{
+						allowEmpty: true,
+						allowAbsolute: true,
+						allowRelative: true,
+						allowFiles: true,
+						requireExists: true,
+						requireExtentions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "apng", "avif"]
+					}),
+				browseButton: true,
+			});
+
+		createText(section, lang.backgroundImage.lightUrlLabel,
+			() => Settings.exportOptions.backgroundImageLightUrl,
+			(value) => Settings.exportOptions.backgroundImageLightUrl = value,
+			lang.backgroundImage.lightUrlDescription,
+			undefined,
+			"https://example.com/background-light.gif");
+
+		// Dark theme background
+		createFileInput(section,
+			() => Settings.exportOptions.backgroundImageDarkPath,
+			(value) => Settings.exportOptions.backgroundImageDarkPath = value,
+			{
+				name: lang.backgroundImage.darkPathLabel,
+				description: lang.backgroundImage.darkPathDescription,
+				placeholder: i18n.pathInputPlaceholder,
+				makeRelativeToVault: true,
+				pickFolder: false,
+				validation: (path) => path.validate(
+					{
+						allowEmpty: true,
+						allowAbsolute: true,
+						allowRelative: true,
+						allowFiles: true,
+						requireExists: true,
+						requireExtentions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "apng", "avif"]
+					}),
+				browseButton: true,
+			});
+
+		createText(section, lang.backgroundImage.darkUrlLabel,
+			() => Settings.exportOptions.backgroundImageDarkUrl,
+			(value) => Settings.exportOptions.backgroundImageDarkUrl = value,
+			lang.backgroundImage.darkUrlDescription,
+			undefined,
+			"https://example.com/background-dark.gif");
+
+		// Blur and opacity
+		createSlider(section, lang.backgroundImage.blurLabel,
+			() => Settings.exportOptions.backgroundBlur,
+			(value) => Settings.exportOptions.backgroundBlur = value,
+			lang.backgroundImage.blurDescription,
+			0, 20, 1);
+
+		createSlider(section, lang.backgroundImage.opacityLabel,
+			() => Settings.exportOptions.backgroundOpacity,
+			(value) => Settings.exportOptions.backgroundOpacity = value,
+			lang.backgroundImage.opacityDescription,
+			0, 1, 0.05);
 
 		// #endregion
 

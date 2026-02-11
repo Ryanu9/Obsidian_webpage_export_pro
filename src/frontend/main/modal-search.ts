@@ -60,7 +60,7 @@ export class ModalSearch {
 	}
 
     private bindSearchButtons(): void {
-        const searchButtons = document.querySelectorAll('.search-icon, #search-icon, #search-input-container .search-icon');
+        const searchButtons = document.querySelectorAll('.search-icon, #search-icon, #search-input-container .search-icon, .sidebar-toolbar-search');
         searchButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();

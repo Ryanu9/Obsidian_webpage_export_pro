@@ -148,6 +148,8 @@ export class ObsidianWebsite {
 		// quickly open it with the keyboard even when the header is hidden.
 		await new ModalSearch().init();
 
+		this.initSidebarToolbar();
+
 		const pathname =
 			document
 				.querySelector("meta[name='pathname']")
@@ -313,8 +315,8 @@ export class ObsidianWebsite {
 
 			this.tocScrollSpy?.updateHeadings();
 
-			// Setup outline/backlinks toggle buttons
-			this.setupOutlineBacklinksToggle();
+			// Setup collapsible section headers
+			this.setupSectionCollapse();
 
 		});
 
@@ -369,201 +371,84 @@ export class ObsidianWebsite {
 		return fallback;
 	}
 
-	private setupOutlineBacklinksToggle() {
-		// Find outline container (the wrapper div with id="outline", which is also the tree-container)
-		const outlineWrapper = document.querySelector("#outline");
-		if (!outlineWrapper) return;
+	private setupSectionCollapse() {
+		// Make outline section collapsible — Quartz toc-header style
+		const outline = document.querySelector("#outline");
+		if (outline) {
+			const header = outline.querySelector(".feature-header") as HTMLElement;
+			if (header && !header.dataset.collapseInit) {
+				header.dataset.collapseInit = "true";
 
-		// #outline is itself the tree-container
-		const outlineHeader = outlineWrapper.querySelector(".feature-header") as HTMLElement;
-		if (!outlineHeader) return;
-
-		// Check if toggle buttons already exist - avoid recreating
-		let toggleContainer = outlineHeader.querySelector(".outline-backlinks-toggle") as HTMLElement;
-		let outlineBtn: HTMLButtonElement;
-		let backlinksBtn: HTMLButtonElement;
-
-		if (!toggleContainer) {
-			// Clear existing title only on first setup
-			const existingTitle = outlineHeader.querySelector(".feature-title");
-			if (existingTitle) {
-				existingTitle.remove();
-			}
-
-			// Create toggle buttons container
-			toggleContainer = document.createElement("div");
-			toggleContainer.className = "outline-backlinks-toggle";
-			toggleContainer.style.cssText = "display: flex; gap: 8px; align-items: center; width: 100%;";
-
-			// Get titles from metadata with i18n support
-			const outlineTitle = this.getI18nTitle("outline", "Outline");
-			const backlinksTitle = this.getI18nTitle("backlinks", "Backlinks");
-
-			// Create Outline button
-			outlineBtn = document.createElement("button");
-			outlineBtn.className = "toggle-button outline-button active";
-			outlineBtn.textContent = outlineTitle;
-			outlineBtn.setAttribute("aria-label", outlineTitle);
-			outlineBtn.type = "button";
-
-			// Create Backlinks button
-			backlinksBtn = document.createElement("button");
-			backlinksBtn.className = "toggle-button backlinks-button";
-			backlinksBtn.textContent = backlinksTitle;
-			backlinksBtn.setAttribute("aria-label", backlinksTitle);
-			backlinksBtn.type = "button";
-
-			// Add buttons to container
-			toggleContainer.appendChild(outlineBtn);
-			toggleContainer.appendChild(backlinksBtn);
-
-			// Move the collapse-all button to the right side of toggle container
-			const collapseAllBtn = outlineWrapper.querySelector(".tree-collapse-all") as HTMLElement;
-			if (collapseAllBtn) {
-				// Create a spacer to push collapse button to the right
-				const spacer = document.createElement("div");
-				spacer.style.flex = "1";
-				toggleContainer.appendChild(spacer);
-
-				// Move collapse button into toggle container
-				toggleContainer.appendChild(collapseAllBtn);
-			}
-
-			// Insert toggle container into header
-			outlineHeader.insertBefore(toggleContainer, outlineHeader.firstChild);
-
-			// Toggle function - only toggle content areas, not entire features
-			const switchToOutline = () => {
-				outlineBtn.classList.add("active");
-				backlinksBtn.classList.remove("active");
-				// Show all tree items, hide backlinks content
-				const currentOutlineHeader = outlineWrapper.querySelector(".feature-header");
-				const treeItems = Array.from(outlineWrapper.children).filter(
-					el => el !== currentOutlineHeader && !el.classList.contains("backlinks-content")
-				);
-				const backlinksContent = outlineWrapper.querySelector(".backlinks-content") as HTMLElement;
-				treeItems.forEach(item => {
-					(item as HTMLElement).style.display = "";
-				});
-				if (backlinksContent) {
-					backlinksContent.style.display = "none";
+				// Set outline header title to "Table of Contents"
+				let titleEl = header.querySelector(".feature-title") as HTMLElement;
+				if (!titleEl) {
+					titleEl = document.createElement("div");
+					titleEl.className = "feature-title";
+					header.prepend(titleEl);
 				}
-			};
+				titleEl.textContent = "Table of Contents";
 
-			const switchToBacklinks = () => {
-				backlinksBtn.classList.add("active");
-				outlineBtn.classList.remove("active");
-				// Hide all tree items, show backlinks content
-				const currentOutlineHeader = outlineWrapper.querySelector(".feature-header");
-				const treeItems = Array.from(outlineWrapper.children).filter(
-					el => el !== currentOutlineHeader && !el.classList.contains("backlinks-content")
-				);
-				const backlinksContent = outlineWrapper.querySelector(".backlinks-content") as HTMLElement;
-				treeItems.forEach(item => {
-					(item as HTMLElement).style.display = "none";
-				});
-				if (backlinksContent) {
-					backlinksContent.style.display = "";
+				// Add Quartz-style fold chevron SVG if not already present
+				if (!header.querySelector(".fold")) {
+					const fold = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+					fold.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+					fold.setAttribute("width", "24");
+					fold.setAttribute("height", "24");
+					fold.setAttribute("viewBox", "0 0 24 24");
+					fold.setAttribute("fill", "none");
+					fold.setAttribute("stroke", "currentColor");
+					fold.setAttribute("stroke-width", "2");
+					fold.setAttribute("stroke-linecap", "round");
+					fold.setAttribute("stroke-linejoin", "round");
+					fold.classList.add("fold");
+					const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+					polyline.setAttribute("points", "6 9 12 15 18 9");
+					fold.appendChild(polyline);
+					// Insert fold after title, before other children
+					if (titleEl?.nextSibling) {
+						header.insertBefore(fold, titleEl.nextSibling);
+					} else {
+						header.appendChild(fold);
+					}
 				}
-			};
 
-			// Add event listeners
-			outlineBtn.addEventListener("click", switchToOutline);
-			backlinksBtn.addEventListener("click", switchToBacklinks);
-		} else {
-			// Toggle buttons already exist, just get references
-			outlineBtn = toggleContainer.querySelector(".outline-button") as HTMLButtonElement;
-			backlinksBtn = toggleContainer.querySelector(".backlinks-button") as HTMLButtonElement;
+				header.addEventListener("click", (e) => {
+					if ((e.target as HTMLElement).closest(".tree-collapse-all")) return;
+					outline.classList.toggle("is-collapsed");
+				});
+			}
 		}
 
-		// Function to move backlinks content to outline location
-		// Always re-fetch backlinksEl as it may have been recreated by BacklinkList.regenerate()
-		const moveBacklinksContent = () => {
-			const backlinksEl = document.querySelector("#backlinks") as HTMLElement;
-			if (!backlinksEl || !outlineWrapper) return;
-
-			// Hide backlinks header (we use outline header for toggle)
-			const backlinksHeader = backlinksEl.querySelector(".feature-header") as HTMLElement;
-			if (backlinksHeader) {
-				backlinksHeader.style.display = "none";
+		// Override backlinks title to "Backlinks"
+		const backlinks = document.querySelector("#backlinks");
+		if (backlinks) {
+			const blTitle = backlinks.querySelector(".feature-title") as HTMLElement;
+			if (blTitle) {
+				blTitle.textContent = "Backlinks";
 			}
+		}
+	}
 
-			// Find backlinks content from the backlinks feature element
-			const backlinksContent = backlinksEl.querySelector(".backlinks-content") as HTMLElement;
-			if (!backlinksContent) return;
+	private initSidebarToolbar() {
+		// Theme toggle icon button
+		const themeBtn = document.getElementById('sidebar-theme-toggle');
+		themeBtn?.addEventListener('click', () => {
+			this.theme?.switchTheme();
+		});
 
-			// Check if content is already in outline wrapper
-			if (outlineWrapper.contains(backlinksContent)) {
-				return; // Already moved
+		// Right sidebar toggle button
+		const rightSidebarBtn = document.getElementById('sidebar-right-toggle');
+		rightSidebarBtn?.addEventListener('click', () => {
+			if (this.rightSidebar) {
+				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
 			}
+		});
 
-			const oldBacklinksContents = outlineWrapper.querySelectorAll(".backlinks-content");
-			oldBacklinksContents.forEach(el => {
-				if (el !== backlinksContent) {
-					el.remove();
-				}
-			});
-
-			// Move backlinks content into outline wrapper
-			// Find where to insert: after feature-header
-			const currentOutlineHeader = outlineWrapper.querySelector(".feature-header");
-			const nonHeaderChildren = Array.from(outlineWrapper.children).filter(
-				el => el !== currentOutlineHeader && !el.classList.contains("backlinks-content")
-			);
-
-			if (nonHeaderChildren.length > 0) {
-				// Insert after the last non-header child (tree items)
-				outlineWrapper.appendChild(backlinksContent);
-			} else {
-				// No tree items yet, append to end
-				outlineWrapper.appendChild(backlinksContent);
-			}
-
-			// Hide the entire backlinks feature element (we only need its content)
-			if (backlinksEl && backlinksEl !== outlineWrapper) {
-				backlinksEl.style.display = "none";
-			}
-		};
-
-		// Function to get content areas and set up toggle state
-		const setupToggleState = () => {
-			const currentOutlineHeader = outlineWrapper.querySelector(".feature-header");
-			// Find tree items (all children except header and backlinks-content)
-			const treeItems = Array.from(outlineWrapper.children).filter(
-				el => el !== currentOutlineHeader && !el.classList.contains("backlinks-content")
-			);
-			const backlinksContent = outlineWrapper.querySelector(".backlinks-content") as HTMLElement;
-
-			// Check current active state
-			const isBacklinksActive = backlinksBtn?.classList.contains("active");
-
-			// Restore proper visibility based on current active state
-			treeItems.forEach(item => {
-				(item as HTMLElement).style.display = isBacklinksActive ? "none" : "";
-			});
-			if (backlinksContent) {
-				backlinksContent.style.display = isBacklinksActive ? "" : "none";
-			}
-		};
-
-		// Always try to move backlinks content (it may have been recreated)
-		const backlinksEl = document.querySelector("#backlinks") as HTMLElement;
-		if (backlinksEl) {
-			moveBacklinksContent();
-			setupToggleState();
-		} else {
-			// Wait for backlinks to be created (it might be created later)
-			const observer = new MutationObserver((mutations, obs) => {
-				const backlinks = document.querySelector("#backlinks") as HTMLElement;
-				if (backlinks) {
-					moveBacklinksContent();
-					obs.disconnect();
-					setupToggleState();
-				}
-			});
-			observer.observe(document.body, { childList: true, subtree: true });
-			// Auto-disconnect after 5s to avoid long-running performance drain
-			setTimeout(() => observer.disconnect(), 5000);
+		// Transform sidebar-toolbar-search fallback into a proper search trigger
+		const fallbackSearch = document.querySelector('.sidebar-toolbar-search');
+		if (fallbackSearch) {
+			const span = fallbackSearch.querySelector('span');
+			if (span) span.textContent = 'Ctrl+K';
 		}
 	}
 

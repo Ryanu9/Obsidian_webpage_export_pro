@@ -248,6 +248,36 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	faviconPath: string = '';
 
 	/**
+	 * The local path to the light theme background image.
+	 */
+	backgroundImageLightPath: string = '';
+
+	/**
+	 * The URL of the light theme background image (takes priority over local path).
+	 */
+	backgroundImageLightUrl: string = '';
+
+	/**
+	 * The local path to the dark theme background image.
+	 */
+	backgroundImageDarkPath: string = '';
+
+	/**
+	 * The URL of the dark theme background image (takes priority over local path).
+	 */
+	backgroundImageDarkUrl: string = '';
+
+	/**
+	 * Background image blur amount in pixels (0 = no blur).
+	 */
+	backgroundBlur: number = 0;
+
+	/**
+	 * Background image opacity (0 = fully transparent, 1 = fully opaque).
+	 */
+	backgroundOpacity: number = 1;
+
+	/**
 	 * The name of the site.
 	 */
 	siteName: string = app?.vault?.getName() ?? '';

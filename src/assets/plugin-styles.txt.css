@@ -28,6 +28,10 @@ a.tree-item-self.is-clickable {
 	text-decoration-line: none !important;
 }
 
+.tree-item-inner {
+	font-weight: 600;
+}
+
 .tree-item-inner>p {
 	display: contents !important;
 }
@@ -36,7 +40,7 @@ a.tree-item-self.is-clickable {
 .tree-container .feature-title {
 	flex-grow: 0 !important;
 	margin-right: .5em !important;
-	font-size: inherit !important;
+	font-size: 1.1rem !important;
 	color: var(--text-normal) !important;
 }
 
@@ -46,11 +50,6 @@ a.tree-item-self.is-clickable {
 
 .tree-item.filtered-out {
 	display: none;
-}
-
-#outline .tree-item[data-depth="1"]:not(.mod-collapsible)>.tree-item-self {
-	font-weight: 900;
-	font-size: 1.05em;
 }
 
 .tree-item:not(.mod-collapsible)>.tree-item-self {
@@ -227,18 +226,239 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 }
 
 .tree-container {
-	--nav-item-size: 1em;
+	--nav-item-size: 0.9em;
+	position: relative;
 	overflow: hidden auto;
-	height: 100%;
+	max-height: 50vh;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(140, 140, 140, 0.4) rgba(128, 128, 128, 0.08);
+	overscroll-behavior: contain;
+}
+
+.tree-container::-webkit-scrollbar {
+	width: 5px;
+}
+
+.tree-container::-webkit-scrollbar-track {
+	background: rgba(128, 128, 128, 0.08);
+	border-radius: 6px;
+	margin: 4px 0;
+}
+
+.tree-container::-webkit-scrollbar-thumb {
+	background-color: rgba(140, 140, 140, 0.35);
+	border-radius: 6px;
+}
+
+.tree-container::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(140, 140, 140, 0.55);
+}
+
+body.theme-dark .tree-container {
+	scrollbar-color: rgba(180, 180, 180, 0.3) rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .tree-container::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-dark .tree-container::-webkit-scrollbar-thumb {
+	background-color: rgba(180, 180, 180, 0.3);
+}
+
+body.theme-dark .tree-container::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(200, 200, 200, 0.5);
+}
+
+body.theme-light .tree-container {
+	scrollbar-color: rgba(100, 100, 100, 0.3) rgba(0, 0, 0, 0.04);
+}
+
+body.theme-light .tree-container::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.04);
+}
+
+body.theme-light .tree-container::-webkit-scrollbar-thumb {
+	background-color: rgba(100, 100, 100, 0.3);
+}
+
+body.theme-light .tree-container::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(80, 80, 80, 0.5);
+}
+
+#left-sidebar .tree-container {
+	max-height: none;
+	overflow: visible;
 }
 
 .nav-file-title,
 .nav-folder-title {
 	line-height: var(--tree-vertical-spacing) !important;
+	font-size: 0.9em;
+	color: var(--text-muted);
 }
 
+.nav-file-title:hover,
+.nav-folder-title:hover {
+	color: var(--text-normal);
+}
+
+.nav-folder-title {
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+/*#region Sidebar Toolbar */
+
+.sidebar-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0 var(--sidebar-margin);
+	margin-bottom: 8px;
+	min-width: var(--sidebar-width);
+}
+
+/* Push left sidebar toolbar (search bar) down, right above file tree */
+#left-sidebar .sidebar-toolbar {
+	margin-top: 2.5em;
+	margin-bottom: 4px;
+}
+
+/* Search container in toolbar: icon + input side by side */
+.sidebar-toolbar #search-container {
+	flex: 1 1 auto;
+	position: relative;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	--input-height: 2.75em;
+}
+
+.sidebar-toolbar #search-wrapper {
+	flex: 1 1 auto;
+	position: relative;
+	min-width: 0;
+}
+
+.sidebar-toolbar #search-container input[type="search"] {
+	width: 100%;
+	padding-left: 2.75em;
+	font-size: 0.9em;
+	border-radius: var(--input-radius, 6px);
+	border: 1px solid var(--background-modifier-border);
+	background-color: var(--background-secondary);
+	color: var(--text-normal);
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-toolbar #search-container input[type="search"]:focus {
+	border-color: var(--interactive-accent);
+	background-color: var(--background-primary);
+	outline: none;
+}
+
+.sidebar-toolbar #search-icon {
+	position: absolute;
+	left: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 30px;
+	height: 30px;
+	z-index: 10;
+}
+
+.sidebar-toolbar-actions {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.sidebar-toolbar-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: var(--radius-s, 4px);
+	cursor: pointer;
+	color: var(--text-muted);
+	transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-toolbar-btn:hover {
+	color: var(--text-normal);
+	background-color: var(--background-modifier-hover);
+}
+
+.sidebar-toolbar-btn svg {
+	width: 22px;
+	height: 22px;
+}
+
+/* Theme toggle icon visibility based on current theme */
+body.theme-dark #sidebar-theme-toggle .theme-icon-dark {
+	display: block;
+}
+
+body.theme-dark #sidebar-theme-toggle .theme-icon-light {
+	display: none;
+}
+
+body.theme-light #sidebar-theme-toggle .theme-icon-dark {
+	display: none;
+}
+
+body.theme-light #sidebar-theme-toggle .theme-icon-light {
+	display: block;
+}
+
+/* Default: show moon (dark icon) when no theme class yet */
+#sidebar-theme-toggle .theme-icon-light {
+	display: none;
+}
 
 /*#endregion */
+
+/* Fallback: style Obsidian Publish sidebar-toolbar-search as a proper search bar */
+.sidebar-toolbar .sidebar-toolbar-search {
+	display: flex;
+	align-items: center;
+	flex: 1 1 auto;
+	min-width: 0;
+	height: var(--input-height, 2.2em);
+	padding: 0 0.6em;
+	gap: 0.5em;
+	border-radius: var(--input-radius, 6px);
+	border: 1px solid var(--background-modifier-border);
+	background-color: var(--background-secondary);
+	cursor: pointer;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.sidebar-toolbar .sidebar-toolbar-search:hover {
+	border-color: var(--interactive-accent);
+	background-color: var(--background-primary);
+}
+
+.sidebar-toolbar .sidebar-toolbar-search svg {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	opacity: 0.5;
+}
+
+.sidebar-toolbar .sidebar-toolbar-search span {
+	font-size: 0.85em;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+/* Hide sidebar-toolbar-search when proper search container exists */
+.sidebar-toolbar:has(#search-container) .sidebar-toolbar-search {
+	display: none;
+}
 
 /*#region Theme Toggle */
 
@@ -421,20 +641,20 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 .graph-view.color-line-highlight { color: var(--interactive-accent); }
 
 .graph-view-wrapper {
-	--graph-view-max-height: 35vh;
+	--graph-view-max-height: 27vh;
 }
 
 #graph-canvas {
 	width: 100%;
 	height: 100%;
-	aspect-ratio: 1;
+	aspect-ratio: 2 / 3;
 	transition: opacity 0.15s ease-in-out;
 }
 
 .graph-view-container.expanded {
 	position: fixed;
 	width: 90%;
-	height: 90%;
+	height: 95%;
 	max-height: unset;
 	aspect-ratio: auto;
 	right: 5%;
@@ -453,7 +673,7 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 .graph-view-container {
 	position: relative;
 	width: 100%;
-	aspect-ratio: 1;
+	aspect-ratio: 2 / 3;
 	max-height: var(--graph-view-max-height);
 	display: flex;
 	transition: background-color var(--color-fade-speed) ease-in-out;
@@ -494,7 +714,7 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 .graph-view-placeholder {
 	padding: 0;
 	width: 100%;
-	aspect-ratio: 1;
+	aspect-ratio: 2 / 3;
 	max-height: var(--graph-view-max-height);
 	position: relative;
 	flex: none;
@@ -1113,59 +1333,15 @@ input[type=search]::-moz-search-clear-button {
 
 /*#region Sidebar Resize */
 
-.sidebar .sidebar-handle:hover~.leaf-content,
-.sidebar.is-resizing .leaf-content {
-	box-shadow: 0 0 0 var(--divider-width-hover) var(--divider-color-hover);
-}
-
-.sidebar-handle {
-	width: min(max(calc(var(--sidebar-margin) / 2.0), 3px), 12px);
-	height: calc(100vh - 2 * var(--radius-l));
-	margin-top: var(--radius-l);
-	margin-bottom: var(--radius-l);
-	top: 0;
-	position: absolute;
-	cursor: ew-resize;
-	z-index: 1;
-	transition: background-color .2s ease-in-out;
-}
-
-#left-sidebar .sidebar-handle {
-	right: 0;
-}
-
-#right-sidebar .sidebar-handle {
-	left: 0;
-}
-
-
+/* Sidebar resize is disabled in floating card mode */
 
 /*#endregion */
 
-/* Themes */
-
-/*#region General */
-
-.nav-folder-children .nav-folder-title-content::before {
-	margin-right: 0.5em;
-}
-
-.tree-item-contents:has(.tree-item-icon) .tree-item-title::before,
-.tree-item-contents:has(.tree-item-icon)::before,
-.tree-item:has(.tree-item-contents > .tree-item-icon)::before {
-	display: none !important;
-}
-
-/*#endregion */
-
-/*#endregion */
-
-/*#region Backlinks */
+/*#region Backlinks & Outline — Quartz style */
 
 #backlinks {
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-m);
 	transition: opacity 0.2s ease-in-out;
+	flex-direction: column;
 }
 
 #giscus {
@@ -1180,107 +1356,39 @@ input[type=search]::-moz-search-clear-button {
 	width: 100%;
 }
 
-#backlinks .feature-header {
-	border-bottom: 1px solid;
-	border-color: inherit;
-	padding: var(--size-4-2);
-	padding-left: var(--size-4-3);
+.tree-item-self > .tree-collapse-all {
+	margin-left: auto;
+	padding: 2px;
+	color: var(--text-muted);
+	opacity: 0.7;
+	transition: opacity 0.15s ease;
+	flex-shrink: 0;
 }
 
-#backlinks .feature-header .feature-title {
-	margin: 0.25em;
+.tree-item-self > .tree-collapse-all:hover {
+	opacity: 1;
 }
 
-/* Outline/Backlinks Toggle Buttons */
 .outline-backlinks-toggle {
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	flex: 1;
+	display: none;
 }
 
-.outline-backlinks-toggle .toggle-button {
-	background: transparent;
-	border: none;
-	color: var(--text-faint);
-	cursor: pointer;
-	padding: 4px 0;
-	border-radius: 0;
-	font-size: 0.85em;
-	font-weight: 400;
-	transition: color 0.15s ease;
-	flex: none;
-	text-align: center;
-	border-bottom: 2px solid transparent;
-}
-
-.outline-backlinks-toggle .toggle-button:hover {
-	background-color: transparent;
-	color: var(--text-normal);
-	border-color: transparent;
-}
-
-.outline-backlinks-toggle .toggle-button.active {
-	background-color: transparent;
-	color: var(--text-normal);
-	border-color: transparent;
-	font-weight: 600;
-}
-
-.outline-backlinks-toggle .toggle-button:focus {
-	outline: none;
-	box-shadow: none;
+/* TOC-specific: slightly shorter max-height */
+#outline.tree-container {
+	position: relative;
+	max-height: 45vh;
 }
 
 .backlinks-content {
-	padding: var(--size-4-1);
-	gap: var(--size-4-1);
-	display: flex;
-	flex-direction: column;
-}
-
-/* When backlinks content is moved into outline, ensure it matches outline styling */
-#outline .backlinks-content {
-	padding: 1em;
-	margin: 0;
-	width: 100%;
-	box-sizing: border-box;
-	border: none;
-	border-radius: 0;
-}
-
-/* Ensure outline wrapper maintains structure when toggling */
-#outline.tree-container {
-	position: relative;
+	list-style: none;
+	padding: 0;
+	margin: 0.5rem 0;
+	max-height: calc(100% - 2rem);
+	overscroll-behavior: contain;
 }
 
 a.backlink {
-	display: flex;
-	gap: 0.5em;
-	color: var(--text-muted);
-	text-decoration: none;
-	padding: var(--size-4-1);
-	padding-left: var(--size-4-2);
-	border-radius: var(--radius-s);
-}
-
-a.backlink:hover {
-	background-color: var(--background-modifier-hover);
-	text-decoration: underline;
-}
-
-.backlink-icon {
-	display: flex;
-	align-items: center;
-}
-
-.backlinks-empty-message {
-	color: var(--text-muted);
-	font-size: 0.9em;
-	font-style: italic;
-	text-align: center;
-	padding: 1em;
-	opacity: 0.8;
+	background-color: transparent;
 }
 
 /*#endregion */

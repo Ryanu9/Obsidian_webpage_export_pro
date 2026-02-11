@@ -149,7 +149,29 @@ export class Header {
     }
 
     public scrollTo(options: ScrollIntoViewOptions = { behavior: "smooth", block: "start" }): void {
-        this._headerElement.scrollIntoView(options);
+        // Find the nearest scrollable ancestor to avoid scrolling the entire page
+        const scrollContainer = this.findScrollContainer(this._headerElement);
+        if (scrollContainer) {
+            const headerRect = this._headerElement.getBoundingClientRect();
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const targetTop = headerRect.top - containerRect.top + scrollContainer.scrollTop;
+            scrollContainer.scrollTo({ top: targetTop, behavior: options.behavior ?? "smooth" });
+        } else {
+            this._headerElement.scrollIntoView(options);
+        }
+    }
+
+    private findScrollContainer(el: HTMLElement): HTMLElement | null {
+        let parent = el.parentElement;
+        while (parent && parent !== document.body) {
+            const style = getComputedStyle(parent);
+            const overflowY = style.overflowY;
+            if ((overflowY === "auto" || overflowY === "scroll") && parent.scrollHeight > parent.clientHeight) {
+                return parent;
+            }
+            parent = parent.parentElement;
+        }
+        return null;
     }
 
     public find(predicate: (header: Header) => boolean): Header | undefined {

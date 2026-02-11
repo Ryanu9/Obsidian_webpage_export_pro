@@ -25,4 +25,7 @@
 		"**/*.ts",
 		"src/assets/**/*.json"
 	],
+	"exclude": [
+		"quartz/**"
+	]
 }

@@ -36,6 +36,7 @@ export class TocScrollSpy {
             this.initHeadings(doc);
             this.setupObserver();
             this.createIndicator();
+            this.updateOverflowGradients();
         }, 300);
     }
 
@@ -238,6 +239,20 @@ export class TocScrollSpy {
         });
     }
 
+    private updateOverflowGradients(): void {
+        const outline = document.querySelector("#outline") as HTMLElement;
+        if (outline) {
+            const isOverflowing = outline.scrollHeight > outline.clientHeight + 10;
+            outline.classList.toggle("gradient-active", isOverflowing);
+        }
+
+        const backlinkContent = document.querySelector("#backlinks .backlinks-content") as HTMLElement;
+        if (backlinkContent) {
+            const isOverflowing = backlinkContent.scrollHeight > backlinkContent.clientHeight + 10;
+            backlinkContent.classList.toggle("gradient-active", isOverflowing);
+        }
+    }
+
     private injectStyles(): void {
         if (TocScrollSpy.stylesInjected) return;
         TocScrollSpy.stylesInjected = true;
@@ -245,102 +260,24 @@ export class TocScrollSpy {
         const style = document.createElement("style");
         style.id = "toc-scrollspy-styles";
         style.textContent = `
-            #outline { position: relative; }
-            #outline .tree-item-self {
+            /* ====== Outline (TOC) — Quartz exact match ====== */
+            #outline {
                 position: relative;
-                transition: color 0.15s ease;
-                border-radius: 4px;
-                display: flex !important;
-                align-items: center;
-                padding-left: 16px !important;
-                color: var(--text-normal);
+                display: flex;
+                flex-direction: column;
+                overflow-y: hidden;
+                min-height: 1.4rem;
             }
-            #outline .tree-item-inner {
-                display: block !important;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                flex: 1;
-                line-height: 1.35;
-                padding: 2px 4px 2px 0;
-                font-size: 13px;
-            }
-            #outline .collapse-icon {
-                display: none !important;
-            }
-            #outline .tree-item-self.is-active {
-                color: #70ACEA;
-                background-color: transparent !important;
-                background: none !important;
-            }
-            .theme-light #outline .tree-item-self.is-active {
-                color: #2365B8;
-            }
-            #outline .tree-item-self.is-active .tree-item-inner {
-                font-size: 13px;
-                font-weight: 500;
-            }
-            .outline-indicator {
-                position: absolute;
-                left: 2px;
-                width: 3px;
-                background-color: #70ACEA;
-                transition: top 0.2s cubic-bezier(0.4,0,0.2,1), height 0.2s cubic-bezier(0.4,0,0.2,1);
-                z-index: 10;
-                pointer-events: none;
-                border-radius: 4px;
-                display: none;
-            }
-            .theme-light .outline-indicator {
-                background-color: #2365B8;
-            }
-            #outline .tree-item-self:hover {
-                color: #6599CF;
-                background-color: transparent !important;
-            }
-            .theme-light #outline .tree-item-self:hover {
-                color: #5C8DCA;
+            #outline.is-collapsed {
+                flex: 0 0 auto;
+                overflow-y: visible;
             }
 
-            /* Title (H1 / first heading) - bold, larger, never highlighted */
-            #outline .tree-item[data-depth="0"] > .tree-item-self,
-            #outline .tree-item[data-depth="1"] > .tree-item-self {
-                color: var(--text-normal) !important;
-                background-color: transparent !important;
-                background: none !important;
-                pointer-events: auto;
-                border-radius: 0;
-                padding-left: 16px !important;
-                margin-bottom: 6px;
-            }
-            #outline .tree-item[data-depth="0"] > .tree-item-self .tree-item-inner,
-            #outline .tree-item[data-depth="1"] > .tree-item-self .tree-item-inner {
-                font-size: 16px !important;
-                font-weight: 800 !important;
-            }
-            #outline .tree-item[data-depth="0"] > .tree-item-self.is-active,
-            #outline .tree-item[data-depth="1"] > .tree-item-self.is-active {
-                color: var(--text-normal) !important;
-            }
-            #outline .tree-item[data-depth="0"] > .tree-item-self:hover,
-            #outline .tree-item[data-depth="1"] > .tree-item-self:hover {
-                color: var(--text-normal) !important;
-            }
-
-            /* Feature header title */
-            #outline .feature-header .feature-title {
-                font-weight: 700;
-                font-size: 15px;
-                color: var(--text-normal) !important;
-                text-transform: none;
-                letter-spacing: normal;
-                border-radius: 0;
-            }
-
-            /* Remove tree hierarchy indentation guide lines */
+            /* Flatten nested tree — remove all child indentation from DOM nesting */
             #outline .tree-item-children {
                 border-left: none !important;
                 margin-left: 0 !important;
+                padding-left: 0 !important;
             }
             #outline .tree-item-children::before,
             #outline .tree-item-children::after,
@@ -348,6 +285,182 @@ export class TocScrollSpy {
             #outline .tree-item::after {
                 display: none !important;
                 border: none !important;
+            }
+
+            /* Hide collapse icons and tree icons — Quartz TOC is flat text only */
+            #outline .collapse-icon { display: none !important; }
+            #outline .tree-collapse-all { display: none !important; }
+            #outline .tree-icon { display: none !important; }
+
+            /* Active indicator bar — animated accent highlight on left line */
+            .outline-indicator {
+                position: absolute;
+                left: 0;
+                width: 2px;
+                background-color: var(--interactive-accent);
+                border-radius: 2px;
+                transition: top 0.15s ease-out, height 0.15s ease-out, opacity 0.15s ease-out;
+                z-index: 1;
+                pointer-events: none;
+            }
+
+            /* TOC items — left border line + opacity style */
+            #outline .tree-item-self {
+                position: relative;
+                display: flex !important;
+                align-items: center;
+                background-color: transparent !important;
+                color: var(--dark, var(--text-normal));
+                opacity: 0.35;
+                transition: 0.5s ease opacity, 0.3s ease color, 0.2s ease border-left-color;
+                padding: 0 !important;
+                border-left: 1px solid var(--background-modifier-border);
+            }
+
+            #outline .tree-item-inner {
+                display: block !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                flex: 1;
+                line-height: 1.8;
+                padding: 0;
+                font-size: 0.95rem;
+                font-weight: 600;
+            }
+
+            /* Depth-based indentation (includes 0.75rem gap from left border) */
+            #outline .tree-item[data-depth="1"] > .tree-item-self { padding-left: 0.75rem !important; }
+            #outline .tree-item[data-depth="2"] > .tree-item-self { padding-left: 1.75rem !important; }
+            #outline .tree-item[data-depth="3"] > .tree-item-self { padding-left: 2.75rem !important; }
+            #outline .tree-item[data-depth="4"] > .tree-item-self { padding-left: 3.75rem !important; }
+            #outline .tree-item[data-depth="5"] > .tree-item-self { padding-left: 4.75rem !important; }
+            #outline .tree-item[data-depth="6"] > .tree-item-self { padding-left: 5.75rem !important; }
+
+            /* Hovered item */
+            #outline .tree-item-self:hover {
+                opacity: 0.75;
+            }
+
+            /* Active (in-view) item */
+            #outline .tree-item-self.is-active {
+                opacity: 1;
+                background: none !important;
+                border-left-color: var(--interactive-accent);
+            }
+
+            /* ---- Feature header — Quartz button.toc-header ---- */
+            #outline .feature-header {
+                background-color: transparent;
+                border: none;
+                text-align: left;
+                cursor: pointer;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                margin-bottom: 0.25rem;
+            }
+
+            #outline .feature-header .feature-title {
+                font-size: 1.2rem !important;
+                font-weight: 700 !important;
+                margin: 0 !important;
+                margin-right: 0 !important;
+                display: inline-block;
+                color: var(--dark, var(--text-normal)) !important;
+                flex-grow: 0 !important;
+                flex-shrink: 0;
+            }
+
+            /* Fold chevron icon — Quartz style */
+            #outline .feature-header .fold {
+                margin-left: 0.3rem;
+                transition: transform 0.3s ease;
+                opacity: 0.8;
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+
+            #outline.is-collapsed .feature-header .fold {
+                transform: rotateZ(-90deg);
+            }
+
+            /* Collapse content */
+            #outline.is-collapsed > :not(.feature-header) {
+                display: none !important;
+            }
+
+            /* ====== Overflow gradient ====== */
+            #outline.tree-container.gradient-active,
+            #backlinks .backlinks-content.gradient-active {
+                mask-image: linear-gradient(to bottom, black calc(100% - 50px), transparent 100%);
+                -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 50px), transparent 100%);
+            }
+
+            /* ====== Backlinks — Quartz exact match ====== */
+            #backlinks {
+                margin-top: 1rem;
+            }
+
+            #backlinks .feature-header {
+                padding: 0;
+                margin: 0;
+            }
+
+            #backlinks .feature-header .feature-title {
+                font-size: 1.2rem !important;
+                font-weight: 700 !important;
+                margin: 0 !important;
+                color: var(--dark, var(--text-normal)) !important;
+            }
+
+            #backlinks .backlinks-content {
+                list-style: none;
+                padding: 0;
+                margin: 0.5rem 0;
+                overflow-y: auto;
+                max-height: calc(100% - 2rem);
+                overscroll-behavior: contain;
+            }
+
+            /* Hide backlink icons — Quartz uses plain text links */
+            #backlinks .backlink-icon {
+                display: none !important;
+            }
+
+            /* Backlink links — Quartz internal link style */
+            #backlinks a.backlink {
+                display: block !important;
+                padding: 0 !important;
+                gap: 0 !important;
+                background-color: transparent !important;
+                color: var(--text-accent) !important;
+                text-decoration: none !important;
+                line-height: 1.8;
+                border-radius: 0 !important;
+                font-size: 0.95rem;
+                font-weight: 500;
+            }
+
+            #backlinks a.backlink:hover {
+                background-color: transparent !important;
+                text-decoration: none !important;
+                opacity: 0.7;
+            }
+
+            #backlinks .backlink-title {
+                display: inline;
+                font-weight: 600;
+            }
+
+            #backlinks .backlinks-empty-message {
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                font-style: normal;
+                text-align: left;
+                padding: 0;
+                opacity: 0.5;
             }
         `;
         document.head.appendChild(style);
