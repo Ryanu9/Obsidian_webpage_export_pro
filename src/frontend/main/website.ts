@@ -450,6 +450,47 @@ export class ObsidianWebsite {
 			const span = fallbackSearch.querySelector('span');
 			if (span) span.textContent = 'Ctrl+K';
 		}
+
+		this.initMobileTopbar();
+	}
+
+	private initMobileTopbar() {
+		// Hamburger button toggles left sidebar
+		const hamburger = document.getElementById('mobile-hamburger');
+		hamburger?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (this.leftSidebar) {
+				this.leftSidebar.collapsed = !this.leftSidebar.collapsed;
+			}
+		});
+
+		// Mobile search button opens modal search
+		const mobileSearch = document.getElementById('mobile-search-btn');
+		mobileSearch?.addEventListener('click', () => {
+			const overlay = document.querySelector('.search-modal-overlay');
+			if (overlay) {
+				overlay.classList.add('active');
+				const modal = overlay.querySelector('.search-modal');
+				if (modal) modal.classList.add('active');
+				const input = overlay.querySelector('.search-modal-input') as HTMLInputElement;
+				input?.focus();
+			}
+		});
+
+		// Mobile theme toggle
+		const mobileTheme = document.getElementById('mobile-theme-toggle');
+		mobileTheme?.addEventListener('click', () => {
+			this.theme?.switchTheme();
+		});
+
+		// Mobile right sidebar toggle
+		const mobileRight = document.getElementById('mobile-right-toggle');
+		mobileRight?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (this.rightSidebar) {
+				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
+			}
+		});
 	}
 
 	private initEvents() {

@@ -48,6 +48,19 @@ export class WebpageTemplate
 
 		const main = body.createDiv({attr: {id: "main"}});
 		const navbarHost = main.createDiv({ attr: { id: "navbar" } });
+		const mobileTopbar = main.createDiv({attr: {id: "mobile-topbar"}});
+			const hamburgerBtn = mobileTopbar.createDiv({attr: {id: "mobile-hamburger", class: "clickable-icon", "aria-label": "Toggle navigation"}});
+			hamburgerBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`;
+			const mobileActions = mobileTopbar.createDiv({attr: {class: "mobile-topbar-actions"}});
+		if (this.options.searchOptions.enabled)
+		{
+			const mobileSearchBtn = mobileActions.createDiv({attr: {class: "mobile-topbar-btn", id: "mobile-search-btn", "aria-label": "Search"}});
+			mobileSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+		}
+			const mobileThemeBtn = mobileActions.createDiv({attr: {class: "mobile-topbar-btn", id: "mobile-theme-toggle", "aria-label": "Toggle theme"}});
+			mobileThemeBtn.innerHTML = `<svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
+			const mobileRightBtn = mobileActions.createDiv({attr: {class: "mobile-topbar-btn", id: "mobile-right-toggle", "aria-label": "Toggle right sidebar"}});
+			mobileRightBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/><path d="M17 9h2"/><path d="M17 14h2"/></svg>`;
 		const mainHorizontal = main.createDiv({ attr: { id: "main-horizontal" } });
 			const leftContent = mainHorizontal.createDiv({attr: {id: "left-content", class: "leaf"}});
 				const leftSidebar = leftContent.createDiv({attr: {id: "left-sidebar", class: "sidebar"}});
@@ -103,6 +116,7 @@ export class WebpageTemplate
 		{
 			leftSidebar.remove();
 			rightSidebar.remove();
+			mobileTopbar.remove();
 		}
 
 		// build top navbar after layout is created

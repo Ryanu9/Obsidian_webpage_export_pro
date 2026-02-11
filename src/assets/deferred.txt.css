@@ -8,7 +8,12 @@ body {
     --tree-vertical-spacing: 1.3em;
     --sidebar-margin: 12px;
     --navbar-height: 40px;
+    --mobile-topbar-height: 0px;
     --img-max-width: 100%;
+}
+
+body.floating-sidebars {
+    --mobile-topbar-height: 48px;
 }
 
 :root {
@@ -210,15 +215,19 @@ body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
 /* In floating mode, toolbar stays inside the fixed panel (left sidebar only) */
 body.floating-sidebars #left-sidebar .sidebar-toolbar {
     position: fixed;
-    top: 0.5em;
+    top: calc(var(--mobile-topbar-height) + 0.5em);
     left: 0;
     z-index: 101;
     padding: 0 var(--sidebar-margin);
     min-width: var(--sidebar-width);
 }
 
+body.floating-sidebars:has(.website-navbar) #left-sidebar .sidebar-toolbar {
+    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + 0.5em);
+}
+
 body.floating-sidebars #left-sidebar .leaf-content {
-    padding-top: 3.5em;
+    padding-top: 4.5em;
 }
 
 /* Hide topbar, collapse icon, and resize handle in floating mode */
@@ -296,13 +305,18 @@ body.floating-sidebars .sidebar {
 /* On floating/mobile, restore solid panel for overlay */
 body.floating-sidebars .sidebar .leaf-content {
     position: fixed;
-    top: 0;
+    top: var(--mobile-topbar-height);
     bottom: 0;
-    max-height: 100vh;
+    max-height: calc(100vh - var(--mobile-topbar-height));
     background-color: var(--background-secondary);
     z-index: 100;
     padding-top: 1em;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+body.floating-sidebars:has(.website-navbar) .sidebar .leaf-content {
+    top: calc(var(--navbar-height) + var(--mobile-topbar-height));
+    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height));
 }
 
 body.floating-sidebars #left-sidebar .leaf-content {
@@ -327,6 +341,127 @@ body.floating-sidebars .sidebar .leaf-content > * {
 
 body.floating-sidebars .sidebar .leaf-content > *:last-child {
     border-bottom: none;
+}
+
+/* Ensure sidebar containers stack above center content in floating mode */
+body.floating-sidebars #left-content,
+body.floating-sidebars #right-content {
+    z-index: 50;
+}
+
+/* Backdrop overlay when any sidebar is open on mobile */
+body.floating-sidebars:has(.sidebar:not(.is-collapsed)) #main-horizontal::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    pointer-events: auto;
+}
+
+/*#endregion */
+
+/*#region Mobile Topbar */
+
+#mobile-topbar {
+    display: none;
+}
+
+body.floating-sidebars #mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--mobile-topbar-height);
+    padding: 0 12px;
+    background-color: var(--background-secondary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    z-index: 200;
+    transition: background-color var(--color-fade-speed) ease-in-out,
+                border-color var(--color-fade-speed) ease-in-out;
+}
+
+body.floating-sidebars:has(.website-navbar) #mobile-topbar {
+    top: var(--navbar-height);
+}
+
+/* Push main content below mobile topbar */
+body.floating-sidebars #main-horizontal {
+    padding-top: var(--mobile-topbar-height);
+}
+
+#mobile-hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-s, 4px);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+#mobile-hamburger:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+#mobile-hamburger svg {
+    width: 22px;
+    height: 22px;
+}
+
+.mobile-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.mobile-topbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-s, 4px);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.mobile-topbar-btn:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+}
+
+.mobile-topbar-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Theme toggle icon visibility for mobile topbar */
+body.theme-dark #mobile-theme-toggle .theme-icon-dark {
+    display: block;
+}
+
+body.theme-dark #mobile-theme-toggle .theme-icon-light {
+    display: none;
+}
+
+body.theme-light #mobile-theme-toggle .theme-icon-dark {
+    display: none;
+}
+
+body.theme-light #mobile-theme-toggle .theme-icon-light {
+    display: block;
+}
+
+#mobile-theme-toggle .theme-icon-light {
+    display: none;
 }
 
 /*#endregion */

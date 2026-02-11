@@ -221,6 +221,12 @@ export class Sidebar
 			return;
 		}
 
+		// If the click target is inside the mobile topbar, do nothing
+		// (the topbar has its own toggle handlers with stopPropagation).
+		if ((event.target as HTMLElement)?.closest('#mobile-topbar')) {
+			return;
+		}
+
 		const isPhone = ObsidianSite.deviceSize === "phone";
 		const isTablet = ObsidianSite.deviceSize === "tablet";
 
