@@ -319,7 +319,6 @@ export class TocScrollSpy {
 
             #outline .tree-item-inner {
                 display: block !important;
-                white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 flex: 1;

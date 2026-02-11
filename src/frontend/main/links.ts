@@ -66,12 +66,13 @@ export class LinkHandler
 
 	public static getHashFromURL(url: string): string
 	{
-		return (url.split("#")[1] ?? "").split("?")[0]?.trim() ?? "";
+		return url.split("#")[1]?.trim() ?? "";
 	}
 
 	public static getQueryFromURL(url: string): string
 	{
-		return url.split("?")[1]?.trim() ?? "";
+		const beforeHash = url.split("#")[0] ?? "";
+		return beforeHash.split("?")[1]?.trim() ?? "";
 	}
 
 	public static getFileDataIdFromURL(url: string): string
