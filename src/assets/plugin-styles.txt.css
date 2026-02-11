@@ -646,6 +646,7 @@ body.theme-light #sidebar-theme-toggle .theme-icon-light {
 .graph-view.color-circle { color: var(--graph-line, var(--background-modifier-border)); }
 .graph-view.color-line { color: var(--graph-line, var(--background-modifier-border)); }
 .graph-view.color-text { color: var(--graph-text, var(--text-normal)); }
+body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
 .graph-view.color-fill-highlight { color: var(--interactive-accent); }
 .graph-view.color-line-highlight { color: var(--interactive-accent); }
 

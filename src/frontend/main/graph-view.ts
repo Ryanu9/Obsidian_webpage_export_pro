@@ -56,9 +56,9 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		// Resize handling
 		window.addEventListener("resize", () => this.graphRenderer?.onResize());
 
-		// Theme toggle → re-read CSS colors
-		document.querySelector(".theme-toggle-input")?.addEventListener("change", () => {
-			setTimeout(() => this.graphRenderer?.testCSS(), 0);
+		// Theme toggle → re-read CSS colors (listen for custom event from Theme.setTheme)
+		document.addEventListener("theme-changed", () => {
+			this.graphRenderer?.testCSS();
 		});
 
 		// Show initial graph

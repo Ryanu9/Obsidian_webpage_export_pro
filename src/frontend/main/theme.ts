@@ -82,5 +82,6 @@ export class Theme
 		}
 
 		localStorage.setItem("theme", state ? "light" : "dark");
+		document.dispatchEvent(new CustomEvent("theme-changed"));
 	}
 }
