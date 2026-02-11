@@ -1,6 +1,4 @@
-import graphWASMJS from "src/frontend/graph-view/graph-wasm.txt.js";
-import renderWorkerJS from "src/frontend/graph-view/graph-render-worker.txt.js";
-import graphWASM from "src/frontend/graph-view/graph-wasm.wasm";
+import simWorkerJS from "src/frontend/graph-view/graph-sim-worker.txt.js";
 import webpageStyles from "src/assets/plugin-styles.txt.css";
 import deferredJS from "src/assets/deferred.txt.js";
 import deferredCSS from "src/assets/deferred.txt.css";
@@ -99,9 +97,7 @@ export class AssetHandler
 
 	// scripts
 	public static websiteJS: WebsiteJS;
-	public static graphWASMJS: AssetLoader;
-	public static graphWASM: AssetLoader;
-	public static renderWorkerJS: AssetLoader;
+	public static simWorkerJS: AssetLoader;
 	public static deferredJS: AssetLoader;
 	public static themeLoadJS: AssetLoader;
 	 
@@ -134,9 +130,7 @@ export class AssetHandler
 		this.websiteJS = new WebsiteJS();
 		this.websiteStyles = new AssetLoader("main-styles.css", webpageStyles, null, AssetType.Style, InlinePolicy.AutoHead, true, Mutability.Static, LoadMethod.Async, 4);
 		this.deferredCSS = new AssetLoader("deferred.css", deferredCSS, null, AssetType.Style, InlinePolicy.InlineHead, true, Mutability.Static, LoadMethod.Defer, -1000);
-		this.graphWASMJS = new AssetLoader("graph-wasm.js", graphWASMJS, null, AssetType.Script, InlinePolicy.AutoHead, true, Mutability.Static);
-		this.graphWASM = new AssetLoader("graph-wasm.wasm", Buffer.from(graphWASM), null, AssetType.Script, InlinePolicy.Download, false, Mutability.Static);
-		this.renderWorkerJS = new AssetLoader("graph-render-worker.js", renderWorkerJS, null, AssetType.Script, InlinePolicy.AutoHead, true, Mutability.Static);
+		this.simWorkerJS = new AssetLoader("graph-sim-worker.js", simWorkerJS, null, AssetType.Script, InlinePolicy.AutoHead, true, Mutability.Static);
 		this.deferredJS = new AssetLoader("deferred.js", deferredJS, null, AssetType.Script, InlinePolicy.InlineHead, true, Mutability.Static, LoadMethod.Defer, -1000);
 		this.themeLoadJS = new AssetLoader("theme-load.js", themeLoadJS, null, AssetType.Script, InlinePolicy.Inline, true, Mutability.Static, LoadMethod.Defer);
 		this.favicon = new Favicon();
@@ -202,7 +196,7 @@ export class AssetHandler
 	{
 		if (!options.graphViewOptions.enabled)
 		{
-			downloads = downloads.filter(asset => ![this.graphWASMJS, this.graphWASM, this.renderWorkerJS].includes(asset));
+			downloads = downloads.filter(asset => ![this.simWorkerJS].includes(asset));
 		}
 
 		if (!options.includeCSS) 
@@ -245,8 +239,8 @@ export class AssetHandler
 		}
 		if (options.inlineJS)
 		{
-			// keep wasm and render worker as downloaded always (they cannot be inlined)
-			downloads = downloads.filter(asset => asset.type != AssetType.Script || (asset.extensionName == "wasm" || asset.filename == this.renderWorkerJS.filename));
+			// keep sim worker as downloaded always (it cannot be inlined)
+			downloads = downloads.filter(asset => asset.type != AssetType.Script || asset.filename == this.simWorkerJS.filename);
 		}
 		if (options.inlineCSS)
 		{

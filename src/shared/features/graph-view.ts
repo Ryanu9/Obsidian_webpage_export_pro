@@ -13,12 +13,14 @@ export class GraphViewOptions extends InsertedFeatureOptionsWithTitle {
 	allowExpand: boolean = true;
 
 	attractionForce: number = 1;
-	linkLength: number = 15;
-	repulsionForce: number = 80;
-	centralForce: number = 2;
+	linkLength: number = 250;
+	repulsionForce: number = 1000;
+	centralForce: number = 0.1;
 	edgePruning: number = 100;
 	minNodeRadius: number = 3;
-	maxNodeRadius: number = 7;
+	maxNodeRadius: number = 6;
+	collisionRadius: number = 25;
+	collisionStrength: number = 0.5;
 
 	info_showOrphanNodes = new FeatureSettingInfo({
 		show: true,
@@ -63,6 +65,14 @@ export class GraphViewOptions extends InsertedFeatureOptionsWithTitle {
 	info_maxNodeRadius = new FeatureSettingInfo({
 		show: true,
 		description: i18n.settings.graphView.info_maxNodeRadius,
+	});
+	info_collisionRadius = new FeatureSettingInfo({
+		show: true,
+		description: "Minimum distance between nodes to prevent overlap",
+	});
+	info_collisionStrength = new FeatureSettingInfo({
+		show: true,
+		description: "Strength of collision avoidance between nodes",
 	});
 
 	constructor() {

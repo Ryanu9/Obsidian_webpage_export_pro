@@ -41,6 +41,14 @@ if ('function' === typeof importScripts) {
 	let attachedToGrabbed = [];
 	let activeNode = -1;
 	let attachedToActive = [];
+	let nodeRendered = null;
+	let nodeFadeAlpha = [];
+
+	// OB's exponential smoothing: _l(current, target, factor=0.9) = current*factor + target*(1-factor)
+	function _l(current, target, factor) {
+		if (factor === undefined) factor = 0.9;
+		return current * factor + target * (1 - factor);
+	}
 
 	let cameraScale = 1;
 	let cameraScaleRoot = 1;
@@ -174,11 +182,11 @@ if ('function' === typeof importScripts) {
 	}
 
 	let hoverFade = 0;
-	let hoverFadeSpeed = 0.04;
+	let hoverFadeSpeed = 0.06;
 	let hoverFadeSecondary = 0;
-	let hoverFadeSecondarySpeed = 0.08;
-	let hoverFontSize = 15;
-	let normalFontSize = 12;
+	let hoverFadeSecondarySpeed = 0.1;
+	let hoverFontSize = 14;
+	let normalFontSize = 11;
 	let fontRatio = hoverFontSize / normalFontSize;
 
 	function showLabel(index, fade, hoverFade = 0) {
@@ -197,7 +205,7 @@ if ('function' === typeof importScripts) {
 		let nodePos = vecToScreenSpace(getPosition(index));
 		let width = labelWidths[index] * lerp(1, fontRatio, hoverFade) / 2;
 		label.x = nodePos.x - width;
-		label.y = nodePos.y + getNodeScreenRadius(radii[index]) + 9;
+		label.y = nodePos.y + getNodeScreenRadius(radii[index]) + 5;
 		label.alpha = fade;
 	}
 
@@ -212,7 +220,6 @@ if ('function' === typeof importScripts) {
 		let topLines = [];
 		if (updateAttached) {
 			attachedToGrabbed = [];
-			// hoverFade = 0;
 		}
 
 		if (hoveredNode != -1 || grabbedNode != -1) {
@@ -224,25 +231,35 @@ if ('function' === typeof importScripts) {
 			hoverFadeSecondary = Math.max(0, hoverFadeSecondary - hoverFadeSecondarySpeed);
 		}
 
-		graphics.lineStyle(1, mixColors(colors.link, colors.background, hoverFade * 0.5), 0.7);
+		// Update per-node fade alpha (OB's _l smoothing)
+		for (let i = 0; i < nodeCount; i++) {
+			let target = (nodeRendered && nodeRendered[i]) ? 1 : 0;
+			nodeFadeAlpha[i] = _l(nodeFadeAlpha[i] || 0, target);
+		}
+
+		// --- Draw links (background layer) ---
+		let dimmedLinkColor = mixColors(colors.link, colors.background, hoverFade * 0.6);
 
 		for (let i = 0; i < linkCount; i++) {
 			let target = linkTargets[i];
 			let source = linkSources[i];
 
+			// Link fades in based on min of both endpoints' fadeAlpha
+			let linkAlpha = Math.min(nodeFadeAlpha[source] || 0, nodeFadeAlpha[target] || 0);
+			if (linkAlpha < 0.01) continue;
+
+			graphics.lineStyle(1, dimmedLinkColor, lerp(0.5, 0.25, hoverFade) * linkAlpha);
+
 			if (hoveredNode == source || hoveredNode == target || ((lastHoveredNode == source || lastHoveredNode == target) && hoverFade != 0)) {
 				if (updateAttached && hoveredNode == source)
 					attachedToGrabbed.push(target);
-
 				else if (updateAttached && hoveredNode == target)
 					attachedToGrabbed.push(source);
-
 				topLines.push(i);
 			}
 
 			let startWorld = getPosition(source);
 			let endWorld = getPosition(target);
-
 			let start = vecToScreenSpace(startWorld);
 			let end = vecToScreenSpace(endWorld);
 
@@ -254,88 +271,92 @@ if ('function' === typeof importScripts) {
 			}
 		}
 
-		let opacity = 1 - (hoverFade * 0.5);
-		graphics.beginFill(mixColors(colors.node, colors.background, hoverFade * 0.5), opacity);
-		graphics.lineStyle(0, 0xffffff);
+		// --- Draw nodes (background layer) ---
+		let nodeOpacity = lerp(1, 0.35, hoverFade);
+		let dimmedNodeColor = mixColors(colors.node, colors.background, hoverFade * 0.5);
+		graphics.lineStyle(0);
+		graphics.beginFill(dimmedNodeColor, nodeOpacity);
+
 		for (let i = 0; i < nodeCount; i++) {
+			let fade = nodeFadeAlpha[i] || 0;
+			if (fade < 0.01) {
+				hideLabel(i);
+				continue;
+			}
+
 			let screenRadius = getNodeScreenRadius(radii[i]);
 
 			if (hoveredNode != i) {
-				if (screenRadius > 2) {
-
-					let labelFade = lerp(0, (screenRadius - 4) / 8 - (1 / cameraScaleRoot) / 6 * 0.9, Math.max(1 - hoverFade, 0.2));
-					showLabel(i, labelFade);
-				}
-				else {
-					hideLabel(i);
-				}
+				// Labels also fade in with the node
+				let baseFade = clamp(screenRadius / 4, 0.4, 1.0);
+				let lf = lerp(baseFade, baseFade * 0.3, hoverFade) * fade;
+				showLabel(i, lf);
 			}
 
 			if (hoveredNode == i || (lastHoveredNode == i && hoverFade != 0) || (hoveredNode != -1 && attachedToGrabbed.includes(i))) continue;
 
+			// Per-node fade-in opacity (matching OB's fadeAlpha)
+			graphics.endFill();
+			graphics.beginFill(dimmedNodeColor, nodeOpacity * fade);
 			let pos = vecToScreenSpace(getPosition(i));
 			graphics.drawCircle(pos.x, pos.y, screenRadius);
 		}
-
 		graphics.endFill();
 
-
-		opacity = hoverFade * 0.7;
-		graphics.lineStyle(1, mixColors(mixColors(colors.link, colors.accent, hoverFade), colors.background, 0.2), opacity);
+		// --- Draw highlighted links (foreground) ---
+		let highlightLinkColor = mixColors(colors.link, colors.accent, hoverFade * 0.6);
+		graphics.lineStyle(lerp(1, 1.5, hoverFade), highlightLinkColor, lerp(0, 0.8, hoverFade));
 
 		for (let i = 0; i < topLines.length; i++) {
 			let target = linkTargets[topLines[i]];
 			let source = linkSources[topLines[i]];
-
-			// draw lines on top when hovered
 			let start = vecToScreenSpace(getPosition(source));
 			let end = vecToScreenSpace(getPosition(target));
-
-
 			graphics.moveTo(start.x, start.y);
 			graphics.lineTo(end.x, end.y);
 		}
 
+		// --- Draw hover-connected nodes + hovered node (foreground) ---
 		if (hoveredNode != -1 || (lastHoveredNode != -1 && hoverFade != 0)) {
-			graphics.beginFill(mixColors(colors.node, colors.accent, hoverFade * 0.2), 0.9);
-			graphics.lineStyle(0, 0xffffff);
+			// Connected neighbor nodes
+			let neighborColor = mixColors(colors.node, colors.accent, hoverFade * 0.15);
+			graphics.lineStyle(0);
+			graphics.beginFill(neighborColor, lerp(0.5, 0.95, hoverFade));
 			for (let i = 0; i < attachedToGrabbed.length; i++) {
 				let point = attachedToGrabbed[i];
-
 				let pos = vecToScreenSpace(getPosition(point));
-
 				graphics.drawCircle(pos.x, pos.y, getNodeScreenRadius(radii[point]));
-				showLabel(point, Math.max(hoverFade * 0.6, labelFade[point]));
+				showLabel(point, Math.max(hoverFade * 0.7, labelFade[point]));
 			}
 			graphics.endFill();
 
+			// The hovered node itself
 			let index = hoveredNode != -1 ? hoveredNode : lastHoveredNode;
-
 			let pos = vecToScreenSpace(getPosition(index));
-			graphics.beginFill(mixColors(colors.node, colors.accent, hoverFade), 1);
-			graphics.lineStyle(hoverFade, mixColors(invertColor(colors.background, true), colors.accent, 0.5));
+			let hoverNodeColor = mixColors(colors.node, colors.accent, hoverFade * 0.7);
+			graphics.beginFill(hoverNodeColor, 1);
+			graphics.lineStyle(lerp(0, 1.5, hoverFade), mixColors(colors.accent, colors.node, 0.3), hoverFade * 0.8);
 			graphics.drawCircle(pos.x, pos.y, getNodeScreenRadius(radii[index]));
 			graphics.endFill();
 
 			showLabel(index, Math.max(hoverFade, labelFade[index]), hoverFadeSecondary);
 		}
 
-
-
 		updateAttached = false;
 
-		graphics.lineStyle(2, colors.accent);
-		// draw the active node
+		// --- Draw the active (current page) node ring ---
 		if (activeNode != -1) {
 			let pos = vecToScreenSpace(getPosition(activeNode));
-			graphics.drawCircle(pos.x, pos.y, getNodeScreenRadius(radii[activeNode]) + 4);
-
+			let activeRadius = getNodeScreenRadius(radii[activeNode]);
+			graphics.lineStyle(1.5, colors.accent, 0.9);
+			graphics.drawCircle(pos.x, pos.y, activeRadius + 3);
 		}
 	}
 
 	function onMessage(event) {
 		if (event.data.type == "draw") {
 			positions = new Float32Array(event.data.positions);
+			if (event.data.nodeRendered) nodeRendered = event.data.nodeRendered;
 			draw();
 		}
 		else if (event.data.type == "update_camera") {
@@ -395,10 +416,11 @@ if ('function' === typeof importScripts) {
 			labelWidths = [];
 			labelFade = [];
 			for (let i = 0; i < nodeCount; i++) {
-				let label = new PIXI.Text(labels[i], { fontFamily: 'Arial', fontSize: 12, fontWeight: "normal", fill: invertColor(colors.background, true), align: 'center', anchor: 0.5 });
+				let label = new PIXI.Text(labels[i], { fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontSize: normalFontSize, fontWeight: "normal", fill: invertColor(colors.background, true), align: 'center', anchor: 0.5 });
 				pixiLabels.push(label);
 				labelWidths.push(label.width);
 				labelFade.push(0);
+				nodeFadeAlpha.push(0);
 				app.stage.addChild(label);
 			}
 

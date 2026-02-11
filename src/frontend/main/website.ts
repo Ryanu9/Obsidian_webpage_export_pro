@@ -749,29 +749,11 @@ export class ObsidianWebsite {
 
 		const localThis = this;
 		//@ts-ignore
-		waitLoadScripts(["graph-render-worker", "graph-wasm"], () => {
+		waitLoadScripts(["graph-sim-worker"], () => {
 			console.log("scripts loaded");
-			async function initGraphView() {
-				console.log("Initializing graph view");
-				const graphView = new GraphView(graphViewFeature);
-				localThis.graphView = graphView;
-				console.log("Graph view initialized");
-			}
-
-			//@ts-ignore
-			Module["onRuntimeInitialized"] = () => {
-				console.log("Wasm loaded");
-				initGraphView();
-			};
-
-			//@ts-ignore
-			run();
-
-			setTimeout(() => {
-				if (localThis.graphView == undefined) {
-					initGraphView();
-				}
-			}, 100);
+			const graphView = new GraphView(graphViewFeature);
+			localThis.graphView = graphView;
+			console.log("Graph view initialized");
 		});
 
 		await waitUntil(() => this.graphView != undefined);

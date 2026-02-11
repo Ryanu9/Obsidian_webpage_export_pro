@@ -407,6 +407,19 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 
 /*#region Graph View */
 
+/* Official OB Publish graph color classes mapped to Obsidian CSS variables */
+.graph-view.color-fill { color: var(--graph-node, var(--text-muted)); }
+.graph-view.color-fill-focused { color: var(--interactive-accent); }
+.graph-view.color-fill-tag { color: var(--graph-tag, var(--tag-color, var(--text-accent))); }
+.graph-view.color-fill-unresolved { color: var(--graph-node, var(--text-faint)); opacity: 0.5; }
+.graph-view.color-fill-attachment { color: var(--graph-node, var(--text-muted)); }
+.graph-view.color-arrow { color: var(--graph-text, var(--text-muted)); }
+.graph-view.color-circle { color: var(--graph-line, var(--background-modifier-border)); }
+.graph-view.color-line { color: var(--graph-line, var(--background-modifier-border)); }
+.graph-view.color-text { color: var(--graph-text, var(--text-normal)); }
+.graph-view.color-fill-highlight { color: var(--interactive-accent); }
+.graph-view.color-line-highlight { color: var(--interactive-accent); }
+
 .graph-view-wrapper {
 	--graph-view-max-height: 35vh;
 }
@@ -415,7 +428,7 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 	width: 100%;
 	height: 100%;
 	aspect-ratio: 1;
-	transition: opacity 0.2s ease-in-out;
+	transition: opacity 0.15s ease-in-out;
 }
 
 .graph-view-container.expanded {
@@ -423,6 +436,7 @@ html>body>#main-horizontal>#center-content>.obsidian-document>.markdown-preview-
 	width: 90%;
 	height: 90%;
 	max-height: unset;
+	aspect-ratio: auto;
 	right: 5%;
 	top: 5%;
 	background-color: var(--background-secondary);
@@ -454,6 +468,7 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 	cursor: pointer;
 	color: var(--text-muted);
 	transition: color 0.2s ease-in-out;
+	z-index: 20;
 }
 
 .graph-icon svg {
