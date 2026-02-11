@@ -270,6 +270,26 @@ export class AssetHandler
 			head += asset.getHTML(options);
 		}
 
+		// CWV LCP: preload critical font assets so they start loading immediately
+		// instead of waiting for async CSS to be parsed
+		if (!options.inlineFonts)
+		{
+			const fontAssets = this.getAssetsOfType(AssetType.Font);
+			for (const font of fontAssets)
+			{
+				if (font.data && font.data.length > 0)
+				{
+					const fontPath = font.getAssetPath(undefined).path;
+					if (fontPath)
+					{
+						const ext = fontPath.split('.').pop()?.toLowerCase() ?? '';
+						const fontMime = ext === 'woff2' ? 'font/woff2' : ext === 'woff' ? 'font/woff' : ext === 'ttf' ? 'font/ttf' : ext === 'otf' ? 'font/otf' : 'font/woff2';
+						head += `<link rel="preload" as="font" href="${fontPath}" type="${fontMime}" crossorigin>`;
+					}
+				}
+			}
+		}
+
 		// Add Vercel Insights scripts if enabled
 		head += this.getVercelInsightsScripts(options);
 

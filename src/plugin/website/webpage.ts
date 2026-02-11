@@ -676,6 +676,12 @@ export class Webpage extends Attachment {
 			const tag = link.tagName.toLowerCase();
 			switch (tag) {
 				case "img":
+					// CWV CLS: preserve rendered dimensions to prevent layout shifts
+					const imgEl = link as HTMLImageElement;
+					if (imgEl.naturalWidth && imgEl.naturalHeight && !imgEl.hasAttribute("width") && !imgEl.hasAttribute("height")) {
+						imgEl.setAttribute("width", String(imgEl.naturalWidth));
+						imgEl.setAttribute("height", String(imgEl.naturalHeight));
+					}
 
 					if (imgIndex++ < 2) {
 						link.setAttribute("loading", "eager");
@@ -714,6 +720,13 @@ export class Webpage extends Attachment {
 `;
 		if (this.author && this.author != "") {
 			head += `<meta name="author" content="${this.author}">`;
+		}
+
+		// CWV LCP: preload the first image (likely LCP element) to start loading it earlier
+		const firstImg = this.viewElement?.querySelector("img");
+		const firstImgSrc = firstImg?.getAttribute("src");
+		if (firstImgSrc && !firstImgSrc.startsWith("data:")) {
+			head += `<link rel="preload" as="image" href="${firstImgSrc}" fetchpriority="high">`;
 		}
 
 		this.pageDocument.head.innerHTML = head + this.pageDocument.head.innerHTML;

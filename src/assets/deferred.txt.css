@@ -429,11 +429,25 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
     contain-intrinsic-size: auto 300px;
 }
 
+.obsidian-document img[width][height] {
+    height: auto;
+    max-width: 100%;
+}
 
 .obsidian-document .markdown-preview-sizer>div:first-child img,
 .obsidian-document .markdown-preview-sizer>div:nth-child(2) img {
     content-visibility: visible;
     contain-intrinsic-size: none;
+}
+
+.obsidian-document iframe {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px 400px;
+}
+
+.obsidian-document video {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 300px 200px;
 }
 
 /*#endregion */

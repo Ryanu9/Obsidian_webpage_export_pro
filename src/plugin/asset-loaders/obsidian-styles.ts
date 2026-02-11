@@ -7,7 +7,7 @@ export class ObsidianStyles extends AssetLoader
 {
     constructor()
     {
-        super("obsidian.css", "", null, AssetType.Style, InlinePolicy.AutoHead, true, Mutability.Dynamic, LoadMethod.Default, 10);
+        super("obsidian.css", "", null, AssetType.Style, InlinePolicy.AutoHead, true, Mutability.Dynamic, LoadMethod.Async, 10);
     }
 
 	static readonly obsidianStyleAlwaysFilter =

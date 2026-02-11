@@ -10,7 +10,7 @@ export class ThemeStyles extends AssetLoader
 
     constructor()
     {
-        super("theme.css", "", null, AssetType.Style, InlinePolicy.AutoHead, true, Mutability.Dynamic, LoadMethod.Default, 8);
+        super("theme.css", "", null, AssetType.Style, InlinePolicy.AutoHead, true, Mutability.Dynamic, LoadMethod.Async, 8);
     }
 
 	static readonly obsidianStylesFilter =

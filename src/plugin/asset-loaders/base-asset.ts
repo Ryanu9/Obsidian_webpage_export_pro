@@ -76,6 +76,9 @@ export class AssetLoader extends Attachment
 				const reg = new RegExp(key, "g");
 				this.data = this.data.replace(reg, AssetLoader.replacements[key]);
 			}
+
+			// inject font-display:swap into @font-face rules that don't have it (CWV: prevent FOIT)
+			this.data = this.data.replace(/@font-face\s*\{(?![^}]*font-display)([^}]*)\}/g, '@font-face{$1font-display:swap;}');
 		}
 
         if (this.minify)
@@ -214,7 +217,7 @@ export class AssetLoader extends Attachment
                 case AssetType.HTML:
                     return this.data as string;
                 case AssetType.Font:
-                    return `<style>@font-face{font-family:'${this.basename}';src:url(${this.getContentBase64()}) format('woff2');}</style>`;
+                    return `<style>@font-face{font-family:'${this.basename}';src:url(${this.getContentBase64()}) format('woff2');font-display:swap;}</style>`;
                 default:
                     return "";
             }
@@ -245,7 +248,7 @@ export class AssetLoader extends Attachment
 					include = `<${this.getHTMLTagName()} src="${path}" ${attr} />`;
                     return include;
                 case AssetType.Font:
-					include = `<style>@font-face{font-family:'${this.basename}';src:url('${path}') format('woff2');}</style>`;
+					include = `<style>@font-face{font-family:'${this.basename}';src:url('${path}') format('woff2');font-display:swap;}</style>`;
                     return include;
 				case AssetType.HTML:
 					return IncludeGenerator.generate(path, false);
