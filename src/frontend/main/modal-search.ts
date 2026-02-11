@@ -108,7 +108,8 @@ export class ModalSearch {
 			}
 			.search-modal-btn:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
 			.search-modal-btn.active { background: var(--interactive-accent); color: white; }
-			.search-modal-results { flex: 1; overflow-y: auto; padding: 8px 0; min-height: 150px; }
+			.search-modal-results { flex: 1; overflow-y: auto; padding: 8px 0; }
+			.search-modal-results:empty { display: none; }
 			.search-modal-result-item {
 				display: flex; gap: 12px; padding: 10px 20px; cursor: pointer;
 				margin: 2px 8px; border-radius: 8px; transition: background 0.1s;
@@ -454,8 +455,14 @@ export class ModalSearch {
     public open(): void {
         this.overlay?.classList.add('active');
         this.modal?.classList.add('active');
+        if (this.searchInput) {
+            this.searchInput.value = '';
+        }
+        this.currentResults = [];
+        if (this.resultsContainer) {
+            this.resultsContainer.innerHTML = '';
+        }
         this.searchInput?.focus();
-        this.searchInput?.select();
     }
 
     public close(): void {

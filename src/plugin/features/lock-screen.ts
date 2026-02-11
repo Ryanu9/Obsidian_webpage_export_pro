@@ -174,14 +174,19 @@ export class LockScreen {
         style.textContent = \`
             #password-lock-container { width: 100%; height: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem; padding-top: min(10vh, 5rem); text-align: center; overflow-y: auto; box-sizing: border-box; }
             .password-lock { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; padding: 0; text-align: center; box-sizing: border-box; flex-shrink: 0; }
-            .password-lock__panel { background: var(--background-secondary); padding: 2.5rem; border-radius: 12px; border: 1px solid var(--divider-color); box-shadow: var(--shadow-l); max-width: 400px; width: 100%; box-sizing: border-box; margin: 0 auto; flex-shrink: 0; }
+            .password-lock__panel { background: rgba(30, 30, 30, 0.65); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); padding: 2.5rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3); max-width: 400px; width: 100%; box-sizing: border-box; margin: 0 auto; flex-shrink: 0; }
+            .theme-light .password-lock__panel { background: rgba(255, 255, 255, 0.65); border-color: rgba(0, 0, 0, 0.08); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12); }
             .password-lock__icon { width: 48px; height: 48px; margin-bottom: 1rem; color: var(--text-normal); stroke: currentColor; fill: none; }
             .password-lock__title { margin: 0 0 0.5rem 0; font-size: 1.5rem; }
             .password-lock__description { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
             .password-lock__form { display: flex; flex-direction: column; gap: 1rem; }
-            .password-lock__input { padding: 0.8rem; border-radius: 6px; border: 1px solid var(--divider-color); background: var(--background-primary); color: var(--text-normal); width: 100%; }
-            .password-lock__submit { padding: 0.8rem; border-radius: 6px; border: none; background: var(--interactive-accent); color: var(--text-on-accent); cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
+            .password-lock__input { padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.06); color: var(--text-normal); width: 100%; transition: border-color 0.15s ease, background 0.15s ease; }
+            .password-lock__input:focus { border-color: var(--interactive-accent); background: rgba(255, 255, 255, 0.1); outline: none; }
+            .theme-light .password-lock__input { border-color: rgba(0, 0, 0, 0.1); background: rgba(0, 0, 0, 0.04); }
+            .theme-light .password-lock__input:focus { background: rgba(0, 0, 0, 0.06); }
+            .password-lock__submit { padding: 0.8rem; border-radius: 8px; border: none; background: var(--interactive-accent); color: var(--text-on-accent); cursor: pointer; font-weight: bold; transition: opacity 0.2s, transform 0.1s; }
             .password-lock__submit:hover { opacity: 0.9; }
+            .password-lock__submit:active { transform: scale(0.98); }
             .password-lock__error { font-size: 0.85rem; margin-top: 0.5rem; }
         \`;
         document.head.appendChild(style);
