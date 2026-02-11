@@ -175,27 +175,30 @@ export class WebpageDocument {
 				}
 			}
 
-			// Clean up previous page's TOC observer if it exists
-			if ((window as any).__tocHideObserver) {
-				(window as any).__tocHideObserver.disconnect();
-				(window as any).__tocHideObserver = null;
-			}
+			// Skip TOC observer cleanup and unlock script handling for previews
+			if (!isPreview) {
+				// Clean up previous page's TOC observer if it exists
+				if ((window as any).__tocHideObserver) {
+					(window as any).__tocHideObserver.disconnect();
+					(window as any).__tocHideObserver = null;
+				}
 
-			// Clean up previous page's unlock scripts
-			const oldScripts = document.querySelectorAll('script[data-unlock-script]');
-			oldScripts.forEach(oldScript => oldScript.remove());
+				// Clean up previous page's unlock scripts
+				const oldScripts = document.querySelectorAll('script[data-unlock-script]');
+				oldScripts.forEach(oldScript => oldScript.remove());
 
-			// Check for new page unlock script
-			const unlockScripts = this.sourceHtml.querySelectorAll('script[data-unlock-script]');
-			if (unlockScripts.length > 0) {
-				const fragment = document.createDocumentFragment();
-				unlockScripts.forEach(script => {
-					const newScript = document.createElement('script');
-					newScript.textContent = script.textContent;
-					newScript.setAttribute('data-unlock-script', 'true');
-					fragment.appendChild(newScript);
-				});
-				document.body.appendChild(fragment);
+				// Check for new page unlock script
+				const unlockScripts = this.sourceHtml.querySelectorAll('script[data-unlock-script]');
+				if (unlockScripts.length > 0) {
+					const fragment = document.createDocumentFragment();
+					unlockScripts.forEach(script => {
+						const newScript = document.createElement('script');
+						newScript.textContent = script.textContent;
+						newScript.setAttribute('data-unlock-script', 'true');
+						fragment.appendChild(newScript);
+					});
+					document.body.appendChild(fragment);
+				}
 			}
 
 			await this.loadChildDocuments();
@@ -231,15 +234,17 @@ export class WebpageDocument {
 		this.findElements();
 		await this.postProcess();
 
-		// Handle encrypted page TOC visibility
-		const isLocked = document.querySelector('#password-lock-container') !== null;
-		if (isLocked) {
-			const outline = document.querySelector('#outline');
-			if (outline) {
-				(outline as HTMLElement).style.setProperty('display', 'none', 'important');
-				outline.setAttribute('data-toc-hidden', 'true');
+		// Handle encrypted page TOC visibility (skip for previews to avoid hiding main page's TOC)
+		if (!this.isPreview) {
+			const isLocked = document.querySelector('#password-lock-container') !== null;
+			if (isLocked) {
+				const outline = document.querySelector('#outline');
+				if (outline) {
+					(outline as HTMLElement).style.setProperty('display', 'none', 'important');
+					outline.setAttribute('data-toc-hidden', 'true');
+				}
+				Giscus.initOnEncryptedPage();
 			}
-			Giscus.initOnEncryptedPage();
 		}
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {

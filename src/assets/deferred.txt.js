@@ -1,4 +1,11 @@
+var _loadIncludesPromise = null;
 async function loadIncludes()
+{
+	if (_loadIncludesPromise) return _loadIncludesPromise;
+	_loadIncludesPromise = _loadIncludesImpl();
+	return _loadIncludesPromise;
+}
+async function _loadIncludesImpl()
 {
 	// replace include tags with the contents of the file
 	let includeTags = document.querySelectorAll("link[itemprop='include']");

@@ -136,6 +136,21 @@ export class TreeItem
 		});
 	}
 
+	/**
+	 * Set collapsed state without triggering slideUp/slideDown animations.
+	 * Used during initialization to avoid forced reflows from offsetHeight reads.
+	 */
+	protected initCollapsed(collapse: boolean)
+	{
+		if (!this.collapsable) collapse = false;
+		this._collapsed = collapse;
+		this.itemEl.classList.toggle("is-collapsed", collapse);
+		this.collapseIconEl?.classList.toggle("is-collapsed", collapse);
+		if (this.childrenEl) {
+			this.childrenEl.style.display = collapse ? 'none' : '';
+		}
+	}
+
 	constructor(itemEl: HTMLElement, parent: TreeItem | undefined, depth: number = 0, minCollapseDepth: number = 1)
 	{
 		this.root = (this instanceof Tree ? this : (parent?.root ?? (parent instanceof Tree ? parent : undefined))) as Tree;
@@ -180,7 +195,7 @@ export class TreeItem
 			this.itemEl.classList.remove("is-collapsed");
 		}
 		
-		this.collapsed = this.itemEl.classList.contains("is-collapsed");
+		this.initCollapsed(this.itemEl.classList.contains("is-collapsed"));
 
 		if (this._isCollapsible) 
 		{

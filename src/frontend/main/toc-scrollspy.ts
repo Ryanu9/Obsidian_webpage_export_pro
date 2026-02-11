@@ -265,7 +265,7 @@ export class TocScrollSpy {
                 position: relative;
                 display: flex;
                 flex-direction: column;
-                overflow-y: hidden;
+                overflow-y: auto;
                 min-height: 1.4rem;
             }
             #outline.is-collapsed {
@@ -325,8 +325,8 @@ export class TocScrollSpy {
                 flex: 1;
                 line-height: 1.8;
                 padding: 0;
-                font-size: 0.95rem;
-                font-weight: 600;
+                font-size: 1rem;
+                font-weight: 500;
             }
 
             /* Depth-based indentation (includes 0.75rem gap from left border) */
@@ -406,6 +406,7 @@ export class TocScrollSpy {
             #backlinks .feature-header {
                 padding: 0;
                 margin: 0;
+                border-bottom: none !important;
             }
 
             #backlinks .feature-header .feature-title {
@@ -419,9 +420,6 @@ export class TocScrollSpy {
                 list-style: none;
                 padding: 0;
                 margin: 0.5rem 0;
-                overflow-y: auto;
-                max-height: calc(100% - 2rem);
-                overscroll-behavior: contain;
             }
 
             /* Hide backlink icons — Quartz uses plain text links */
@@ -452,6 +450,7 @@ export class TocScrollSpy {
             #backlinks .backlink-title {
                 display: inline;
                 font-weight: 600;
+                margin-left: 1em;
             }
 
             #backlinks .backlinks-empty-message {

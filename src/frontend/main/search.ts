@@ -189,19 +189,22 @@ export class Search
 		ObsidianSite.fileTree?.unsort();
 	}
 
-	public async init(): Promise<Search | undefined>
+	public async init(preloadedIndexJSON?: any): Promise<Search | undefined>
 	{
 		this.input = document.querySelector('input[type="search"]') as HTMLInputElement;
 		this.container = this.input?.closest("#search-container") as HTMLElement;
 		if (!this.input || !this.container) return;
 
-		const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/search-index.json');
-		if (!indexResp?.ok)
-		{
-			console.error("Failed to fetch search index");
-			return;
+		let indexJSON = preloadedIndexJSON;
+		if (!indexJSON) {
+			const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/search-index.json');
+			if (!indexResp?.ok)
+			{
+				console.error("Failed to fetch search index");
+				return;
+			}
+			indexJSON = await indexResp.json();
 		}
-		const indexJSON = await indexResp.json();
 		try
 		{
 			// @ts-ignore

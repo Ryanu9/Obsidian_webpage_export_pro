@@ -36,13 +36,15 @@ export class ModalSearch {
         this.handleInputChange = this.handleInputChange.bind(this);
 	}
 
-	public async init(): Promise<ModalSearch | undefined> {
+	public async init(preloadedIndexJSON?: any): Promise<ModalSearch | undefined> {
         ModalSearch.injectStyles();
 
-        const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
-        if (!indexResp?.ok) return;
-
-        const indexJSON = await indexResp.json();
+        let indexJSON = preloadedIndexJSON;
+        if (!indexJSON) {
+            const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
+            if (!indexResp?.ok) return;
+            indexJSON = await indexResp.json();
+        }
         try {
             // @ts-ignore
             this.index = MiniSearch.loadJS(indexJSON, {

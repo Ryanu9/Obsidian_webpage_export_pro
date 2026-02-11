@@ -143,10 +143,8 @@ export class ObsidianWebsite {
 		if (rightSidebarEl) this.rightSidebar = new Sidebar(rightSidebarEl);
 		this.tocScrollSpy = new TocScrollSpy();
 		new AttachmentDownload();
-		this.search = await new Search().init();
-		// Initialise modal search independently of header search so users can
-		// quickly open it with the keyboard even when the header is hidden.
-		await new ModalSearch().init();
+		// Defer search index loading - fetch once and share between both search components
+		this.initSearchDeferred();
 
 		this.initSidebarToolbar();
 
@@ -210,7 +208,8 @@ export class ObsidianWebsite {
 					) ?? [];
 
 					if (!this.backlinkList) {
-						this.backlinkList = new BacklinkList(backlinks);
+						const existingEl = document.getElementById("backlinks") as HTMLElement | null;
+						this.backlinkList = new BacklinkList(backlinks, existingEl || undefined);
 					} else {
 						this.backlinkList?.modifyDependencies((d) => {
 							d.backlinkPaths = backlinks;
@@ -491,6 +490,23 @@ export class ObsidianWebsite {
 				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
 			}
 		});
+	}
+
+	private initSearchDeferred() {
+		// Fetch the search index once and share it between both search components.
+		// This runs in the background without blocking page rendering.
+		(async () => {
+			try {
+				const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
+				if (!indexResp?.ok) return;
+				const indexJSON = await indexResp.json();
+
+				this.search = await new Search().init(indexJSON);
+				await new ModalSearch().init(indexJSON);
+			} catch (e) {
+				console.error("Failed to initialize search:", e);
+			}
+		})();
 	}
 
 	private initEvents() {
@@ -794,6 +810,7 @@ export class ObsidianWebsite {
 	private isResizing = false;
 	private checkStillResizingTimeout: NodeJS.Timeout | undefined = undefined;
 	private resizeRAF: number | null = null;
+	private _cachedLayoutWidths: { doc: number; left: number; right: number } | null = null;
 	private _deviceSize: string = "large-screen";
 	public get deviceSize(): string {
 		return this._deviceSize;
@@ -839,21 +856,30 @@ export class ObsidianWebsite {
 			);
 		}
 
-		const docWidthCSS =
-			this.metadata.featureOptions.document?.documentWidth ?? "45em";
-		const leftWdithCSS =
-			this.metadata.featureOptions.sidebar?.leftDefaultWidth ?? "20em";
-		const rightWidthCSS =
-			this.metadata.featureOptions.sidebar?.rightDefaultWidth ?? "20em";
+		// Cache layout width computations to avoid forced reflows on every resize.
+		// These CSS values are constant so we only need to compute them once.
+		if (!this._cachedLayoutWidths) {
+			const docWidthCSS =
+				this.metadata.featureOptions.document?.documentWidth ?? "45em";
+			const leftWidthCSS =
+				this.metadata.featureOptions.sidebar?.leftDefaultWidth ?? "20em";
+			const rightWidthCSS =
+				this.metadata.featureOptions.sidebar?.rightDefaultWidth ?? "20em";
 
-		// calculate the css widths
-		const docWidth = getLengthInPixels(docWidthCSS, this.centerContentEl);
-		const leftWidth = this.leftSidebar
-			? getLengthInPixels(leftWdithCSS, this.leftSidebar?.containerEl)
-			: 0;
-		const rightWidth = this.rightSidebar
-			? getLengthInPixels(rightWidthCSS, this.rightSidebar?.containerEl)
-			: 0;
+			this._cachedLayoutWidths = {
+				doc: getLengthInPixels(docWidthCSS, this.centerContentEl),
+				left: this.leftSidebar
+					? getLengthInPixels(leftWidthCSS, this.leftSidebar?.containerEl)
+					: 0,
+				right: this.rightSidebar
+					? getLengthInPixels(rightWidthCSS, this.rightSidebar?.containerEl)
+					: 0,
+			};
+		}
+
+		const docWidth = this._cachedLayoutWidths.doc;
+		const leftWidth = this._cachedLayoutWidths.left;
+		const rightWidth = this._cachedLayoutWidths.right;
 
 		if (
 			widthNowGreaterThan(docWidth + leftWidth + rightWidth) ||

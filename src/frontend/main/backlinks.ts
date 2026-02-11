@@ -61,10 +61,10 @@ export class BacklinkList extends DynamicInsertedFeature<
 > {
 	public backlinks: Backlink[];
 
-	constructor(backlinkPaths: string[]) {
+	constructor(backlinkPaths: string[], existingElement?: HTMLElement) {
 		super(ObsidianSite.metadata.featureOptions.backlinks, {
 			backlinkPaths,
-		});
+		}, existingElement);
 	}
 
 	protected generateContent(container: HTMLElement) {

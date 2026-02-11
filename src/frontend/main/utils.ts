@@ -244,6 +244,10 @@ export class Ticker {
 //#region Animation
 export function slideUp(target: HTMLElement, duration: number = 500) {
 	if (target.style.display === 'none') return;
+	if (duration <= 0) {
+		target.style.display = 'none';
+		return;
+	}
 	target.style.transitionProperty = 'height, margin, padding';
 	target.style.transitionTimingFunction = "ease-in-out";
 	target.style.transitionDuration = duration + 'ms';
@@ -304,6 +308,10 @@ export function slideUpAll(targets: HTMLElement[], duration: number = 500) {
 
 export function slideDown(target: HTMLElement, duration: number = 500) {
 	if (window.getComputedStyle(target).display !== 'none') return;
+	if (duration <= 0) {
+		target.style.removeProperty('display');
+		return;
+	}
 	target.style.removeProperty('display');
 	let display = window.getComputedStyle(target).display;
 	if (display === 'none') display = 'block';

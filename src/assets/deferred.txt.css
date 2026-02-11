@@ -265,7 +265,7 @@ body.floating-sidebars #left-sidebar .leaf-content {
 }
 
 #outline + #backlinks {
-    padding-top: 0;
+    padding-top: 0.5em;
 }
 
 .feature-header {

@@ -1,3 +1,5 @@
+import { Notice } from './notifications';
+
 export class Header {
     private static headerMap: WeakMap<HTMLElement, Header> = new WeakMap();
 
@@ -34,7 +36,7 @@ export class Header {
 
         const anchorButton = document.createElement('button');
         anchorButton.className = 'heading-anchor-copy-button';
-        anchorButton.textContent = '#';
+        anchorButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
         anchorButton.setAttribute('aria-label', '复制标题链接');
         anchorButton.title = '复制标题链接';
 
@@ -44,6 +46,8 @@ export class Header {
 
             const url = `${window.location.origin}${window.location.pathname}#${this._id}`;
             navigator.clipboard.writeText(url);
+
+            new Notice('已复制标题链接', 2000);
 
             anchorButton.classList.add('is-active');
             setTimeout(() => {
@@ -74,13 +78,13 @@ export class Header {
                 appearance: none;
                 padding: 0;
                 
-                /* 2. 视觉表现：看起来像文本 */
-                opacity: 0;                          /* 默认隐藏，悬庭才显示 */
-                color: var(--text-faint);            /* 使用淡淡的文字颜色 */
-                font-size: 0.9em;
-                margin-left: 0.2em;
+                /* 2. 视觉表现 */
+                opacity: 0;                          /* 默认隐藏，悬停才显示 */
+                color: var(--text-faint);
+                width: 16px;
+                height: 16px;
+                margin-left: 0.3em;
                 cursor: pointer;
-                font-family: var(--font-monospace);  /* 使用等宽字体让 # 更美观 */
                 vertical-align: middle;
                 
                 transition: opacity 0.2s ease-in-out, color 0.15s ease-in-out;
