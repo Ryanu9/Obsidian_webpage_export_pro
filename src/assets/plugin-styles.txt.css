@@ -1314,29 +1314,31 @@ a.backlink:hover {
 	position: relative;
 }
 
-/* 别名样式调整： */
-.header .data-bar #aliases {
+/* 别名样式调整 */
+.header #aliases {
 	width: 100%;
-	text-align: center;
 	justify-content: center;
-	gap: 0.4em;
-	margin-top: -0.2em;
-	margin-bottom: 0.3em;
+	gap: 0;
+	margin-top: 0.4em;
+	margin-bottom: 0.2em;
 }
 
-.header .data-bar #aliases .feature-header {
+.header #aliases .feature-header {
 	display: none;
 }
 
-.header .data-bar #aliases .aliases-content {
-	font-size: 0.82em;
+.header #aliases .aliases-content {
 	justify-content: center;
+	gap: 0.5em;
 }
 
-.header .data-bar #aliases .aliases-content .alias {
-	font-size: 0.82em;
+.header #aliases .aliases-content .alias {
+	font-size: 0.8em;
 	color: var(--text-faint);
-	font-style: italic;
+	background-color: var(--background-modifier-hover);
+	padding: 0.15em 0.65em;
+	border-radius: 1em;
+	letter-spacing: 0.02em;
 }
 
 /*#endregion */

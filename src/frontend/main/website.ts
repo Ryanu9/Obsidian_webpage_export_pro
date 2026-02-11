@@ -273,6 +273,12 @@ export class ObsidianWebsite {
 						this.aliases?.hide();
 					} else {
 						this.aliases?.show();
+						// Move aliases after created-updated-bar (between date and 文档属性)
+						const aliasEl = document.getElementById("aliases");
+						const dateBar = document.querySelector(".header .created-updated-bar");
+						if (aliasEl && dateBar && dateBar.parentElement) {
+							dateBar.parentElement.insertBefore(aliasEl, dateBar.nextSibling);
+						}
 					}
 				} else {
 					this.aliases?.hide();
