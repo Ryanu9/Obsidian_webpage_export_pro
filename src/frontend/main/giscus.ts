@@ -87,11 +87,8 @@ export class Giscus extends DynamicInsertedFeature<GiscusOptions> {
             }
         };
 
-        // Listen to theme changes
-        const themeToggle = document.querySelector(".theme-toggle-input");
-        if (themeToggle) {
-            themeToggle.addEventListener("change", this.themeChangeListener);
-        }
+        // Listen to theme changes from any toggle (sidebar button, checkbox, etc.)
+        document.addEventListener("theme-changed", this.themeChangeListener);
     }
 
     public static initOnEncryptedPage() {

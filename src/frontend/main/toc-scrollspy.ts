@@ -327,7 +327,6 @@ export class TocScrollSpy {
                 font-size: 16px;
                 font-weight: 600;
                 text-decoration: none;
-                opacity: .75;
             }
 
             /* Depth-based indentation (includes 0.75rem gap from left border) */
