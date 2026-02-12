@@ -663,8 +663,8 @@ body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
 
 .graph-view-container.expanded {
 	position: fixed;
-	width: 90%;
-	height: 95%;
+	width: 92%;
+	height: 90%;
 	max-height: unset;
 	aspect-ratio: auto;
 	right: 5%;
