@@ -152,10 +152,10 @@ export class ImageZoom {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    background: rgba(0, 0, 0, 0.55);
-    border: none;
+    width: 62px;
+    height: 62px;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     color: #fff;
     cursor: pointer;
@@ -163,14 +163,19 @@ export class ImageZoom {
     align-items: center;
     justify-content: center;
     z-index: 10001;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
     padding: 0;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .image-zoom-prev { left: 16px; }
 .image-zoom-next { right: 16px; }
 .image-zoom-prev:hover,
 .image-zoom-next:hover {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-50%) scale(1.08);
 }
 
 /* thumbnail strip */
@@ -237,12 +242,12 @@ export class ImageZoom {
         // Prev arrow (left)
         this.prevBtn = document.createElement("button");
         this.prevBtn.className = "image-zoom-prev";
-        this.prevBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+        this.prevBtn.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
 
         // Next arrow (right)
         this.nextBtn = document.createElement("button");
         this.nextBtn.className = "image-zoom-next";
-        this.nextBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
+        this.nextBtn.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
 
         // Main zoom image
         this.zoomImage = document.createElement("img");
