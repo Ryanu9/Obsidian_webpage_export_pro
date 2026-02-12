@@ -151,7 +151,8 @@ export class CodeBlockManager {
                 border-radius: 8px;
                 overflow: hidden;
                 background-color: var(--code-background);
-                --code-ui-color: #888; /* 默认灰色 */
+                --code-ui-color: #888;
+                --code-ui-color-muted: #777;
             }
 
             .code-block-header {
@@ -160,7 +161,6 @@ export class CodeBlockManager {
                 align-items: center;
                 padding: 1px 12px;
                 background-color: var(--code-background);
-                border-bottom: none;
                 font-family: var(--font-interface);
                 user-select: none;
             }
@@ -169,11 +169,10 @@ export class CodeBlockManager {
                 font-size: 0.85em;
                 font-weight: 500;
                 color: var(--code-ui-color) !important;
-                opacity: 0.75; 
                 text-transform: capitalize;
                 user-select: none;
             }
-            
+
             .code-block-controls {
                 display: flex;
                 align-items: center;
@@ -185,32 +184,18 @@ export class CodeBlockManager {
                 align-items: center;
                 justify-content: center;
                 background: transparent !important;
-                background-color: transparent !important;
                 border: none !important;
                 box-shadow: none !important;
-                color: var(--code-ui-color) !important; 
-                opacity: 0.75; 
+                color: var(--code-ui-color) !important;
                 cursor: pointer;
                 padding: 4px;
                 border-radius: 4px;
-                transition: opacity 0.2s, background-color 0.2s, filter 0.2s;
+                transition: background-color 0.2s, filter 0.2s;
             }
 
-            .code-block-button:hover,
-            .code-block-button.active {
-                opacity: 1 !important; 
+            .code-block-button:hover {
                 background-color: var(--background-modifier-hover) !important;
                 filter: brightness(1.2);
-            }
-            
-            .code-block-button.active {
-                color: var(--interactive-accent) !important;
-            }
-
-
-            .code-block-button.wrap-button.active {
-                background-color: transparent;
-                color: var(--text-muted);
             }
 
             .code-block-button svg {
@@ -223,6 +208,7 @@ export class CodeBlockManager {
                 margin-left: 4px;
             }
 
+            /* pre 基础样式 */
             .markdown-rendered pre {
                 margin: 0 !important;
                 padding: 0 !important;
@@ -233,121 +219,86 @@ export class CodeBlockManager {
                 display: block;
                 position: relative;
                 overflow: visible;
-                clear: both;
-                float: none;
             }
 
-            /* 当有行号时，使用 grid 布局 */
             .markdown-rendered pre.has-line-numbers {
                 display: grid;
                 grid-template-columns: auto 1fr;
                 gap: 0;
             }
 
-            /* 当没有行号时，code 元素正常显示 */
-            .markdown-rendered pre:not(.has-line-numbers) {
-                display: block !important;
-            }
-
-            .markdown-rendered pre:not(.has-line-numbers) code,
-            .markdown-rendered pre:not(.has-line-numbers) code[data-line],
-            .markdown-rendered pre:not(.has-line-numbers).language-ansi > span,
-            .markdown-rendered pre:not(.has-line-numbers) .ansi-content-wrapper {
+            /* code 元素基础样式 */
+            .markdown-rendered pre code,
+            .markdown-rendered pre.language-ansi > span,
+            .markdown-rendered pre .ansi-content-wrapper {
                 padding: 1em !important;
                 overflow-x: auto;
                 display: block !important;
-                white-space: pre !important; 
+                white-space: pre !important;
                 word-wrap: normal !important;
                 font-family: inherit;
                 position: static !important;
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
                 margin: 0 !important;
-                float: none !important;
-                clear: both !important;
                 transform: none !important;
                 z-index: auto !important;
                 background-color: var(--code-background);
             }
 
-            /* 确保 code 内部的语法高亮元素在无行号时也正常显示 */
-            .markdown-rendered pre:not(.has-line-numbers) code * {
-                display: inline;
-                white-space: pre;
-                position: static !important;
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
-                background-color: transparent; /* 内部元素保持透明，让 code 的背景色显示 */
-            }
-
-            /* 重置可能影响代码块显示的属性，特别是针对 is-loaded 类 */
-            .markdown-rendered pre:not(.has-line-numbers) code.is-loaded {
-                position: static !important;
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
-                transform: none !important;
-                z-index: auto !important;
-                background-color: var(--code-background);
-            }
-
-            /* 当有行号时，code 元素占据 grid 第二列 */
-            .markdown-rendered pre.has-line-numbers code, 
+            /* 有行号时 code 占据 grid 第二列 */
+            .markdown-rendered pre.has-line-numbers code,
             .markdown-rendered pre.has-line-numbers.language-ansi > span,
             .markdown-rendered pre.has-line-numbers .ansi-content-wrapper {
                 grid-column: 2;
                 grid-row: 1;
-                padding: 1em !important;
-                overflow-x: auto;
-                display: block;
-                white-space: pre !important; 
-                word-wrap: normal !important;
-                font-family: inherit;
-                min-width: 0; /* 防止 grid 项目溢出 */
-                width: 100%;
-                box-sizing: border-box;
-                background-color: var(--code-background);
+                min-width: 0;
             }
 
-            /* 确保 code 内部的语法高亮元素正常显示，不影响 grid 布局 */
-            .markdown-rendered pre.has-line-numbers code * {
+            /* code 内部语法高亮元素 */
+            .markdown-rendered pre code * {
                 display: inline;
                 white-space: pre;
-                background-color: transparent; /* 内部元素保持透明，让 code 的背景色显示 */
+                position: static !important;
+                background-color: transparent;
             }
 
-            /* 当换行时，code 内部的语法高亮元素也要换行 */
-            .markdown-rendered pre.wrap-code.has-line-numbers code * {
+            /* 换行模式 */
+            .markdown-rendered pre.wrap-code code,
+            .markdown-rendered pre.wrap-code.language-ansi > span,
+            .markdown-rendered pre.wrap-code .ansi-content-wrapper {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                word-break: break-all !important;
+                min-width: 0 !important;
+                overflow-x: visible !important;
+                overflow-wrap: break-word !important;
+            }
+
+            .markdown-rendered pre.wrap-code code * {
                 white-space: pre-wrap !important;
             }
 
+            /* 行号 */
             .line-numbers-wrapper {
                 grid-column: 1;
                 text-align: right;
                 padding: 1em 0.8em 1em 1em;
                 border-right: 1px solid var(--background-modifier-border);
-                color: var(--code-ui-color);
-                opacity: 0.7; /* 行号透明度调整 */
+                color: var(--code-ui-color-muted);
                 user-select: none;
-                font-family: inherit; /* Sync font with code */
+                font-family: inherit;
                 background-color: var(--code-background);
-                min-width: 2.5em; 
+                min-width: 2.5em;
             }
 
             .line-number {
                 display: block;
-                line-height: inherit; /* Will be synced via JS */
+                line-height: inherit;
                 font-size: inherit;
             }
-            
+
             .line-continuation::before {
                 content: "";
                 display: inline-block;
@@ -359,49 +310,12 @@ export class CodeBlockManager {
                 vertical-align: middle;
             }
 
-            /* Wrap Code Styles - 没有行号时 */
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code,
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code[data-line],
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code.is-loaded,
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers).language-ansi > span,
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers) .ansi-content-wrapper {
-                white-space: pre-wrap !important;
-                word-wrap: break-word !important;
-                word-break: break-all !important;
-                width: 100% !important;
-                min-width: 0 !important; /* Override min-width: 100% */
-                overflow-x: visible !important;
-                overflow-wrap: break-word !important;
-                background-color: var(--code-background);
-            }
-
-            /* 当换行时，code 内部的语法高亮元素也要换行（无行号时） */
-            .markdown-rendered pre.wrap-code:not(.has-line-numbers) code * {
-                white-space: pre-wrap !important;
-            }
-
-            /* Wrap Code Styles - 有行号时 */
-            .markdown-rendered pre.wrap-code.has-line-numbers code,
-            .markdown-rendered pre.wrap-code.has-line-numbers.language-ansi > span,
-            .markdown-rendered pre.wrap-code.has-line-numbers .ansi-content-wrapper {
-                white-space: pre-wrap !important;
-                word-wrap: break-word !important;
-                word-break: break-all !important;
-                width: 100% !important;
-                min-width: 0 !important; /* Override min-width: 100% */
-                overflow-x: visible !important;
-                overflow-wrap: break-word !important;
-                background-color: var(--code-background);
-            }
-
-            /* Collapse Styles */
-            .code-block-container.collapsed .markdown-rendered pre,
+            /* 折叠样式 */
             .code-block-container.collapsed pre {
                 overflow-y: hidden;
                 position: relative;
             }
-            
-            .code-block-container.collapsed .markdown-rendered pre::after,
+
             .code-block-container.collapsed pre::after {
                 content: '';
                 position: absolute;
@@ -413,31 +327,8 @@ export class CodeBlockManager {
                 pointer-events: none;
                 z-index: 10;
             }
-            
-            .expand-button-container {
-                display: none;
-                justify-content: center;
-                padding: 8px;
-                border-top: 1px solid var(--background-modifier-border);
-                background: var(--background-secondary);
-            }
 
-            .code-block-container.collapsed .expand-button-container {
-                display: flex;
-            }
-
-            /* Corner expand button (if used in addition to header) */
-            .corner-button {
-                position: absolute;
-                bottom: 8px;
-                right: 8px;
-                z-index: 10;
-                background: var(--background-primary);
-                border: 1px solid var(--background-modifier-border);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            /* Bottom expand button for code blocks */
+            /* 底部展开按钮 */
             .bottom-expand-button {
                 position: absolute;
                 bottom: 12px;
@@ -445,8 +336,9 @@ export class CodeBlockManager {
                 z-index: 10;
                 width: 36px;
                 height: 36px;
-                background: rgba(0, 0, 0, 0.7) !important;
-                border: none;
+                background: var(--background-modifier-hover) !important;
+                color: var(--code-ui-color);
+                border: 1px solid var(--background-modifier-border);
                 border-radius: 50%;
                 cursor: pointer;
                 display: flex;
@@ -454,21 +346,19 @@ export class CodeBlockManager {
                 justify-content: center;
                 padding: 0;
                 transition: box-shadow 0.3s ease, transform 0.3s ease;
-                box-shadow: none;
             }
-            
+
             .bottom-expand-button:hover {
-                background: rgba(0, 0, 0, 0.7) !important;
-                box-shadow: 0 0 12px rgba(255, 255, 255, 0.3), 0 0 20px rgba(255, 255, 255, 0.2);
+                filter: brightness(1.2);
             }
-            
+
             .bottom-expand-button svg {
                 width: 20px;
                 height: 20px;
                 display: block;
             }
 
-            /* ANSI Colors (Basic support) */
+            /* ANSI Colors */
             .ansi-black-fg { color: black; }
             .ansi-red-fg { color: red; }
             .ansi-green-fg { color: green; }
@@ -478,8 +368,8 @@ export class CodeBlockManager {
             .ansi-cyan-fg { color: cyan; }
             .ansi-white-fg { color: white; }
             .ansi-bright-black-fg { color: gray; }
-            
-            /* Exclude YAML properties from line numbers */
+
+            /* YAML / Frontmatter 排除 */
             .yaml-properties-container pre {
                 display: block !important;
                 grid-template-columns: 1fr !important;
@@ -487,11 +377,7 @@ export class CodeBlockManager {
             .yaml-properties-container .line-numbers-wrapper {
                 display: none !important;
             }
-            .yaml-properties-container pre.has-line-numbers {
-                grid-template-columns: 1fr !important;
-            }
 
-            /* 隐藏 frontmatter 代码块， */
             .markdown-rendered pre.frontmatter,
             .markdown-rendered pre.yaml-frontmatter,
             .markdown-rendered pre[data-frontmatter] {
@@ -954,7 +840,7 @@ export class CodeBlockManager {
         const bottomBtn = document.createElement('button');
         bottomBtn.className = 'bottom-expand-button';
         bottomBtn.title = this.getTranslation('expandCollapse', '展开/收起');
-        bottomBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M18 12L12 18L6 12" stroke="#ffffff" stroke-width="2"></path><path d="M18 6L12 12L6 6" stroke="#ffffff" stroke-width="2"></path></g></svg>`;
+        bottomBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M18 12L12 18L6 12" stroke="currentColor" stroke-width="2"></path><path d="M18 6L12 12L6 6" stroke="currentColor" stroke-width="2"></path></svg>`;
         bottomBtn.onclick = () => {
             const headerBtn = container.querySelector('.code-block-button.expand-button') as HTMLButtonElement;
             this.toggleCollapse(container, headerBtn || null);
@@ -1098,14 +984,14 @@ export class CodeBlockManager {
     private adjustContrast(container: HTMLElement) {
         const bg = getComputedStyle(container).backgroundColor;
 
-
         const isDark = document.body.classList.contains('theme-dark');
 
-
-        const standardColor = isDark ? '#b0b0b0' : '#555555';
-        const adjustedColor = ensureContrast(standardColor, bg, 4, container);
+        const standardColor = isDark ? '#a0a0a0' : '#606060';
+        const mutedColor = isDark ? '#888888' : '#777777';
+        const adjustedColor = ensureContrast(standardColor, bg, 3.5, container);
+        const adjustedMuted = ensureContrast(mutedColor, bg, 3, container);
         container.style.setProperty('--code-ui-color', adjustedColor);
-
+        container.style.setProperty('--code-ui-color-muted', adjustedMuted);
 
         if (!this.processedContainers.includes(container)) {
             this.processedContainers.push(container);
