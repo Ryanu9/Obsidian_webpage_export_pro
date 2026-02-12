@@ -365,6 +365,49 @@ body.floating-sidebars:has(.sidebar:not(.is-collapsed)) #main-horizontal::before
     pointer-events: auto;
 }
 
+/* Reader Mode: transparent sidebars with hover-to-reveal */
+body.reader-mode:not(.floating-sidebars) #left-sidebar,
+body.reader-mode:not(.floating-sidebars) #left-sidebar.is-collapsed {
+    opacity: 0;
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    overflow: visible;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.reader-mode:not(.floating-sidebars) #right-sidebar,
+body.reader-mode:not(.floating-sidebars) #right-sidebar.is-collapsed {
+    opacity: 0;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.reader-mode:not(.floating-sidebars) #left-sidebar:hover,
+body.reader-mode:not(.floating-sidebars) #right-sidebar:hover {
+    opacity: 1;
+}
+
+body.reader-mode:not(.floating-sidebars) .sidebar.is-collapsed .sidebar-content-wrapper {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.reader-mode:not(.floating-sidebars) .sidebar.is-collapsed .sidebar-toolbar {
+    opacity: 1;
+    pointer-events: auto;
+    overflow: visible;
+    height: auto;
+    margin-bottom: 8px;
+    padding: 0 var(--sidebar-margin);
+}
+
+/* Active state for reader mode button */
+body.reader-mode #reader-mode-toggle,
+body.reader-mode #mobile-reader-toggle {
+    color: var(--interactive-accent);
+}
+
 /*#endregion */
 
 /*#region Mobile Topbar */

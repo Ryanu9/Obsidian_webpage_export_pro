@@ -439,11 +439,13 @@ export class ObsidianWebsite {
 			this.theme?.switchTheme();
 		});
 
-		// Right sidebar toggle button
-		const rightSidebarBtn = document.getElementById('sidebar-right-toggle');
-		rightSidebarBtn?.addEventListener('click', () => {
-			if (this.rightSidebar) {
-				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
+		// Reader mode toggle button
+		const readerModeBtn = document.getElementById('reader-mode-toggle');
+		readerModeBtn?.addEventListener('click', () => {
+			const isReaderMode = document.body.classList.toggle('reader-mode');
+			if (isReaderMode) {
+				if (this.leftSidebar) this.leftSidebar.collapsed = false;
+				if (this.rightSidebar) this.rightSidebar.collapsed = false;
 			}
 		});
 
@@ -486,13 +488,12 @@ export class ObsidianWebsite {
 			this.theme?.switchTheme();
 		});
 
-		// Mobile right sidebar toggle
-		const mobileRight = document.getElementById('mobile-right-toggle');
-		mobileRight?.addEventListener('click', (e) => {
+		// Mobile reader mode toggle
+		const mobileReader = document.getElementById('mobile-reader-toggle');
+		mobileReader?.addEventListener('click', (e) => {
 			e.stopPropagation();
-			if (this.rightSidebar) {
-				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
-			}
+			if (this.leftSidebar) this.leftSidebar.collapsed = true;
+			if (this.rightSidebar) this.rightSidebar.collapsed = true;
 		});
 	}
 
