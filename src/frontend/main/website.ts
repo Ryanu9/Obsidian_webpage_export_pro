@@ -342,6 +342,10 @@ export class ObsidianWebsite {
 		this.centerContentEl.style.visibility = "";
 		this.isLoaded = true;
 		this.onloadCallbacks.forEach((cb) => cb(this.document));
+
+		requestAnimationFrame(() => {
+			document.body.classList.add("sidebar-loaded");
+		});
 	}
 
 	/**
