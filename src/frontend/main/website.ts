@@ -469,15 +469,13 @@ export class ObsidianWebsite {
 			}
 		});
 
-		// Mobile search button opens modal search
+		// Mobile search button opens modal search (Quartz-style .search-container)
 		const mobileSearch = document.getElementById('mobile-search-btn');
 		mobileSearch?.addEventListener('click', () => {
-			const overlay = document.querySelector('.search-modal-overlay');
-			if (overlay) {
-				overlay.classList.add('active');
-				const modal = overlay.querySelector('.search-modal');
-				if (modal) modal.classList.add('active');
-				const input = overlay.querySelector('.search-modal-input') as HTMLInputElement;
+			const container = document.querySelector('.search-container') as HTMLElement;
+			if (container) {
+				container.classList.add('active');
+				const input = container.querySelector('.search-bar') as HTMLInputElement;
 				input?.focus();
 			}
 		});

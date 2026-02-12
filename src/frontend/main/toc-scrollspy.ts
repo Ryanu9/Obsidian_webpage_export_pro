@@ -322,10 +322,12 @@ export class TocScrollSpy {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 flex: 1;
-                line-height: 1.8;
+                line-height: 1.6;
                 padding: 0;
-                font-size: 1rem;
-                font-weight: 500;
+                font-size: 16px;
+                font-weight: 600;
+                text-decoration: none;
+                opacity: .75;
             }
 
             /* Depth-based indentation (includes 0.75rem gap from left border) */
