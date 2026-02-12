@@ -120,10 +120,10 @@ body.no-transition .sidebar .leaf-content {
     left: 0;
 }
 
-/* Left sidebar: shifted down, scrollable with bottom fade */
+/* Left sidebar: shifted down, scrollable */
 #left-sidebar .leaf-content {
     padding-top: 0.5em;
-    padding-bottom: 1em;
+    padding-bottom: 0;
     max-height: 85vh;
     scrollbar-width: thin;
     scrollbar-color: rgba(140, 140, 140, 0.4) transparent;
@@ -215,19 +215,31 @@ body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
 /* In floating mode, toolbar stays inside the fixed panel (left sidebar only) */
 body.floating-sidebars #left-sidebar .sidebar-toolbar {
     position: fixed;
-    top: calc(var(--mobile-topbar-height) + 0.5em);
+    top: var(--mobile-topbar-height);
     left: 0;
     z-index: 101;
-    padding: 0 var(--sidebar-margin);
+    padding: 0.6em var(--sidebar-margin);
     min-width: var(--sidebar-width);
+    background-color: var(--background-secondary);
+}
+
+body.floating-sidebars #left-sidebar .sidebar-toolbar-actions {
+    display: none;
 }
 
 body.floating-sidebars:has(.website-navbar) #left-sidebar .sidebar-toolbar {
-    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + 0.5em);
+    top: calc(var(--navbar-height) + var(--mobile-topbar-height));
 }
 
 body.floating-sidebars #left-sidebar .leaf-content {
-    padding-top: 4.5em;
+    top: calc(var(--mobile-topbar-height) + 4em);
+    max-height: calc(100vh - var(--mobile-topbar-height) - 4em);
+    padding-top: 0.25em;
+}
+
+body.floating-sidebars:has(.website-navbar) #left-sidebar .leaf-content {
+    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + 4em);
+    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height) - 4em);
 }
 
 /* Hide topbar, collapse icon, and resize handle in floating mode */
@@ -320,15 +332,13 @@ body.floating-sidebars .sidebar .leaf-content {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
-body.floating-sidebars:has(.website-navbar) .sidebar .leaf-content {
-    top: calc(var(--navbar-height) + var(--mobile-topbar-height));
-    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height));
-}
-
 body.floating-sidebars #left-sidebar .leaf-content {
     left: 0;
-    border-top-right-radius: var(--radius-l);
-    border-bottom-right-radius: var(--radius-l);
+    padding-bottom: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
 }
 
 body.floating-sidebars #right-sidebar .leaf-content {
@@ -403,8 +413,7 @@ body.reader-mode:not(.floating-sidebars) .sidebar.is-collapsed .sidebar-toolbar 
 }
 
 /* Active state for reader mode button */
-body.reader-mode #reader-mode-toggle,
-body.reader-mode #mobile-reader-toggle {
+body.reader-mode #reader-mode-toggle {
     color: var(--interactive-accent);
 }
 

@@ -488,12 +488,13 @@ export class ObsidianWebsite {
 			this.theme?.switchTheme();
 		});
 
-		// Mobile reader mode toggle
-		const mobileReader = document.getElementById('mobile-reader-toggle');
-		mobileReader?.addEventListener('click', (e) => {
+		// Mobile right sidebar toggle
+		const mobileRightSidebar = document.getElementById('mobile-right-sidebar-toggle');
+		mobileRightSidebar?.addEventListener('click', (e) => {
 			e.stopPropagation();
-			if (this.leftSidebar) this.leftSidebar.collapsed = true;
-			if (this.rightSidebar) this.rightSidebar.collapsed = true;
+			if (this.rightSidebar) {
+				this.rightSidebar.collapsed = !this.rightSidebar.collapsed;
+			}
 		});
 	}
 
