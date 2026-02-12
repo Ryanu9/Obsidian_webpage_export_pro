@@ -1687,7 +1687,11 @@ a.backlink {
 }
 
 #footer-links a {
+	display: inline;
+	font-weight: 600;
 	margin: 0 14px;
+	color: var(--text-accent) !important;
+
 	text-decoration: none;
 	transition: opacity 0.2s ease;
 }
@@ -1710,9 +1714,11 @@ a.backlink {
 }
 
 #copyright a {
-	color: inherit;
-	text-decoration: underline;
-	text-decoration-color: var(--text-muted);
+	display: inline;
+	font-weight: 600;
+	margin-left: 1em;
+	color: var(--text-normal);
+	text-decoration: none;
 	font-size: inherit;
 }
 
@@ -1726,10 +1732,12 @@ a.backlink {
 
 .copyright-content #copyright {
 	font-size: 15px;
+	font-weight: 600;
 }
 
 .copyright-content #copyright a {
 	font-size: inherit;
+	color: var(--text-accent) !important;
 }
 
 /*#endregion */
