@@ -32,6 +32,32 @@ a.tree-item-self.is-clickable {
 	font-weight: 500;
 }
 
+.tree-item-inner.nav-file-title-content {
+	color: #2b2b2b;
+	opacity: .75;
+	pointer-events: all;
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .2s;
+}
+
+.tree-item-inner.nav-folder-title-content {
+	color: #284b63;
+	font-family: var(--headerFont);
+	font-size: .95rem;
+	font-weight: 600;
+	line-height: 1.2rem;
+	display: inline-block;
+}
+
+body.theme-dark .tree-item-inner.nav-file-title-content {
+	color: #d4d4d4;
+}
+
+body.theme-dark .tree-item-inner.nav-folder-title-content {
+	color: #7b97aa;
+}
+
 .tree-item-inner>p {
 	display: contents !important;
 }

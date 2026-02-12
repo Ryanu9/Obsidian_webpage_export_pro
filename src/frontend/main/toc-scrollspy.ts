@@ -361,7 +361,7 @@ export class TocScrollSpy {
             }
 
             #outline .feature-header .feature-title {
-                font-size: 1.2rem !important;
+                font-size: 1rem !important;
                 font-weight: 700 !important;
                 margin: 0 !important;
                 margin-right: 0 !important;
@@ -409,7 +409,7 @@ export class TocScrollSpy {
             }
 
             #backlinks .feature-header .feature-title {
-                font-size: 1.2rem !important;
+                font-size: 1rem !important;
                 font-weight: 700 !important;
                 margin: 0 !important;
                 color: var(--dark, var(--text-normal)) !important;
