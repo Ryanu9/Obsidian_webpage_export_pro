@@ -68,6 +68,15 @@ body.theme-dark .tree-item-inner.nav-folder-title-content {
 	margin-right: .5em !important;
 	font-size: 1.1rem !important;
 	color: var(--text-normal) !important;
+	font-family: var(--headerFont) !important;
+}
+
+#outline .feature-header .feature-title {
+	font-family: var(--headerFont) !important;
+}
+
+#backlinks .feature-header .feature-title {
+	font-family: var(--headerFont) !important;
 }
 
 .tree-item-children:empty {
