@@ -3,7 +3,8 @@
 	"ids": 
 	[
 		"ADMONITIONS_CUSTOM_STYLE_SHEET",
-		"css-settings-manager"
+		"css-settings-manager",
+		"code-highlight-plugin-styles"
 	],
 	"ignoreIds": 
 	[

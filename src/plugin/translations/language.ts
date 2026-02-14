@@ -336,9 +336,6 @@ export interface i18n {
 			info_collapseThreshold: string;
 			info_defaultWrap: string;
 			info_showBottomExpandButton: string;
-			info_enableHighlightLine: string;
-			info_highlightLineColor: string;
-			info_highlightLineOpacity: string;
 		},
 		vercelInsights: {
 			title: string;

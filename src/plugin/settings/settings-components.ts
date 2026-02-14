@@ -479,11 +479,7 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 				createText(container, name, () => value, (v) => obj[key] = v, description, undefined, settinginfo.placeholder, settinginfo.multiline ?? false, settinginfo.isColor ?? false);
 				break;
 			case "number":
-				if (key === "highlightLineOpacity") {
-					createSlider(container, name, () => value, (v) => obj[key] = v, description, 0, 1, 0.01);
-				} else {
-					createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);
-				}
+				createText(container, name, () => value.toString(), (v) => obj[key] = parseFloat(v), description);
 				break;
 			case "object":
 				generateSettingsFromObject(value, createSection(container, name, description));
