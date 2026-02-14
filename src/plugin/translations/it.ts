@@ -296,7 +296,6 @@ export const language: i18n =
 		lockScreen: {
 			title: "Questo contenuto è crittografato",
 			description: "Inserisci la password per visualizzare il contenuto",
-			rememberPassword: "Ricorda la password",
 			unlock: "Sblocca",
 			inputPlaceholder: "Inserisci la password",
 			invalidPassword: "Password errata o dati corrotti",

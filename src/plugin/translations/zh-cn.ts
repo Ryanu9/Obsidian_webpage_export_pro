@@ -302,7 +302,6 @@ export const language: i18n =
 		lockScreen: {
 			title: "此内容已加密",
 			description: "请输入密码以查看内容",
-			rememberPassword: "记住密码",
 			unlock: "解锁",
 			inputPlaceholder: "请输入密码",
 			invalidPassword: "密码错误或数据损坏",

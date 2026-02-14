@@ -306,7 +306,6 @@ export interface i18n {
 		lockScreen: {
 			title: string;
 			description: string;
-			rememberPassword: string;
 			unlock: string;
 			inputPlaceholder: string;
 			invalidPassword: string;

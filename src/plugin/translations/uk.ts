@@ -301,7 +301,6 @@ export const language: i18n =
 		lockScreen: {
 			title: "Цей вміст зашифровано",
 			description: "Будь ласка, введіть пароль, щоб переглянути вміст",
-			rememberPassword: "Запам'ятати пароль",
 			unlock: "Розблокувати",
 			inputPlaceholder: "Введіть пароль",
 			invalidPassword: "Неправильний пароль або пошкоджені дані",

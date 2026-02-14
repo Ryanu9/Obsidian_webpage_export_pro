@@ -5,8 +5,7 @@ export const DOM_IDS = {
     PASSWORD_INPUT: 'page-password-input',
     UNLOCK_BUTTON: 'unlock-button',
     ERROR_MSG: 'password-error',
-    CONTENT_CONTAINER: 'center-content',
-    REMEMBER_CHECKBOX: 'remember-password'
+    CONTENT_CONTAINER: 'center-content'
 };
 
 export class LockScreen {
@@ -27,12 +26,6 @@ export class LockScreen {
         
         <div class="password-lock__form">
             <input type="password" id="${DOM_IDS.PASSWORD_INPUT}" class="password-lock__input" placeholder="${t.inputPlaceholder}" autocomplete="new-password">
-            
-            <div class="password-lock__remember-wrapper" style="display:flex; align-items:center; gap:0.5em; width:100%">
-                <input type="checkbox" id="${DOM_IDS.REMEMBER_CHECKBOX}">
-                <label for="${DOM_IDS.REMEMBER_CHECKBOX}" style="cursor:pointer">${t.rememberPassword}</label>
-            </div>
-            
             <button type="button" id="${DOM_IDS.UNLOCK_BUTTON}" class="password-lock__submit">${t.unlock}</button>
             <div id="${DOM_IDS.ERROR_MSG}" class="password-lock__error" style="color:var(--text-error); display:none"></div>
         </div>
@@ -107,6 +100,57 @@ export class LockScreen {
         }
     }
 
+    // --- Session password pool helpers ---
+    const POOL_KEY = '__encrypted_password_pool';
+    function getPasswordPool() {
+        try { return JSON.parse(sessionStorage.getItem(POOL_KEY) || '[]'); } catch { return []; }
+    }
+    function addToPool(pw) {
+        const pool = getPasswordPool();
+        if (!pool.includes(pw)) { pool.push(pw); sessionStorage.setItem(POOL_KEY, JSON.stringify(pool)); }
+    }
+
+    async function applyDecryptedContent(htmlContent, password) {
+        if (window.__tocHideObserver) {
+            window.__tocHideObserver.disconnect();
+            delete window.__tocHideObserver;
+        }
+
+        const container = document.getElementById(DOM_IDS.CONTENT_CONTAINER);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        container.innerHTML = tempDiv.innerHTML;
+        
+        Array.from(container.querySelectorAll('script')).forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            if (oldScript.src) newScript.src = oldScript.src;
+            else newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        
+        addToPool(password);
+        
+        const outline = document.querySelector('#outline');
+        if (outline) {
+            outline.style.removeProperty('display');
+            outline.removeAttribute('data-toc-hidden');
+        }
+        
+        if (window.ObsidianSite && window.ObsidianSite.document) {
+            window.ObsidianSite.document.documentEl = container.querySelector('.obsidian-document') || container;
+            
+            // 触发全局加载回调，确保所有 feature (如 tags) 被正确初始化并显示
+            window.ObsidianSite.triggerOnDocumentLoad(window.ObsidianSite.document);
+            
+            // 执行文档类自身的初始化
+            await window.ObsidianSite.document.postLoadInit();
+        }
+
+        // 发送解密成功事件
+        document.dispatchEvent(new CustomEvent('contentDecrypted'));
+    }
+
     async function attemptUnlock() {
         const inputEl = document.getElementById(DOM_IDS.PASSWORD_INPUT);
         const errorEl = document.getElementById(DOM_IDS.ERROR_MSG);
@@ -115,50 +159,7 @@ export class LockScreen {
         
         try {
             const htmlContent = await decrypt(password, encryptedData);
-            
-            if (window.__tocHideObserver) {
-                window.__tocHideObserver.disconnect();
-                delete window.__tocHideObserver;
-            }
-
-            const container = document.getElementById(DOM_IDS.CONTENT_CONTAINER);
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-            container.innerHTML = tempDiv.innerHTML;
-            
-            Array.from(container.querySelectorAll('script')).forEach(oldScript => {
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                if (oldScript.src) newScript.src = oldScript.src;
-                else newScript.textContent = oldScript.textContent;
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            });
-            
-            const rememberEl = document.getElementById(DOM_IDS.REMEMBER_CHECKBOX);
-            const storageKey = 'doc-password-' + window.location.pathname;
-            if (rememberEl && rememberEl.checked) {
-                localStorage.setItem(storageKey, password);
-            }
-            
-            const outline = document.querySelector('#outline');
-            if (outline) {
-                outline.style.removeProperty('display');
-                outline.removeAttribute('data-toc-hidden');
-            }
-            
-            if (window.ObsidianSite && window.ObsidianSite.document) {
-                window.ObsidianSite.document.documentEl = container.querySelector('.obsidian-document') || container;
-                
-                // 触发全局加载回调，确保所有 feature (如 tags) 被正确初始化并显示
-                window.ObsidianSite.triggerOnDocumentLoad(window.ObsidianSite.document);
-                
-                // 执行文档类自身的初始化
-                await window.ObsidianSite.document.postLoadInit();
-            }
-
-            // 发送解密成功事件
-            document.dispatchEvent(new CustomEvent('contentDecrypted'));
-            
+            await applyDecryptedContent(htmlContent, password);
         } catch (e) {
             console.error(e);
             errorEl.textContent = translations.invalidPassword;
@@ -166,6 +167,18 @@ export class LockScreen {
             inputEl.value = '';
             inputEl.focus();
         }
+    }
+
+    async function autoTryPool() {
+        const pool = getPasswordPool();
+        for (const pw of pool) {
+            try {
+                const htmlContent = await decrypt(pw, encryptedData);
+                await applyDecryptedContent(htmlContent, pw);
+                return true;
+            } catch { /* wrong password, continue */ }
+        }
+        return false;
     }
     
     if (!document.getElementById('password-lock-style')) {
@@ -192,15 +205,11 @@ export class LockScreen {
         document.head.appendChild(style);
     }
 
-    function init() {
+    async function init() {
         const unlockBtn = document.getElementById(DOM_IDS.UNLOCK_BUTTON);
         if(unlockBtn) unlockBtn.addEventListener('click', attemptUnlock);
         const passInput = document.getElementById(DOM_IDS.PASSWORD_INPUT);
         if(passInput) passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptUnlock(); });
-        
-        const storageKey = 'doc-password-' + window.location.pathname;
-        const savedPass = localStorage.getItem(storageKey);
-        if (savedPass && passInput) { passInput.value = savedPass; setTimeout(attemptUnlock, 100); }
         
         hideTOC();
 
@@ -208,6 +217,21 @@ export class LockScreen {
         const observer = new MutationObserver(hideTOC);
         observer.observe(document.body, { childList: true, subtree: true });
         window.__tocHideObserver = observer;
+
+        // Auto-try all passwords in the session pool
+        const unlocked = await autoTryPool();
+        if (!unlocked) {
+            // Migrate: try old per-page localStorage password then clean it up
+            const legacyKey = 'doc-password-' + window.location.pathname;
+            const legacyPass = localStorage.getItem(legacyKey);
+            if (legacyPass && passInput) {
+                try {
+                    const htmlContent = await decrypt(legacyPass, encryptedData);
+                    await applyDecryptedContent(htmlContent, legacyPass);
+                    localStorage.removeItem(legacyKey);
+                } catch { localStorage.removeItem(legacyKey); }
+            }
+        }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

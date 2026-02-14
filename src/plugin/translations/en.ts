@@ -303,7 +303,6 @@ export const language: i18n =
 		lockScreen: {
 			title: "This content is encrypted",
 			description: "Please enter your password to view the content",
-			rememberPassword: "Remember password",
 			unlock: "Unlock",
 			inputPlaceholder: "Enter password",
 			invalidPassword: "Incorrect password or corrupted data",
