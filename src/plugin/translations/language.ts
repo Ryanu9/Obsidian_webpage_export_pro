@@ -243,12 +243,10 @@ export interface i18n {
 		backgroundImage: {
 			title: string;
 			description: string;
-			lightPathLabel: string;
-			lightPathDescription: string;
+			lightSectionLabel: string;
 			lightUrlLabel: string;
 			lightUrlDescription: string;
-			darkPathLabel: string;
-			darkPathDescription: string;
+			darkSectionLabel: string;
 			darkUrlLabel: string;
 			darkUrlDescription: string;
 			blurLabel: string;

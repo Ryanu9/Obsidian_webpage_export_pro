@@ -488,27 +488,10 @@ export class SettingsPage extends PluginSettingTab {
 			.setDesc(lang.backgroundImage.description)
 			.setHeading();
 
-		// Light theme background
-		createFileInput(section,
-			() => Settings.exportOptions.backgroundImageLightPath,
-			(value) => Settings.exportOptions.backgroundImageLightPath = value,
-			{
-				name: lang.backgroundImage.lightPathLabel,
-				description: lang.backgroundImage.lightPathDescription,
-				placeholder: i18n.pathInputPlaceholder,
-				makeRelativeToVault: true,
-				pickFolder: false,
-				validation: (path) => path.validate(
-					{
-						allowEmpty: true,
-						allowAbsolute: true,
-						allowRelative: true,
-						allowFiles: true,
-						requireExists: true,
-						requireExtentions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "apng", "avif"]
-					}),
-				browseButton: true,
-			});
+		// Light theme sub-section
+		new Setting(section)
+			.setName(lang.backgroundImage.lightSectionLabel)
+			.setHeading();
 
 		createText(section, lang.backgroundImage.lightUrlLabel,
 			() => Settings.exportOptions.backgroundImageLightUrl,
@@ -517,27 +500,22 @@ export class SettingsPage extends PluginSettingTab {
 			undefined,
 			"https://example.com/background-light.gif");
 
-		// Dark theme background
-		createFileInput(section,
-			() => Settings.exportOptions.backgroundImageDarkPath,
-			(value) => Settings.exportOptions.backgroundImageDarkPath = value,
-			{
-				name: lang.backgroundImage.darkPathLabel,
-				description: lang.backgroundImage.darkPathDescription,
-				placeholder: i18n.pathInputPlaceholder,
-				makeRelativeToVault: true,
-				pickFolder: false,
-				validation: (path) => path.validate(
-					{
-						allowEmpty: true,
-						allowAbsolute: true,
-						allowRelative: true,
-						allowFiles: true,
-						requireExists: true,
-						requireExtentions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "apng", "avif"]
-					}),
-				browseButton: true,
-			});
+		createSlider(section, lang.backgroundImage.blurLabel,
+			() => Settings.exportOptions.backgroundLightBlur,
+			(value) => Settings.exportOptions.backgroundLightBlur = value,
+			lang.backgroundImage.blurDescription,
+			0, 100, 1);
+
+		createSlider(section, lang.backgroundImage.opacityLabel,
+			() => Settings.exportOptions.backgroundLightOpacity,
+			(value) => Settings.exportOptions.backgroundLightOpacity = value,
+			lang.backgroundImage.opacityDescription,
+			0, 100, 1);
+
+		// Dark theme sub-section
+		new Setting(section)
+			.setName(lang.backgroundImage.darkSectionLabel)
+			.setHeading();
 
 		createText(section, lang.backgroundImage.darkUrlLabel,
 			() => Settings.exportOptions.backgroundImageDarkUrl,
@@ -546,18 +524,17 @@ export class SettingsPage extends PluginSettingTab {
 			undefined,
 			"https://example.com/background-dark.gif");
 
-		// Blur and opacity
 		createSlider(section, lang.backgroundImage.blurLabel,
-			() => Settings.exportOptions.backgroundBlur,
-			(value) => Settings.exportOptions.backgroundBlur = value,
+			() => Settings.exportOptions.backgroundDarkBlur,
+			(value) => Settings.exportOptions.backgroundDarkBlur = value,
 			lang.backgroundImage.blurDescription,
-			0, 20, 1);
+			0, 100, 1);
 
 		createSlider(section, lang.backgroundImage.opacityLabel,
-			() => Settings.exportOptions.backgroundOpacity,
-			(value) => Settings.exportOptions.backgroundOpacity = value,
+			() => Settings.exportOptions.backgroundDarkOpacity,
+			(value) => Settings.exportOptions.backgroundDarkOpacity = value,
 			lang.backgroundImage.opacityDescription,
-			0, 1, 0.05);
+			0, 100, 1);
 
 		// #endregion
 

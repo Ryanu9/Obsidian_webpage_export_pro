@@ -55,9 +55,15 @@ export class GlobalVariableStyles extends AssetLoader
 
         if (lightUrl.length === 0 && darkUrl.length === 0) return "";
 
-        const blur = this.exportOptions.backgroundBlur ?? 0;
-        const opacity = this.exportOptions.backgroundOpacity ?? 1;
-        const hasBlurOrOpacity = blur > 0 || opacity < 1;
+        const lightBlur = this.exportOptions.backgroundLightBlur ?? 0;
+        const lightOpacityRaw = this.exportOptions.backgroundLightOpacity ?? 100;
+        const lightOpacity = lightOpacityRaw / 100;
+        const lightHasEffect = lightBlur > 0 || lightOpacity < 1;
+
+        const darkBlur = this.exportOptions.backgroundDarkBlur ?? 0;
+        const darkOpacityRaw = this.exportOptions.backgroundDarkOpacity ?? 100;
+        const darkOpacity = darkOpacityRaw / 100;
+        const darkHasEffect = darkBlur > 0 || darkOpacity < 1;
 
         let css = "";
 
@@ -82,8 +88,8 @@ export class GlobalVariableStyles extends AssetLoader
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                ${hasBlurOrOpacity ? `filter: blur(${blur}px);` : ""}
-                ${hasBlurOrOpacity ? `opacity: ${opacity};` : ""}
+                ${lightHasEffect ? `filter: blur(${lightBlur}px);` : ""}
+                ${lightHasEffect ? `opacity: ${lightOpacity};` : ""}
             }
             `;
         }
@@ -108,14 +114,18 @@ export class GlobalVariableStyles extends AssetLoader
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                ${hasBlurOrOpacity ? `filter: blur(${blur}px);` : ""}
-                ${hasBlurOrOpacity ? `opacity: ${opacity};` : ""}
+                ${darkHasEffect ? `filter: blur(${darkBlur}px);` : ""}
+                ${darkHasEffect ? `opacity: ${darkOpacity};` : ""}
             }
             `;
         }
 
         // If only one is set, also apply it when no theme class is present (fallback)
         const fallbackUrl = lightUrl.length > 0 ? lightUrl : darkUrl;
+        const fallbackIsLight = lightUrl.length > 0;
+        const fbBlur = fallbackIsLight ? lightBlur : darkBlur;
+        const fbOpacity = fallbackIsLight ? lightOpacity : darkOpacity;
+        const fbHasEffect = fbBlur > 0 || fbOpacity < 1;
         if (fallbackUrl.length > 0 && (lightUrl.length === 0 || darkUrl.length === 0))
         {
             css += `
@@ -136,8 +146,8 @@ export class GlobalVariableStyles extends AssetLoader
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
-                ${hasBlurOrOpacity ? `filter: blur(${blur}px);` : ""}
-                ${hasBlurOrOpacity ? `opacity: ${opacity};` : ""}
+                ${fbHasEffect ? `filter: blur(${fbBlur}px);` : ""}
+                ${fbHasEffect ? `opacity: ${fbOpacity};` : ""}
             }
             `;
         }
