@@ -288,16 +288,15 @@ export class CodeBlockManager {
                 z-index: 10;
                 width: 36px;
                 height: 36px;
-                background: var(--background-modifier-hover) !important;
-                color: var(--code-ui-color);
-                border: 1px solid var(--background-modifier-border);
+                background: rgba(0, 0, 0, 0.5) !important;
+                border: 1px solid rgba(255, 255, 255, 0.15);
                 border-radius: 50%;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 0;
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
+                transition: transform 0.3s ease;
             }
 
             .bottom-expand-button:hover {
@@ -308,6 +307,7 @@ export class CodeBlockManager {
                 width: 20px;
                 height: 20px;
                 display: block;
+                stroke: #ffffff !important;
             }
 
             /* ANSI Colors */
@@ -771,14 +771,12 @@ export class CodeBlockManager {
         const bottomBtn = document.createElement('button');
         bottomBtn.className = 'bottom-expand-button';
         bottomBtn.title = this.getTranslation('expandCollapse', '展开/收起');
-        bottomBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M18 12L12 18L6 12" stroke="currentColor" stroke-width="2"></path><path d="M18 6L12 12L6 6" stroke="currentColor" stroke-width="2"></path></svg>`;
+        bottomBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none"><path d="M18 12L12 18L6 12" stroke-width="2"></path><path d="M18 6L12 12L6 6" stroke-width="2"></path></svg>`;
         bottomBtn.onclick = () => {
             const headerBtn = container.querySelector('.code-block-button.expand-button') as HTMLButtonElement;
             this.toggleCollapse(container, headerBtn || null);
         };
         container.appendChild(bottomBtn);
-        // 初始状态：折叠时图标不旋转
-        this.updateBottomButtonIcon(container, true);
     }
 
     private updateBottomButtonIcon(container: HTMLElement, isCollapsed: boolean) {
@@ -786,7 +784,7 @@ export class CodeBlockManager {
         if (bottomBtn) {
             // 折叠时：不旋转（默认状态）
             // 展开时：旋转180°
-            bottomBtn.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)';
+            bottomBtn.style.transform = isCollapsed ? '' : 'rotate(180deg)';
         }
     }
 
