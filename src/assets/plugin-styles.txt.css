@@ -732,13 +732,13 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 	border: 1px solid var(--modal-border-color);
 	border-radius: var(--modal-radius);
 	overflow: hidden;
-	background: rgba(30, 30, 30, 0.35);
+	background: rgba(30, 30, 30, 0.5);
 	backdrop-filter: blur(24px) saturate(180%);
 	-webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
 .theme-light .graph-view-container {
-	background: rgba(255, 255, 255, 0.35);
+	background: rgba(255, 255, 255, 0.5);
 }
 
 .graph-icon {
