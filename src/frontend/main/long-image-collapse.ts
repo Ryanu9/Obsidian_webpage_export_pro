@@ -135,6 +135,23 @@ export class LongImageCollapse {
     }
 
     /**
+     * 处理单张图片的折叠功能（供 IntersectionObserver 逐图调用）
+     */
+    public processSingleImage(img: HTMLImageElement): void {
+        if (img.classList.contains("long-image-processed")) return;
+        if (img.classList.contains("callout-icon") ||
+            img.classList.contains("file-list-item-icon")) return;
+
+        if (img.complete && img.naturalHeight > 0) {
+            this.processImage(img);
+        } else {
+            img.addEventListener("load", () => {
+                this.processImage(img);
+            }, { once: true });
+        }
+    }
+
+    /**
      * 为文档中的图片初始化折叠功能
      */
     public initImagesInElement(container: HTMLElement): void {

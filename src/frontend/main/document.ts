@@ -249,11 +249,11 @@ export class WebpageDocument {
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			this.processHeaders();
-			this.processCallouts();
-			this.processLists();
 			this.initNewImageZoom();
 			new YamlProperties().parseAndDisplayYamlProperties(this.info, this.documentEl ?? this.containerEl);
 			this.renderCreatedUpdatedBar();
+			this.scheduleIdle(() => this.processCallouts());
+			this.scheduleIdle(() => this.processLists());
 		}
 
 		if (this.documentType == DocumentType.Canvas) {
@@ -262,9 +262,11 @@ export class WebpageDocument {
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			LinkHandler.initializeLinks(this.documentEl ?? this.containerEl);
-			MachineGalleryFilters.initialize(this.containerEl ?? this.documentEl);
-			this.initMachineTypeTags();
 			this.initFootnotes();
+			this.scheduleIdle(() => {
+				MachineGalleryFilters.initialize(this.containerEl ?? this.documentEl);
+				this.initMachineTypeTags();
+			});
 		}
 
 		return this;
@@ -358,6 +360,14 @@ export class WebpageDocument {
 		}
 	}
 
+	private scheduleIdle(fn: () => void): void {
+		if (window.requestIdleCallback) {
+			window.requestIdleCallback(fn);
+		} else {
+			setTimeout(fn, 50);
+		}
+	}
+
 	private initFootnotes() {
 		// Use dynamic import to load footnotes handler only when needed
 		import('./footnotes').then(({ FootnoteHandler }) => {
@@ -368,10 +378,36 @@ export class WebpageDocument {
 
 	private initNewImageZoom() {
 		if (!this.documentEl) return;
-		// 初始化长图片折叠功能（需要在图片缩放之前处理，因为会包裹图片元素）
-		LongImageCollapse.getInstance().initImagesInElement(this.documentEl);
-		// 初始化图片缩放功能
-		ImageZoom.getInstance().initImagesInElement(this.documentEl);
+
+		const images = Array.from(this.documentEl.querySelectorAll(
+			"img:not(.callout-icon):not(.file-list-item-icon):not(.image-zoom-img):not(.image-zoom-thumb):not([data-lazy-img])"
+		));
+
+		if (images.length === 0) return;
+
+		if (typeof IntersectionObserver === 'undefined') {
+			LongImageCollapse.getInstance().initImagesInElement(this.documentEl);
+			ImageZoom.getInstance().initImagesInElement(this.documentEl);
+			return;
+		}
+
+		const longImageCollapse = LongImageCollapse.getInstance();
+		const imageZoom = ImageZoom.getInstance();
+
+		const observer = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				const img = entry.target as HTMLImageElement;
+				observer.unobserve(img);
+				longImageCollapse.processSingleImage(img);
+				imageZoom.initSingleImage(img);
+			}
+		}, { rootMargin: '300px 0px' });
+
+		for (const img of images) {
+			(img as HTMLElement).setAttribute('data-lazy-img', '');
+			observer.observe(img);
+		}
 	}
 
 	public processHeaders() {
@@ -435,10 +471,10 @@ export class WebpageDocument {
 			);
 		}
 
-		// Initialize Code Blocks
+		// Initialize Code Blocks and Media without blocking the render path
 		if (this.documentEl) {
-			await new CodeBlockManager(this.documentEl).init();
-			await new MediaManager(this.documentEl).init();
+			new CodeBlockManager(this.documentEl).init();
+			new MediaManager(this.documentEl).init();
 		}
 	}
 

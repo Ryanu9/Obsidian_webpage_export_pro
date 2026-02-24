@@ -531,6 +531,15 @@ body.theme-light #mobile-theme-toggle .theme-icon-light {
 
 /*#endregion */
 
+/*#region Theme View Transition */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.15s;
+}
+
+/*#endregion */
+
 /*#region Content / Markdown Preview View */
 
 body {
@@ -683,6 +692,17 @@ body #center-content>.obsidian-document>.markdown-preview-sizer {
 #center-content>.obsidian-document>div {
     width: 100% !important;
     transition: background-color var(--color-fade-speed) ease-in-out;
+}
+
+/* Skip rendering for off-screen content blocks to reduce style recalculation cost during theme switches */
+.markdown-preview-sizer > div,
+.markdown-preview-sizer > pre,
+.markdown-preview-sizer > blockquote,
+.markdown-preview-sizer > table,
+.markdown-preview-sizer > ul,
+.markdown-preview-sizer > ol {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 100px;
 }
 
 /* If the markdown view is displaying a raw file or embed then increase it's size to make everything as large as possible */

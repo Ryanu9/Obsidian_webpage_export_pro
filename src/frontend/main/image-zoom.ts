@@ -675,6 +675,25 @@ export class ImageZoom {
     }
 
     /**
+     * 为单张图片绑定点击事件（供 IntersectionObserver 逐图调用）
+     */
+    public initSingleImage(img: HTMLImageElement): void {
+        if (img.hasAttribute("data-zoom-initialized")) return;
+        if (img.classList.contains("callout-icon") ||
+            img.classList.contains("file-list-item-icon") ||
+            img.classList.contains("image-zoom-img") ||
+            img.classList.contains("image-zoom-thumb")) return;
+
+        img.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.show(img);
+        });
+
+        img.setAttribute("data-zoom-initialized", "true");
+    }
+
+    /**
      * 为文档中的图片绑定点击事件
      */
     public initImagesInElement(container: HTMLElement): void {

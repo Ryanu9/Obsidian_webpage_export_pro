@@ -1,53 +1,66 @@
 import { FilePreviewPopover } from "./link-preview";
 
+const LINK_SELECTOR = ".internal-link, a.tag, a.tree-item-self, a.footnote-link";
+
 export class LinkHandler
 {
+	private static delegationInitialized = false;
+
+	private static initDelegation()
+	{
+		if (this.delegationInitialized) return;
+		this.delegationInitialized = true;
+
+		document.body.addEventListener("click", (event) =>
+		{
+			const target = event.target as HTMLElement;
+			const link = target.closest(LINK_SELECTOR) as HTMLElement | null;
+
+			if (!link) return;
+
+			const href = link.getAttribute("href");
+			if (!href || href === "null") return;
+			if (href.startsWith("http") || href.startsWith("mailto:")) return;
+
+			event.preventDefault();
+			ObsidianSite.loadURL(href);
+
+			if (ObsidianSite.deviceSize === "phone")
+			{
+				const leftSidebar = link.closest("#left-sidebar");
+				const rightSidebar = link.closest("#right-sidebar");
+
+				if (leftSidebar && ObsidianSite.leftSidebar?.collapsed === false)
+				{
+					ObsidianSite.leftSidebar.collapsed = true;
+				}
+				else if (rightSidebar && ObsidianSite.rightSidebar?.collapsed === false)
+				{
+					ObsidianSite.rightSidebar.collapsed = true;
+				}
+			}
+		});
+	}
 
 	public static initializeLinks(onElement: HTMLElement)
 	{
-		console.log("Initializing links on element", onElement);
-		onElement?.querySelectorAll(".internal-link, a.tag, a.tree-item-self, a.footnote-link").forEach(function(link: HTMLElement)
+		this.initDelegation();
+
+		onElement?.querySelectorAll(LINK_SELECTOR).forEach(function(link: HTMLElement)
 		{
 			const target = link.getAttribute("href") ?? "null";
 
 			if(target == "null")
 			{
-				console.log("No target found for link");
 				return;
 			}
 
-			link.addEventListener("click", function(event)
-			{
-				event.preventDefault();
-				event.stopPropagation();
-				ObsidianSite.loadURL(target);
-
-				// Close the sidebar containing this link on phone
-				if (ObsidianSite.deviceSize === "phone")
-				{
-					// Find which sidebar contains this link
-					const leftSidebar = link.closest("#left-sidebar");
-					const rightSidebar = link.closest("#right-sidebar");
-
-					if (leftSidebar && ObsidianSite.leftSidebar?.collapsed === false)
-					{
-						ObsidianSite.leftSidebar.collapsed = true;
-					}
-					else if (rightSidebar && ObsidianSite.rightSidebar?.collapsed === false)
-					{
-						ObsidianSite.rightSidebar.collapsed = true;
-					}
-				}
-			});
-
-			// if the link doesn't point to a valid document in ObsidianSite set it to unresolved
 			if(target && !target.startsWith("http") && !ObsidianSite.documentExists(target))
 			{
 				link.classList.add("is-unresolved");
 			}
 			else if (link.classList.contains("internal-link"))
 			{
-				// Only initialize link preview if the feature is enabled
 				if (!ObsidianSite.metadata?.ignoreMetadata && 
 					ObsidianSite.metadata?.featureOptions?.linkPreview?.enabled)
 				{
