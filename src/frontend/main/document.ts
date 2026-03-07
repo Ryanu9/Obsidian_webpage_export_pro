@@ -147,8 +147,6 @@ export class WebpageDocument {
 		this.isPreview = isPreview;
 
 		if (!this.pathname || !this.exists) return this;
-
-		let oldDocument = ObsidianSite.document;
 		await ObsidianSite.showLoading(true, containerEl);
 
 		this.containerEl = containerEl;
@@ -161,17 +159,19 @@ export class WebpageDocument {
 				"text/html"
 			);
 
-			let newDocumentEl = this.sourceHtml.querySelector(".obsidian-document") as HTMLElement;
-			if (!newDocumentEl) newDocumentEl = this.sourceHtml.querySelector(".password-lock") as HTMLElement;
+			const parsedDocumentEl = this.sourceHtml.querySelector(
+				".obsidian-document, .password-lock"
+			) as HTMLElement | null;
 
-			if (newDocumentEl) {
-				newDocumentEl = document.adoptNode(newDocumentEl);
-				const docEl = containerEl.querySelector(".obsidian-document") || containerEl.querySelector(".password-lock");
-				if (docEl) {
-					docEl.before(newDocumentEl);
-					docEl.remove();
+			if (parsedDocumentEl) {
+				const adoptedDocumentEl = document.adoptNode(parsedDocumentEl);
+				const currentDocumentEl = containerEl.querySelector(
+					".obsidian-document, .password-lock"
+				) as HTMLElement | null;
+				if (currentDocumentEl) {
+					currentDocumentEl.replaceWith(adoptedDocumentEl);
 				} else {
-					containerEl.appendChild(newDocumentEl);
+					containerEl.appendChild(adoptedDocumentEl);
 				}
 			}
 

@@ -1535,9 +1535,3 @@ function initializeGraphView() {
     setActiveDocument(new URL(window.location.href), false, false);
   }
 }
-
-window.addEventListener("load", function () {
-  waitLoadScripts(["pixi", "graph-data", "graph-sim-worker"], function () {
-    initializeGraphView();
-  });
-});

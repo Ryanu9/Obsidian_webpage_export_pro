@@ -28,13 +28,11 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		this._isGlobalGraph = value;
 	}
 
-	private eventsInitialized: boolean = false;
-
 	constructor(featureEl: HTMLElement) {
 		super(ObsidianSite.metadata.featureOptions.graphView, featureEl);
-		this.graphContainer = document.querySelector(".graph-view-container") as HTMLElement;
-		this.globalGraphButton = document.querySelector(".graph-global.graph-icon") as HTMLElement;
-		this.expandGraphButton = document.querySelector(".graph-expand.graph-icon") as HTMLElement;
+		this.graphContainer = featureEl.querySelector(".graph-view-container") as HTMLElement;
+		this.globalGraphButton = featureEl.querySelector(".graph-global.graph-icon") as HTMLElement;
+		this.expandGraphButton = featureEl.querySelector(".graph-expand.graph-icon") as HTMLElement;
 
 		// Remove old static canvas if present
 		const oldCanvas = this.graphContainer?.querySelector("#graph-canvas");
@@ -53,16 +51,10 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 			this.navigateToNode(nodeId);
 		};
 
-		// Resize handling
-		window.addEventListener("resize", () => this.graphRenderer?.onResize());
-
 		// Theme toggle → re-read CSS colors (listen for custom event from Theme.setTheme)
 		document.addEventListener("theme-changed", () => {
 			this.graphRenderer?.testCSS();
 		});
-
-		// Show initial graph
-		this.showGraph([ObsidianSite.document.pathname]);
 
 		this.initUIEvents();
 	}

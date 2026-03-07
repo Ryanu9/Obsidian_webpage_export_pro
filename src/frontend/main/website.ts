@@ -73,6 +73,7 @@ export class ObsidianWebsite {
 	public tocScrollSpy: TocScrollSpy | undefined = undefined;
 	private sharedSearchIndex: MiniSearch | undefined = undefined;
 	private searchIndexPromise: Promise<MiniSearch | undefined> | undefined = undefined;
+	private graphViewInitPromise: Promise<GraphView | undefined> | undefined = undefined;
 
 	public entryPage: string;
 
@@ -167,9 +168,7 @@ export class ObsidianWebsite {
 			!ObsidianSite.metadata.ignoreMetadata &&
 			ObsidianSite.metadata.featureOptions.graphView.enabled
 		) {
-			this.loadGraphView().then(() =>
-				this.graphView?.showGraph([pathname])
-			);
+			this.initGraphViewDeferred();
 		}
 
 		this.initEvents();
@@ -722,22 +721,88 @@ export class ObsidianWebsite {
 		return undefined;
 	}
 
-	private async loadGraphView() {
+	private initGraphViewDeferred() {
 		const graphViewFeature = document.querySelector(
 			".graph-view-wrapper"
 		) as HTMLElement;
 		if (!graphViewFeature) return;
 
-		const localThis = this;
-		//@ts-ignore
-		waitLoadScripts(["graph-sim-worker"], () => {
-			console.log("scripts loaded");
-			const graphView = new GraphView(graphViewFeature);
-			localThis.graphView = graphView;
-			console.log("Graph view initialized");
+		const graphContainer = graphViewFeature.querySelector(
+			".graph-view-container"
+		) as HTMLElement | null;
+		const globalGraphButton = graphViewFeature.querySelector(
+			".graph-global.graph-icon"
+		) as HTMLElement | null;
+		const expandGraphButton = graphViewFeature.querySelector(
+			".graph-expand.graph-icon"
+		) as HTMLElement | null;
+
+		const withGraphView = (action: (graphView: GraphView) => void | Promise<void>) => {
+			void this.loadGraphView().then((graphView) => {
+				if (graphView) {
+					void action(graphView);
+				}
+			});
+		};
+
+		const initializeLocalGraph = () => {
+			if (this.graphView) return;
+			withGraphView((graphView) => graphView.showGraph([this.document.pathname]));
+		};
+
+		const initializeGlobalGraph = (event: Event) => {
+			if (this.graphView) return;
+			event.preventDefault();
+			event.stopPropagation();
+			withGraphView((graphView) => graphView.showGraph());
+		};
+
+		const initializeExpandedGraph = (event: Event) => {
+			if (this.graphView) return;
+			event.preventDefault();
+			event.stopPropagation();
+			withGraphView(async (graphView) => {
+				await graphView.showGraph([this.document.pathname]);
+				if (!graphView.graphExpanded) {
+					graphView.toggleExpandedGraph();
+				}
+			});
+		};
+
+		graphContainer?.addEventListener("pointerenter", initializeLocalGraph, { once: true });
+		graphContainer?.addEventListener("focusin", initializeLocalGraph, { once: true });
+		globalGraphButton?.addEventListener("click", initializeGlobalGraph, { once: true });
+		expandGraphButton?.addEventListener("click", initializeExpandedGraph, { once: true });
+
+		const requestIdle = (window as any).requestIdleCallback as
+			| ((callback: () => void, options?: { timeout?: number }) => number)
+			| undefined;
+		if (requestIdle) {
+			requestIdle(() => initializeLocalGraph(), { timeout: 2000 });
+		} else {
+			setTimeout(() => initializeLocalGraph(), 500);
+		}
+	}
+
+	private async loadGraphView(): Promise<GraphView | undefined> {
+		if (this.graphView) return this.graphView;
+		if (this.graphViewInitPromise) return this.graphViewInitPromise;
+
+		const graphViewFeature = document.querySelector(
+			".graph-view-wrapper"
+		) as HTMLElement;
+		if (!graphViewFeature) return undefined;
+
+		this.graphViewInitPromise = new Promise((resolve) => {
+			//@ts-ignore
+			waitLoadScripts(["graph-sim-worker"], () => {
+				const graphView = new GraphView(graphViewFeature);
+				this.graphView = graphView;
+				resolve(graphView);
+			});
 		});
 
-		await waitUntil(() => this.graphView != undefined);
+		return this.graphViewInitPromise;
 	}
 
 	public getLocalDataFromId(id: string): any | undefined {
