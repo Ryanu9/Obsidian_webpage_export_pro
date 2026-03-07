@@ -321,10 +321,12 @@ export class TreeItem
 			child.sort(sortFunction);
 		});
 
+		const fragment = document.createDocumentFragment();
 		this.children.forEach((child) =>
 		{
-			this.childrenEl.appendChild(child.itemEl);
+			fragment.appendChild(child.itemEl);
 		});
+		this.childrenEl.appendChild(fragment);
 	}
 
 	public unsort()

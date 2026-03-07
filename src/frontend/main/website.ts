@@ -31,6 +31,7 @@ import { FooterLinks } from "./footer-links";
 import { TocScrollSpy } from "./toc-scrollspy";
 import { AttachmentDownload } from "./attachment-download";
 import { ModalSearch } from "./modal-search";
+import MiniSearch from "minisearch";
 
 type Constructor<T> = new () => T;
 
@@ -59,6 +60,7 @@ export class ObsidianWebsite {
 	public fileTree: Tree | undefined = undefined;
 	public outlineTree: Tree | undefined = undefined;
 	public search: Search | undefined = undefined;
+	public modalSearch: ModalSearch | undefined = undefined;
 	public leftSidebar: Sidebar | undefined = undefined;
 	public rightSidebar: Sidebar | undefined = undefined;
 	public document: ObsidianDocument;
@@ -69,6 +71,8 @@ export class ObsidianWebsite {
 	public footerLinks: FooterLinks | undefined = undefined;
 	public copyright: Copyright | undefined = undefined;
 	public tocScrollSpy: TocScrollSpy | undefined = undefined;
+	private sharedSearchIndex: MiniSearch | undefined = undefined;
+	private searchIndexPromise: Promise<MiniSearch | undefined> | undefined = undefined;
 
 	public entryPage: string;
 
@@ -143,7 +147,7 @@ export class ObsidianWebsite {
 		if (rightSidebarEl) this.rightSidebar = new Sidebar(rightSidebarEl);
 		this.tocScrollSpy = new TocScrollSpy();
 		new AttachmentDownload();
-		// Defer search index loading - fetch once and share between both search components
+		// Initialize search UIs without loading the search index until the user interacts with search.
 		this.initSearchDeferred();
 
 		this.initSidebarToolbar();
@@ -374,6 +378,40 @@ export class ObsidianWebsite {
 		return fallback;
 	}
 
+	public async getSearchIndex(): Promise<MiniSearch | undefined> {
+		if (this.sharedSearchIndex) {
+			return this.sharedSearchIndex;
+		}
+
+		if (this.searchIndexPromise) {
+			return this.searchIndexPromise;
+		}
+
+		this.searchIndexPromise = (async () => {
+			try {
+				const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
+				if (!indexResp?.ok) {
+					return undefined;
+				}
+
+				const indexJSON = await indexResp.json();
+				this.sharedSearchIndex = MiniSearch.loadJS(indexJSON, {
+					fields: ['title', 'path', 'tags', 'headers', 'aliases', 'content']
+				});
+				return this.sharedSearchIndex;
+			} catch (e) {
+				console.error("Failed to load shared search index:", e);
+				return undefined;
+			} finally {
+				if (!this.sharedSearchIndex) {
+					this.searchIndexPromise = undefined;
+				}
+			}
+		})();
+
+		return this.searchIndexPromise;
+	}
+
 	private setupSectionCollapse() {
 		// Make outline section collapsible — Quartz toc-header style
 		const outline = document.querySelector("#outline");
@@ -472,12 +510,7 @@ export class ObsidianWebsite {
 		// Mobile search button opens modal search (Quartz-style .search-container)
 		const mobileSearch = document.getElementById('mobile-search-btn');
 		mobileSearch?.addEventListener('click', () => {
-			const container = document.querySelector('.search-container') as HTMLElement;
-			if (container) {
-				container.classList.add('active');
-				const input = container.querySelector('.search-bar') as HTMLInputElement;
-				input?.focus();
-			}
+			this.modalSearch?.open();
 		});
 
 		// Mobile theme toggle
@@ -497,16 +530,12 @@ export class ObsidianWebsite {
 	}
 
 	private initSearchDeferred() {
-		// Fetch the search index once and share it between both search components.
-		// This runs in the background without blocking page rendering.
+		// Initialize both search entry points immediately, but keep the expensive
+		// search-index.json fetch and MiniSearch parsing on-demand.
 		(async () => {
 			try {
-				const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
-				if (!indexResp?.ok) return;
-				const indexJSON = await indexResp.json();
-
-				this.search = await new Search().init(indexJSON);
-				await new ModalSearch().init(indexJSON);
+				this.search = await new Search().init();
+				this.modalSearch = await new ModalSearch().init();
 			} catch (e) {
 				console.error("Failed to initialize search:", e);
 			}
@@ -562,7 +591,7 @@ export class ObsidianWebsite {
 		console.log("Loading URL", url, header, query);
 
 		if (query && query.startsWith("query=")) {
-			this.search?.searchParseFilters(decodeURIComponent(query.substring(6)));
+			await this.search?.searchParseFilters(decodeURIComponent(query.substring(6)));
 			return;
 		}
 

@@ -1,4 +1,3 @@
-import { Shared } from "src/shared/shared";
 import { LinkHandler } from "./links";
 import { getTextNodes } from "./utils";
 import MiniSearch, { SearchResult } from "minisearch";
@@ -14,12 +13,14 @@ export enum SearchType
 }
 
 const allSearch = SearchType.Title | SearchType.Aliases | SearchType.Headers | SearchType.Tags | SearchType.Path | SearchType.Content;
+const searchInputDebounceMs = 120;
 
 export class Search
 {
-	private index: MiniSearch; // MiniSearch
+	private index: MiniSearch | undefined;
 	private input: HTMLInputElement;
 	private container: HTMLElement;
+	private inputDebounceTimer: number | undefined;
 
 	// only used when the file tree is not present
 	private dedicatedSearchResultsList: HTMLElement;
@@ -27,6 +28,8 @@ export class Search
 
 	public search(query: string, type: SearchType = allSearch)
 	{
+		if (!this.index) return;
+
 		if (query.length == 0)
 		{
 			this.clear();
@@ -51,9 +54,6 @@ export class Search
 		if (type & SearchType.Tags) searchFields.push('tags');
 		if (type & SearchType.Path) searchFields.push('path');
 		if (type & SearchType.Content) searchFields.push('content');
-
-		console.log(type & SearchType.Title, type & SearchType.Aliases, type & SearchType.Headers, type & SearchType.Tags, type & SearchType.Path, type & SearchType.Content);
-	
 		
 		const results: Array<SearchResult> = this.index.search(query, 
 		{ 
@@ -63,18 +63,17 @@ export class Search
 			fields: searchFields 
 		});
 
-		console.log("Search results", results);
-
 		// clamp results to at most the top 50
 		if (results.length > 50) results.splice(50);
 		
 		// filter results for the best matches and generate extra metadata
+		const topScore = results[0]?.score ?? 0;
 		const showPaths: string[] = [];
 		const headerLinks: Map<string, string[]> = new Map();
 		for (const result of results)
 		{
 			// only show the most relevant results
-			if ((result.score < results[0].score * 0.30 && showPaths.length > 4) || result.score < results[0].score * 0.1) 
+			if (topScore > 0 && ((result.score < topScore * 0.30 && showPaths.length > 4) || result.score < topScore * 0.1)) 
 				break;
 
 			showPaths.push(result.path);
@@ -111,10 +110,11 @@ export class Search
 
 		ObsidianSite.fileTree?.filter(showPaths);
 		ObsidianSite.fileTree?.setSubHeadings(headerLinks);
+		const pathRanks = new Map(showPaths.map((path, index) => [path, index]));
 		ObsidianSite.fileTree?.sort((a, b) =>
 		{
 			if (!a || !b) return 0;
-			return showPaths.findIndex((path) => a.path == path) - showPaths.findIndex((path) => b.path == path);
+			return (pathRanks.get(a.path) ?? Number.MAX_SAFE_INTEGER) - (pathRanks.get(b.path) ?? Number.MAX_SAFE_INTEGER);
 		});
 
 		if (!ObsidianSite.fileTree)
@@ -143,8 +143,25 @@ export class Search
 	
 	}
 
-	public searchParseFilters(queryString: string)
+	private async ensureIndexLoaded(): Promise<boolean>
 	{
+		if (this.index) return true;
+
+		const index = await ObsidianSite.getSearchIndex();
+		if (!index)
+		{
+			console.error("Failed to load shared search index");
+			return false;
+		}
+
+		this.index = index;
+		return true;
+	}
+
+	public async searchParseFilters(queryString: string)
+	{
+		if (!(await this.ensureIndexLoaded())) return;
+
 		if (queryString.startsWith("?")) queryString = queryString.substring(1);
 		let filterName = queryString.split(":")[0];
 		if (!queryString.includes(":")) filterName = "";
@@ -181,6 +198,12 @@ export class Search
 
 	public clear()
 	{
+		if (this.inputDebounceTimer != undefined)
+		{
+			clearTimeout(this.inputDebounceTimer);
+			this.inputDebounceTimer = undefined;
+		}
+
 		this.container?.classList.remove("has-content");
 		this.input.value = "";
 		this.clearCurrentDocumentSearch();
@@ -195,31 +218,20 @@ export class Search
 		this.container = this.input?.closest("#search-container") as HTMLElement;
 		if (!this.input || !this.container) return;
 
-		let indexJSON = preloadedIndexJSON;
-		if (!indexJSON) {
-			const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/search-index.json');
-			if (!indexResp?.ok)
-			{
-				console.error("Failed to fetch search index");
-				return;
-			}
-			indexJSON = await indexResp.json();
-		}
-		try
+		if (preloadedIndexJSON instanceof MiniSearch)
 		{
-			// @ts-ignore
-			this.index = MiniSearch.loadJS(indexJSON, { fields: ['title', 'path', 'tags', 'headers'] });
-		}
-		catch (e)
-		{
-			console.error("Failed to load search index: ", e);
-			return;
+			this.index = preloadedIndexJSON;
 		}
 
 		const inputClear = document.querySelector('#search-clear-button');
 		inputClear?.addEventListener('click', (event) => 
 		{
 			this.clear();
+		});
+
+		this.input.addEventListener('focus', () =>
+		{
+			void this.ensureIndexLoaded();
 		});
 
 		this.input.addEventListener('input', (event) => 
@@ -230,8 +242,18 @@ export class Search
 				this.clear();
 				return;
 			}
-			
-			this.searchParseFilters(query);
+
+			if (this.inputDebounceTimer != undefined)
+			{
+				clearTimeout(this.inputDebounceTimer);
+			}
+
+			this.inputDebounceTimer = window.setTimeout(() =>
+			{
+				this.inputDebounceTimer = undefined;
+				if (this.input.value !== query) return;
+				void this.searchParseFilters(query);
+			}, searchInputDebounceMs);
 		});
 
 		if (!ObsidianSite.fileTree)

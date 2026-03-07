@@ -1,4 +1,3 @@
-import { Shared } from "src/shared/shared";
 import MiniSearch, { SearchResult } from "minisearch";
 
 interface SearchResultItem extends SearchResult {
@@ -13,6 +12,7 @@ interface SearchResultItem extends SearchResult {
 const contextWindowWords = 30;
 const numSearchResults = 12;
 const numTagResults = 5;
+const modalSearchInputDebounceMs = 120;
 
 export class ModalSearch {
 	private index: MiniSearch | null = null;
@@ -24,24 +24,13 @@ export class ModalSearch {
 	private currentSearchTerm: string = "";
 	private currentHover: HTMLElement | null = null;
 	private fetchContentCache: Map<string, Element[]> = new Map();
+	private searchDebounceTimer: number | undefined;
 
 	constructor() {}
 
 	public async init(preloadedIndexJSON?: any): Promise<ModalSearch | undefined> {
-		let indexJSON = preloadedIndexJSON;
-		if (!indexJSON) {
-			const indexResp = await ObsidianSite.fetch(Shared.libFolderName + '/' + Shared.searchIndexFileName);
-			if (!indexResp?.ok) return;
-			indexJSON = await indexResp.json();
-		}
-		try {
-			// @ts-ignore
-			this.index = MiniSearch.loadJS(indexJSON, {
-				fields: ['title', 'path', 'tags', 'headers', 'aliases', 'content']
-			});
-		} catch (e) {
-			console.error("ModalSearch: Failed to load index", e);
-			return;
+		if (preloadedIndexJSON instanceof MiniSearch) {
+			this.index = preloadedIndexJSON;
 		}
 
 		this.createSearchUI();
@@ -85,7 +74,31 @@ export class ModalSearch {
 		const shortcutHandler = (e: KeyboardEvent) => this.shortcutHandler(e);
 		document.addEventListener('keydown', shortcutHandler);
 
-		this.searchBar?.addEventListener('input', (e) => this.onType(e));
+		this.searchBar?.addEventListener('focus', () => {
+			void this.ensureIndexLoaded();
+		});
+
+		this.searchBar?.addEventListener('input', (e) => {
+			this.currentSearchTerm = (e.target as HTMLInputElement).value;
+			this.searchLayout?.classList.toggle('display-results', this.currentSearchTerm !== '');
+
+			if (this.searchDebounceTimer != undefined) {
+				clearTimeout(this.searchDebounceTimer);
+				this.searchDebounceTimer = undefined;
+			}
+
+			if (this.currentSearchTerm.length === 0) {
+				this.removeAllChildren(this.resultsContainer);
+				this.removeAllChildren(this.previewContainer);
+				return;
+			}
+
+			const query = this.currentSearchTerm;
+			this.searchDebounceTimer = window.setTimeout(() => {
+				if (this.searchBar?.value !== query) return;
+				void this.onType(query);
+			}, modalSearchInputDebounceMs);
+		});
 
 		this.container?.addEventListener('click', (e) => {
 			if (e.target === this.container) {
@@ -107,6 +120,10 @@ export class ModalSearch {
 
 	private hideSearch(): void {
 		this.container?.classList.remove('active');
+		if (this.searchDebounceTimer != undefined) {
+			clearTimeout(this.searchDebounceTimer);
+			this.searchDebounceTimer = undefined;
+		}
 		if (this.searchBar) this.searchBar.value = '';
 		this.removeAllChildren(this.resultsContainer);
 		this.removeAllChildren(this.previewContainer);
@@ -118,11 +135,25 @@ export class ModalSearch {
 	private showSearch(): void {
 		this.container?.classList.add('active');
 		this.searchBar?.focus();
+		void this.ensureIndexLoaded();
 	}
 
 	public open(): void { this.showSearch(); }
 	public close(): void { this.hideSearch(); }
 	public isOpen(): boolean { return this.container?.classList.contains('active') ?? false; }
+
+	private async ensureIndexLoaded(): Promise<boolean> {
+		if (this.index) return true;
+
+		const index = await ObsidianSite.getSearchIndex();
+		if (!index) {
+			console.error("ModalSearch: Failed to load shared index");
+			return false;
+		}
+
+		this.index = index;
+		return true;
+	}
 
 	private shortcutHandler(e: KeyboardEvent): void {
 		if (e.key === 'k' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
@@ -179,16 +210,11 @@ export class ModalSearch {
 		}
 	}
 
-	private async onType(e: Event): Promise<void> {
-		if (!this.searchLayout || !this.index) return;
-		this.currentSearchTerm = (e.target as HTMLInputElement).value;
-		this.searchLayout.classList.toggle('display-results', this.currentSearchTerm !== '');
-
-		if (this.currentSearchTerm.length === 0) {
-			this.removeAllChildren(this.resultsContainer);
-			this.removeAllChildren(this.previewContainer);
-			return;
-		}
+	private async onType(query: string): Promise<void> {
+		if (!this.searchLayout) return;
+		if (!(await this.ensureIndexLoaded()) || !this.index) return;
+		if (this.searchBar?.value !== query) return;
+		this.currentSearchTerm = query;
 
 		const results = this.index.search(this.currentSearchTerm, {
 			prefix: true,
