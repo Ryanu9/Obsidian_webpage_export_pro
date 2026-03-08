@@ -667,6 +667,12 @@ export class ObsidianWebsite {
 
 			if (header) {
 				page.scrollToHeader(header);
+			} else {
+				this.horizontalLayout.scrollTo({
+					top: 0,
+					left: 0,
+					behavior: "auto"
+				});
 			}
 		}, 100); // Small delay to ensure the DOM is updated
 
