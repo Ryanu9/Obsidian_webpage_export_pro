@@ -613,6 +613,14 @@ body:has(.website-navbar) #left-sidebar .leaf-content {
     max-height: calc(85vh - var(--navbar-height, 40px));
 }
 
+body.is-small-screen #left-sidebar .leaf-content {
+    max-height: 90vh;
+}
+
+body.is-small-screen:has(.website-navbar) #left-sidebar .leaf-content {
+    max-height: calc(90vh - var(--navbar-height, 40px));
+}
+
 /* #endregion */
 
 html, body {
@@ -642,10 +650,22 @@ html, body {
     overflow-x: hidden;
 }
 
+body.is-small-screen #main-horizontal {
+    justify-content: space-between;
+    gap: clamp(4px, 0.8vw, 10px);
+    padding-inline: clamp(12px, 2vw, 24px);
+    box-sizing: border-box;
+}
+
 #left-content, #right-content {
     position: sticky;
     top: 0;
     height: fit-content;
+}
+
+body.is-small-screen #left-content,
+body.is-small-screen #right-content {
+    flex: 0 0 auto;
 }
 
 #center-content {
@@ -655,6 +675,12 @@ html, body {
     flex-direction: column;
     align-items: center;
     transition: opacity 0.2s ease-in-out;
+}
+
+body.is-small-screen #center-content {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
 }
 
 .hide {
@@ -681,12 +707,21 @@ html, body {
     align-items: center !important;
 }
 
+body.is-small-screen #center-content>.obsidian-document {
+    padding-left: clamp(0.35rem, 0.9vw, 0.85rem);
+    padding-right: clamp(0.35rem, 0.9vw, 0.75rem);
+}
+
 body #center-content>.obsidian-document>.markdown-preview-sizer {
     padding-bottom: 80vh;
     width: 100%;
     max-width: var(--line-width);
     flex-basis: var(--line-width);
     transition: background-color var(--color-fade-speed) ease-in-out;
+}
+
+body.is-small-screen #center-content>.obsidian-document>.markdown-preview-sizer {
+    padding-bottom: 56vh;
 }
 
 #center-content>.obsidian-document>div {

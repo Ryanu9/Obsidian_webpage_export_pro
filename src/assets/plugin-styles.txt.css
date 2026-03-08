@@ -696,7 +696,7 @@ body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
 #graph-canvas {
 	width: 100%;
 	height: 100%;
-	aspect-ratio: 2 / 3;
+	aspect-ratio: 1 / 1;
 	transition: opacity 0.15s ease-in-out;
 }
 
@@ -723,8 +723,8 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-container {
 	position: relative;
-	width: 100%;
-	aspect-ratio: 2 / 3;
+	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
+	aspect-ratio: 1 / 1;
 	max-height: var(--graph-view-max-height);
 	display: flex;
 	transition: background-color var(--color-fade-speed) ease-in-out;
@@ -732,6 +732,7 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 	border: 1px solid var(--modal-border-color);
 	border-radius: var(--modal-radius);
 	overflow: hidden;
+	margin-inline: auto;
 	background: rgba(30, 30, 30, 0.5);
 	backdrop-filter: blur(24px) saturate(180%);
 	-webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -771,11 +772,22 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-placeholder {
 	padding: 0;
-	width: 100%;
-	aspect-ratio: 2 / 3;
+	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
+	aspect-ratio: 1 / 1;
 	max-height: var(--graph-view-max-height);
 	position: relative;
 	flex: none;
+	margin-inline: auto;
+}
+
+body.is-small-screen #right-sidebar .graph-view-wrapper {
+	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
+	max-width: 100%;
+}
+
+body.is-small-screen #right-sidebar .graph-view-container,
+body.is-small-screen #right-sidebar .graph-view-placeholder {
+	margin-inline: 0;
 }
 
 .graph-view-placeholder:has(.expanded) {

@@ -985,10 +985,34 @@ export class ObsidianWebsite {
 		const docWidth = this._cachedLayoutWidths.doc;
 		const leftWidth = this._cachedLayoutWidths.left;
 		const rightWidth = this._cachedLayoutWidths.right;
+		const smallScreenEdgeInset = Math.min(
+			Math.max(window.innerWidth * 0.02, 12),
+			24
+		);
+		const smallScreenDocWidth = Math.min(
+			docWidth,
+			getLengthInPixels("22em", this.centerContentEl)
+		);
+		const smallScreenColumnGap = Math.min(
+			Math.max(window.innerWidth * 0.008, 4),
+			10
+		);
+		const largeScreenMinWidth = Math.max(
+			docWidth + leftWidth + rightWidth,
+			1025
+		);
+		const smallScreenMinWidth = Math.max(
+			leftWidth +
+				rightWidth +
+				smallScreenDocWidth +
+				smallScreenColumnGap * 2 +
+				smallScreenEdgeInset * 2,
+			769
+		);
+		const tabletMinWidth = 481;
 
 		if (
-			widthNowGreaterThan(docWidth + leftWidth + rightWidth) ||
-			widthNowGreaterThan(1025)
+			widthNowGreaterThan(largeScreenMinWidth)
 		) {
 			this.deviceSize = "large-screen";
 			document.body.classList.toggle("floating-sidebars", false);
@@ -1000,11 +1024,7 @@ export class ObsidianWebsite {
 			if (this.leftSidebar) this.leftSidebar.collapsed = false;
 			if (this.rightSidebar) this.rightSidebar.collapsed = false;
 		} else if (
-			widthNowInRange(
-				docWidth + leftWidth,
-				docWidth + leftWidth + rightWidth
-			) ||
-			widthNowInRange(769, 1024)
+			widthNowInRange(smallScreenMinWidth, largeScreenMinWidth)
 		) {
 			this.deviceSize = "small screen";
 			document.body.classList.toggle("floating-sidebars", false);
@@ -1013,16 +1033,10 @@ export class ObsidianWebsite {
 			document.body.classList.toggle("is-tablet", false);
 			document.body.classList.toggle("is-phone", false);
 
-			if (
-				this.leftSidebar &&
-				this.rightSidebar &&
-				!this.leftSidebar.collapsed
-			) {
-				this.rightSidebar.collapsed = true;
-			}
+			if (this.leftSidebar) this.leftSidebar.collapsed = false;
+			if (this.rightSidebar) this.rightSidebar.collapsed = false;
 		} else if (
-			widthNowInRange(leftWidth + rightWidth, docWidth + leftWidth) ||
-			widthNowInRange(481, 768)
+			widthNowInRange(tabletMinWidth, smallScreenMinWidth)
 		) {
 			this.deviceSize = "tablet";
 			document.body.classList.toggle("floating-sidebars", true);
@@ -1039,8 +1053,7 @@ export class ObsidianWebsite {
 				this.rightSidebar.collapsed = true;
 			}
 		} else if (
-			widthNowLessThan(leftWidth + rightWidth) ||
-			widthNowLessThan(480)
+			widthNowLessThan(tabletMinWidth)
 		) {
 			this.deviceSize = "phone";
 			document.body.classList.toggle("floating-sidebars", true);
