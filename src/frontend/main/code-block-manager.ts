@@ -5,6 +5,15 @@ export class CodeBlockManager {
     private containerEl: HTMLElement;
     private processedContainers: HTMLElement[] = [];
     private observer: IntersectionObserver | null = null;
+    private themeObserver: MutationObserver | null = null;
+    private resizeHandler: (() => void) | null = null;
+    private trackedLineNumbers = new Map<HTMLPreElement, HTMLElement>();
+    private idleHandle: number | null = null;
+    private fallbackTimeout: number | null = null;
+    private disposed: boolean = false;
+    private pendingVisibleContainers: HTMLElement[] = [];
+    private visibleContainerSet = new Set<HTMLElement>();
+    private visibleQueueScheduled: boolean = false;
 
     private getTranslation(key: string, defaultValue: string): string {
         try {
@@ -44,6 +53,59 @@ export class CodeBlockManager {
         this.initObserver();
     }
 
+    public dispose() {
+        this.disposed = true;
+        this.observer?.disconnect();
+        this.observer = null;
+        this.themeObserver?.disconnect();
+        this.themeObserver = null;
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+            this.resizeHandler = null;
+        }
+        this.clearScheduledWork();
+        this.trackedLineNumbers.clear();
+        this.processedContainers = [];
+        this.pendingVisibleContainers = [];
+        this.visibleContainerSet.clear();
+        this.visibleQueueScheduled = false;
+    }
+
+    private clearScheduledWork() {
+        const cancelIdle = (window as any).cancelIdleCallback as ((handle: number) => void) | undefined;
+        if (this.idleHandle !== null) {
+            if (cancelIdle) {
+                cancelIdle(this.idleHandle);
+            }
+            this.idleHandle = null;
+        }
+        if (this.fallbackTimeout !== null) {
+            window.clearTimeout(this.fallbackTimeout);
+            this.fallbackTimeout = null;
+        }
+    }
+
+    private scheduleWork(fn: (deadline?: IdleDeadline) => void) {
+        if (this.disposed) return;
+        const requestIdle = (window as any).requestIdleCallback as
+            | ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
+            | undefined;
+
+        if (requestIdle) {
+            this.idleHandle = requestIdle((deadline) => {
+                this.idleHandle = null;
+                if (this.disposed) return;
+                fn(deadline);
+            }, { timeout: 120 });
+        } else {
+            this.fallbackTimeout = window.setTimeout(() => {
+                this.fallbackTimeout = null;
+                if (this.disposed) return;
+                fn();
+            }, 16);
+        }
+    }
+
     private initObserver() {
         if (typeof IntersectionObserver === 'undefined') return;
 
@@ -51,7 +113,7 @@ export class CodeBlockManager {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const container = entry.target as HTMLElement;
-                    this.lazyProcessCodeBlock(container);
+                    this.enqueueVisibleCodeBlock(container);
                     this.observer?.unobserve(container);
                 }
             });
@@ -61,7 +123,7 @@ export class CodeBlockManager {
     }
 
     private lazyProcessCodeBlock(container: HTMLElement) {
-        if (container.getAttribute('data-lazy-processed') === 'true') return;
+        if (this.disposed || container.getAttribute('data-lazy-processed') === 'true') return;
 
         const pre = container.querySelector('pre');
         if (!pre) return;
@@ -74,12 +136,64 @@ export class CodeBlockManager {
         container.setAttribute('data-lazy-processed', 'true');
     }
 
+    private enqueueVisibleCodeBlock(container: HTMLElement) {
+        if (this.disposed || container.getAttribute('data-lazy-processed') === 'true') return;
+        if (this.visibleContainerSet.has(container)) return;
+        this.visibleContainerSet.add(container);
+        this.pendingVisibleContainers.push(container);
+        this.scheduleVisibleQueue();
+    }
+
+    private scheduleVisibleQueue() {
+        if (this.visibleQueueScheduled || this.disposed) return;
+        this.visibleQueueScheduled = true;
+        this.scheduleWork((deadline?: IdleDeadline) => {
+            this.visibleQueueScheduled = false;
+            if (this.disposed) return;
+
+            let processedCount = 0;
+            while (this.pendingVisibleContainers.length > 0 && processedCount < 2) {
+                if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
+                    break;
+                }
+
+                const container = this.pendingVisibleContainers.shift();
+                if (!container) break;
+                this.visibleContainerSet.delete(container);
+
+                if (!container.isConnected || container.getAttribute('data-lazy-processed') === 'true') {
+                    continue;
+                }
+
+                if (!this.isElementNearViewport(container, 300)) {
+                    this.observer?.observe(container);
+                    continue;
+                }
+
+                this.lazyProcessCodeBlock(container);
+                processedCount++;
+            }
+
+            if (this.pendingVisibleContainers.length > 0) {
+                this.scheduleVisibleQueue();
+            }
+        });
+    }
+
+    private isElementNearViewport(element: HTMLElement, margin: number): boolean {
+        const rect = element.getBoundingClientRect();
+        return rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
+    }
+
     public async init() {
+        if (this.disposed) return;
         this.injectStyles();
         // Delay slightly to ensure DOM is ready if needed, similar to other features
         await delay(10);
+        if (this.disposed) return;
         this.initCodeBlocks();
         this.setupThemeObserver();
+        this.setupResizeListener();
     }
 
 
@@ -342,56 +456,75 @@ export class CodeBlockManager {
         const codeBlocks = Array.from(this.containerEl.querySelectorAll('pre code'));
         const ansiBlocks = Array.from(this.containerEl.querySelectorAll('pre.ansi-block'));
 
-        // Combine and dedup
-        const allPreElements = new Set([
-            ...codeBlocks.map(c => c.parentElement as HTMLPreElement),
-            ...ansiBlocks.map(b => b as HTMLPreElement)
-        ].filter(el => el));
+        const allPreElements = Array.from(new Set([
+            ...codeBlocks.map(c => c.parentElement),
+            ...ansiBlocks
+        ].filter((element): element is HTMLPreElement => element instanceof HTMLPreElement)));
 
-        allPreElements.forEach(pre => {
-            if (!pre) return;
-            if (pre.getAttribute('data-processed') === 'true') return; // Avoid re-processing
+        this.processCodeBlockBatch(allPreElements, 0);
+    }
 
-            // Skip code blocks inside YAML properties container
-            if (pre.closest('.yaml-properties-container')) {
-                return;
+    private processCodeBlockBatch(allPreElements: HTMLPreElement[], startIndex: number) {
+        this.scheduleWork((deadline?: IdleDeadline) => {
+            let index = startIndex;
+            let processedCount = 0;
+
+            while (index < allPreElements.length && processedCount < 10) {
+                if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
+                    break;
+                }
+
+                this.prepareCodeBlock(allPreElements[index]);
+                index++;
+                processedCount++;
             }
 
-            // Skip frontmatter elements (they should not have line numbers)
-            if (pre.classList.contains('frontmatter') ||
-                pre.classList.contains('yaml-frontmatter') ||
-                pre.hasAttribute('data-frontmatter')) {
-                return;
+            if (index < allPreElements.length) {
+                this.processCodeBlockBatch(allPreElements, index);
             }
-
-            const oldCopyButton = pre.querySelector('button.copy-code-button');
-            if (oldCopyButton) {
-                oldCopyButton.remove();
-            }
-
-            this.handleAnsiBlock(pre);
-            this.processLanguage(pre);
-            this.prepareContainer(pre);
-
-            const container = pre.parentElement as HTMLElement;
-
-            // 立即处理折叠相关的布局，避免懒加载时产生布局抖动(Layout Shift)
-            const options = this.getCodeBlockOptions();
-            const lines = this.getLineCount(pre);
-            const threshold = options.collapseThreshold || 30;
-            if (lines > threshold && options.defaultCollapse) {
-                this.setupCollapse(pre, container);
-            }
-
-            // 如果支持 IntersectionObserver 则使用懒加载，否则立即渲染
-            if (this.observer) {
-                this.observer.observe(container);
-            } else {
-                this.lazyProcessCodeBlock(container);
-            }
-
-            pre.setAttribute('data-processed', 'true');
         });
+    }
+
+    private prepareCodeBlock(pre: HTMLPreElement) {
+        if (this.disposed) return;
+        if (pre.getAttribute('data-processed') === 'true') return;
+
+        if (pre.closest('.yaml-properties-container')) {
+            return;
+        }
+
+        if (pre.classList.contains('frontmatter') ||
+            pre.classList.contains('yaml-frontmatter') ||
+            pre.hasAttribute('data-frontmatter')) {
+            return;
+        }
+
+        const oldCopyButton = pre.querySelector('button.copy-code-button');
+        if (oldCopyButton) {
+            oldCopyButton.remove();
+        }
+
+        this.handleAnsiBlock(pre);
+        this.processLanguage(pre);
+        this.prepareContainer(pre);
+
+        const container = pre.parentElement as HTMLElement | null;
+        if (!container) return;
+
+        const options = this.getCodeBlockOptions();
+        const lines = this.getLineCount(pre);
+        const threshold = options.collapseThreshold || 30;
+        if (lines > threshold && options.defaultCollapse) {
+            this.setupCollapse(pre, container);
+        }
+
+        if (this.observer) {
+            this.observer.observe(container);
+        } else {
+            this.lazyProcessCodeBlock(container);
+        }
+
+        pre.setAttribute('data-processed', 'true');
     }
 
     private handleAnsiBlock(pre: HTMLPreElement) {
@@ -496,8 +629,9 @@ export class CodeBlockManager {
         const threshold = options.collapseThreshold || 30;
 
         if (lines > threshold && options.defaultCollapse) {
-            // 默认折叠
-            this.setupCollapse(pre, container);
+            if (!container.classList.contains('collapsed')) {
+                this.setupCollapse(pre, container);
+            }
             const expandBtn = this.createButton('expand', this.getTranslation('expandCollapse', '展开/收起'));
             this.updateExpandIcon(expandBtn, true);
             expandBtn.onclick = () => this.toggleCollapse(container, expandBtn);
@@ -518,6 +652,10 @@ export class CodeBlockManager {
         if (options.defaultWrap) {
             pre.classList.add('wrap-code');
             wrapBtn.innerHTML = this.getIcon('text');
+            const wrapper = this.trackedLineNumbers.get(pre);
+            if (wrapper) {
+                requestAnimationFrame(() => this.updateLineNumbers(pre, wrapper));
+            }
         }
 
         controls.appendChild(wrapBtn);
@@ -617,21 +755,10 @@ export class CodeBlockManager {
         // Sync typography
         this.syncTypography(pre, wrapper);
 
-        // Observer for resize/wrap
-        const debouncedUpdate = this.debounce(() => {
+        this.trackedLineNumbers.set(pre, wrapper);
+        if (pre.classList.contains('wrap-code')) {
             requestAnimationFrame(() => this.updateLineNumbers(pre, wrapper));
-        }, 100);
-
-        const observer = new MutationObserver((mutations) => {
-            for (const m of mutations) {
-                if (m.type === 'attributes' && m.attributeName === 'class') {
-                    debouncedUpdate();
-                    break;
-                }
-            }
-        });
-        observer.observe(pre, { attributes: true, attributeFilter: ['class'] });
-        window.addEventListener('resize', debouncedUpdate);
+        }
     }
 
     private renderLineNumbers(wrapper: HTMLElement, count: number) {
@@ -889,16 +1016,41 @@ export class CodeBlockManager {
 
     // Utils
 
+    private setupResizeListener() {
+        const debouncedUpdate = this.debounce(() => {
+            if (this.disposed) return;
+            const staleEntries: HTMLPreElement[] = [];
+            this.trackedLineNumbers.forEach((wrapper, pre) => {
+                if (!pre.isConnected || !wrapper.isConnected) {
+                    staleEntries.push(pre);
+                    return;
+                }
+                if (pre.classList.contains('wrap-code')) {
+                    requestAnimationFrame(() => this.updateLineNumbers(pre, wrapper));
+                }
+            });
+            staleEntries.forEach((pre) => this.trackedLineNumbers.delete(pre));
+        }, 120);
+
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
+        this.resizeHandler = () => debouncedUpdate();
+        window.addEventListener('resize', this.resizeHandler);
+    }
+
     private setupThemeObserver() {
         const debouncedAdjust = this.debounce(() => {
-            // Filter out containers that are no longer in the DOM
-            this.processedContainers = this.processedContainers.filter(container => document.body.contains(container));
+            if (this.disposed) return;
+            this.processedContainers = this.processedContainers.filter(container => container.isConnected);
             this.processedContainers.forEach(container => {
                 this.adjustContrast(container);
             });
         }, 100); // Debounce for 100ms
 
-        const observer = new MutationObserver((mutations) => {
+        this.themeObserver?.disconnect();
+        this.themeObserver = new MutationObserver((mutations) => {
+            if (this.disposed) return;
             for (const mutation of mutations) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                     debouncedAdjust();
@@ -907,7 +1059,7 @@ export class CodeBlockManager {
             }
         });
 
-        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        this.themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     }
 
     private adjustContrast(container: HTMLElement) {

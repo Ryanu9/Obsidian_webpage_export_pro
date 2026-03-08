@@ -610,7 +610,14 @@ export class ObsidianWebsite {
 			return undefined;
 		}
 
-		const page = await new ObsidianDocument(url).load();
+		const previousDocument = this.document;
+		const page = await new ObsidianDocument(url).load(
+			null,
+			ObsidianSite.centerContentEl,
+			false,
+			false,
+			() => previousDocument?.dispose()
+		);
 
 		if (!page) {
 			new Notice("Failed to load page. Unknown error.");

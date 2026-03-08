@@ -324,10 +324,7 @@ export class ImageZoom {
     public show(sourceImg: HTMLImageElement): void {
         if (this.isAnimating) return;
 
-        // 收集当前页面中所有已初始化的图片作为画廊
-        this.galleryImages = Array.from(
-            document.querySelectorAll<HTMLImageElement>("[data-zoom-initialized]")
-        );
+        this.galleryImages = this.collectGalleryImages(sourceImg);
         this.currentIndex = this.galleryImages.indexOf(sourceImg);
         if (this.currentIndex < 0) this.currentIndex = 0;
 
@@ -341,6 +338,16 @@ export class ImageZoom {
 
         // 执行展开动画
         this.animateOpen(sourceImg);
+    }
+
+    private collectGalleryImages(sourceImg: HTMLImageElement): HTMLImageElement[] {
+        const scope = sourceImg.closest<HTMLElement>(".obsidian-document, .password-lock")
+            ?? document.querySelector<HTMLElement>(".obsidian-document, .password-lock")
+            ?? document.body;
+
+        return Array.from(scope.querySelectorAll<HTMLImageElement>(
+            "img:not(.callout-icon):not(.file-list-item-icon):not(.image-zoom-img):not(.image-zoom-thumb)"
+        ));
     }
 
     /**
@@ -368,14 +375,33 @@ export class ImageZoom {
         this.translateY = 0;
         this.isDragging = false;
 
-        this.zoomImage.src = img.src;
+        const source = img.currentSrc || img.src;
+        this.zoomImage.onload = () => {
+            this.applyImageDimensions(
+                this.zoomImage.naturalWidth || 500,
+                this.zoomImage.naturalHeight || 500
+            );
+            this.updateTransform();
+        };
+        this.zoomImage.src = source;
 
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            this.applyImageDimensions(img.naturalWidth, img.naturalHeight);
+            return;
+        }
+
+        if (this.zoomImage.complete && this.zoomImage.naturalWidth > 0 && this.zoomImage.naturalHeight > 0) {
+            this.applyImageDimensions(this.zoomImage.naturalWidth, this.zoomImage.naturalHeight);
+            return;
+        }
+
+        this.applyImageDimensions(img.width || 500, img.height || 500);
+    }
+
+    private applyImageDimensions(nw: number, nh: number): void {
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const nw = img.naturalWidth || img.width || 500;
-        const nh = img.naturalHeight || img.height || 500;
 
-        // 保持宽高比，最大占用视口的 85%
         let w = nw, h = nh;
         const fit = 0.85;
         if (w > vw * fit) { const r = (vw * fit) / w; w *= r; h *= r; }
@@ -538,20 +564,26 @@ export class ImageZoom {
 
         this.thumbStrip.style.display = "";
 
+        const fragment = document.createDocumentFragment();
+
         this.galleryImages.forEach((img, i) => {
             const t = document.createElement("img");
             t.className = "image-zoom-thumb" + (i === this.currentIndex ? " active" : "");
-            t.src = img.src;
+            t.src = img.currentSrc || img.src;
             t.alt = "";
             t.draggable = false;
+            t.loading = "lazy";
+            t.decoding = "async";
             t.addEventListener("click", (e) => {
                 e.stopPropagation();
                 if (this.isAnimating || i === this.currentIndex) return;
                 this.currentIndex = i;
                 this.switchImage();
             });
-            this.thumbStrip.appendChild(t);
+            fragment.appendChild(t);
         });
+
+        this.thumbStrip.appendChild(fragment);
 
         this.scrollActiveThumb();
     }

@@ -39,6 +39,13 @@ export class WebpageDocument {
 	public info: WebpageData;
 
 	public sourceHtml: Document;
+	private codeBlockManager: CodeBlockManager | undefined;
+	private imageObserver: IntersectionObserver | null = null;
+	private pendingVisibleImages: HTMLImageElement[] = [];
+	private visibleImageSet = new Set<HTMLImageElement>();
+	private imageQueueScheduled: boolean = false;
+	private imageIdleHandle: number | null = null;
+	private imageFallbackTimeout: number | null = null;
 
 	// url stuff
 	public pathname: string;
@@ -141,7 +148,8 @@ export class WebpageDocument {
 		parent: WebpageDocument | null = null,
 		containerEl: HTMLElement = ObsidianSite.centerContentEl,
 		isPreview: boolean = false,
-		headerOnly: boolean = false
+		headerOnly: boolean = false,
+		beforeReplace: (() => void) | undefined = undefined
 	): Promise<WebpageDocument | undefined> {
 		this.parent = parent;
 		this.isPreview = isPreview;
@@ -168,6 +176,7 @@ export class WebpageDocument {
 				const currentDocumentEl = containerEl.querySelector(
 					".obsidian-document, .password-lock"
 				) as HTMLElement | null;
+				beforeReplace?.();
 				if (currentDocumentEl) {
 					currentDocumentEl.replaceWith(adoptedDocumentEl);
 				} else {
@@ -249,7 +258,7 @@ export class WebpageDocument {
 
 		if ((this.isMainDocument || this.isPreview) && this.documentEl) {
 			this.processHeaders();
-			this.initNewImageZoom();
+			this.scheduleIdle(() => this.initNewImageZoom());
 			new YamlProperties().parseAndDisplayYamlProperties(this.info, this.documentEl ?? this.containerEl);
 			this.renderCreatedUpdatedBar();
 			this.scheduleIdle(() => this.processCallouts());
@@ -368,6 +377,90 @@ export class WebpageDocument {
 		}
 	}
 
+	private clearImageScheduledWork(): void {
+		const cancelIdle = (window as any).cancelIdleCallback as ((handle: number) => void) | undefined;
+		if (this.imageIdleHandle !== null) {
+			if (cancelIdle) {
+				cancelIdle(this.imageIdleHandle);
+			}
+			this.imageIdleHandle = null;
+		}
+		if (this.imageFallbackTimeout !== null) {
+			window.clearTimeout(this.imageFallbackTimeout);
+			this.imageFallbackTimeout = null;
+		}
+	}
+
+	private scheduleImageWork(fn: (deadline?: IdleDeadline) => void): void {
+		const requestIdle = (window as any).requestIdleCallback as
+			| ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
+			| undefined;
+
+		if (requestIdle) {
+			this.imageIdleHandle = requestIdle((deadline) => {
+				this.imageIdleHandle = null;
+				if (!this.documentEl || !this.documentEl.isConnected) return;
+				fn(deadline);
+			}, { timeout: 120 });
+		} else {
+			this.imageFallbackTimeout = window.setTimeout(() => {
+				this.imageFallbackTimeout = null;
+				if (!this.documentEl || !this.documentEl.isConnected) return;
+				fn();
+			}, 16);
+		}
+	}
+
+	private enqueueVisibleImage(img: HTMLImageElement): void {
+		if (!img.isConnected) return;
+		if (this.visibleImageSet.has(img)) return;
+		this.visibleImageSet.add(img);
+		this.pendingVisibleImages.push(img);
+		this.scheduleVisibleImageQueue();
+	}
+
+	private scheduleVisibleImageQueue(): void {
+		if (this.imageQueueScheduled || !this.documentEl || !this.documentEl.isConnected) return;
+		this.imageQueueScheduled = true;
+		this.scheduleImageWork((deadline?: IdleDeadline) => {
+			this.imageQueueScheduled = false;
+			if (!this.documentEl || !this.documentEl.isConnected) return;
+
+			let processedCount = 0;
+			while (this.pendingVisibleImages.length > 0 && processedCount < 2) {
+				if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
+					break;
+				}
+
+				const img = this.pendingVisibleImages.shift();
+				if (!img) break;
+				this.visibleImageSet.delete(img);
+
+				if (!img.isConnected) {
+					continue;
+				}
+
+				if (!this.isElementNearViewport(img, 300)) {
+					this.imageObserver?.observe(img);
+					continue;
+				}
+
+				LongImageCollapse.getInstance().processSingleImage(img);
+				ImageZoom.getInstance().initSingleImage(img);
+				processedCount++;
+			}
+
+			if (this.pendingVisibleImages.length > 0) {
+				this.scheduleVisibleImageQueue();
+			}
+		});
+	}
+
+	private isElementNearViewport(element: HTMLElement, margin: number): boolean {
+		const rect = element.getBoundingClientRect();
+		return rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
+	}
+
 	private initFootnotes() {
 		// Use dynamic import to load footnotes handler only when needed
 		import('./footnotes').then(({ FootnoteHandler }) => {
@@ -377,11 +470,14 @@ export class WebpageDocument {
 	}
 
 	private initNewImageZoom() {
-		if (!this.documentEl) return;
+		if (!this.documentEl || !this.documentEl.isConnected) return;
 
 		const images = Array.from(this.documentEl.querySelectorAll(
 			"img:not(.callout-icon):not(.file-list-item-icon):not(.image-zoom-img):not(.image-zoom-thumb):not([data-lazy-img])"
 		));
+
+		this.imageObserver?.disconnect();
+		this.imageObserver = null;
 
 		if (images.length === 0) return;
 
@@ -391,18 +487,15 @@ export class WebpageDocument {
 			return;
 		}
 
-		const longImageCollapse = LongImageCollapse.getInstance();
-		const imageZoom = ImageZoom.getInstance();
-
 		const observer = new IntersectionObserver((entries) => {
 			for (const entry of entries) {
 				if (!entry.isIntersecting) continue;
 				const img = entry.target as HTMLImageElement;
 				observer.unobserve(img);
-				longImageCollapse.processSingleImage(img);
-				imageZoom.initSingleImage(img);
+				this.enqueueVisibleImage(img);
 			}
 		}, { rootMargin: '300px 0px' });
+		this.imageObserver = observer;
 
 		for (const img of images) {
 			(img as HTMLElement).setAttribute('data-lazy-img', '');
@@ -473,9 +566,28 @@ export class WebpageDocument {
 
 		// Initialize Code Blocks and Media without blocking the render path
 		if (this.documentEl) {
-			new CodeBlockManager(this.documentEl).init();
-			new MediaManager(this.documentEl).init();
+			const documentEl = this.documentEl;
+			this.codeBlockManager?.dispose();
+			this.codeBlockManager = new CodeBlockManager(documentEl);
+			this.scheduleIdle(() => this.codeBlockManager?.init());
+			this.scheduleIdle(() => {
+				if (!documentEl.isConnected) return;
+				new MediaManager(documentEl).init();
+			});
 		}
+	}
+
+	public dispose() {
+		this.imageObserver?.disconnect();
+		this.imageObserver = null;
+		this.clearImageScheduledWork();
+		this.pendingVisibleImages = [];
+		this.visibleImageSet.clear();
+		this.imageQueueScheduled = false;
+		this.codeBlockManager?.dispose();
+		this.codeBlockManager = undefined;
+		this.children.forEach((child) => child.dispose());
+		this.children = [];
 	}
 
 	public async loadChildDocuments() {
@@ -526,6 +638,7 @@ export class WebpageDocument {
 
 	public async unloadChild(child: WebpageDocument) {
 		this.children = this.children.filter((c) => c != child);
+		child.dispose();
 		child.documentEl?.remove();
 	}
 
