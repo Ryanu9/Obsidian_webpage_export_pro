@@ -691,12 +691,13 @@ body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
 
 .graph-view-wrapper {
 	--graph-view-max-height: 27vh;
+	--graph-view-width: calc(var(--graph-view-max-height) * 14 / 13);
 }
 
 #graph-canvas {
 	width: 100%;
 	height: 100%;
-	aspect-ratio: 1 / 1;
+	aspect-ratio: 14 / 13;
 	transition: opacity 0.15s ease-in-out;
 }
 
@@ -723,8 +724,8 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-container {
 	position: relative;
-	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
-	aspect-ratio: 1 / 1;
+	width: min(100%, var(--graph-view-width));
+	aspect-ratio: 14 / 13;
 	max-height: var(--graph-view-max-height);
 	display: flex;
 	transition: background-color var(--color-fade-speed) ease-in-out;
@@ -772,8 +773,8 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-placeholder {
 	padding: 0;
-	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
-	aspect-ratio: 1 / 1;
+	width: min(100%, var(--graph-view-width));
+	aspect-ratio: 14 / 13;
 	max-height: var(--graph-view-max-height);
 	position: relative;
 	flex: none;
@@ -781,7 +782,7 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 }
 
 body.is-small-screen #right-sidebar .graph-view-wrapper {
-	width: min(100%, calc(var(--graph-view-max-height) * 1.05));
+	width: min(100%, var(--graph-view-width));
 	max-width: 100%;
 }
 
