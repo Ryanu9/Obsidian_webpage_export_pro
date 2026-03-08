@@ -444,6 +444,7 @@ export class ModalSearch {
 		previewInner.classList.add('preview-inner', 'markdown-preview-view', 'markdown-rendered');
 		innerDiv.forEach(child => previewInner.appendChild(child.cloneNode(true)));
 		this.previewContainer.replaceChildren(previewInner);
+		this.previewContainer.scrollTop = 0;
 
 		this.rebindCopyButtons(previewInner);
 
