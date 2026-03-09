@@ -1,4 +1,3 @@
-
 // the theme is loaded from local storage in a deffered inline script so it can be loaded before content is shown
 // this handles "runtime" theme changes
 export enum ThemeType
@@ -9,43 +8,76 @@ export enum ThemeType
 
 export class Theme 
 {
-	private themeToggle: HTMLInputElement;
+	private themeToggle: HTMLInputElement | null;
+	private themeToggleButton: HTMLButtonElement | null;
+	private isTransitioning: boolean;
 
 	public constructor()
 	{
-		this.themeToggle = document.querySelector(".theme-toggle-input") as HTMLInputElement;
-		this.themeToggle?.addEventListener("change", event =>
+		this.themeToggle = document.querySelector(".theme-toggle-input") as HTMLInputElement | null;
+		this.themeToggleButton = document.querySelector(".theme-toggle") as HTMLButtonElement | null;
+		this.isTransitioning = false;
+		this.themeToggleButton?.addEventListener("click", () =>
 		{
 			this.switchTheme();
 		});
+
+		const current = localStorage.getItem("theme") as ThemeType | null;
+		const initialTheme = current ? current : (document.body.classList.contains("theme-dark") ? ThemeType.Dark : ThemeType.Light);
+		this.syncThemeToggle(initialTheme);
+	}
+
+	private syncThemeToggle(theme: ThemeType)
+	{
+		const isDarkTheme = theme == ThemeType.Dark;
+
+		if (this.themeToggle)
+		{
+			this.themeToggle.checked = isDarkTheme;
+		}
+
+		if (this.themeToggleButton)
+		{
+			this.themeToggleButton.setAttribute("aria-checked", isDarkTheme ? "true" : "false");
+			this.themeToggleButton.setAttribute("aria-label", isDarkTheme ? "切换到亮色主题" : "切换到暗色主题");
+		}
+	}
+
+	private getCurrentTheme()
+	{
+		const current = localStorage.getItem("theme") as ThemeType | null;
+		return current ? current : (document.body.classList.contains("theme-dark") ? ThemeType.Dark : ThemeType.Light);
 	}
 
 	public switchTheme()
 	{
-		const current = localStorage.getItem("theme") as ThemeType;
-		let opposite = current == ThemeType.Light ? ThemeType.Dark : ThemeType.Light;
-		this.setTheme(opposite, false);
+		if (this.isTransitioning)
+		{
+			return;
+		}
+
+		const currentTheme = this.getCurrentTheme();
+		const opposite = currentTheme == ThemeType.Dark ? ThemeType.Light : ThemeType.Dark;
+		this.isTransitioning = true;
+		this.syncThemeToggle(opposite);
+
+		window.setTimeout(() =>
+		{
+			this.setTheme(opposite, false);
+		}, 150);
 	}
 
 	public setTheme(theme: ThemeType, instant: boolean = false)
 	{
-		let state = theme == ThemeType.Light;
-		this.themeToggle.checked = state;
+		const isDarkTheme = theme == ThemeType.Dark;
+		const overlayColor = isDarkTheme ? '#1e1e1e' : '#ffffff';
+		this.syncThemeToggle(theme);
 
 		const applyTheme = () =>
 		{
 			document.body.style.setProperty('--color-fade-speed', '0s');
 
-			if(!this.themeToggle.classList.contains("is-checked") && state)
-			{
-				this.themeToggle.classList.add("is-checked");
-			}
-			else if (this.themeToggle.classList.contains("is-checked") && !state)
-			{
-				this.themeToggle.classList.remove("is-checked");
-			}
-
-			if(!state)
+			if(isDarkTheme)
 			{
 				if (document.body.classList.contains("theme-light"))
 				{
@@ -70,7 +102,7 @@ export class Theme
 				}
 			}
 
-			localStorage.setItem("theme", state ? "light" : "dark");
+			localStorage.setItem("theme", isDarkTheme ? "dark" : "light");
 			document.dispatchEvent(new CustomEvent("theme-changed"));
 		};
 
@@ -87,14 +119,16 @@ export class Theme
 			return;
 		}
 
+		this.isTransitioning = true;
+
 		const overlay = document.createElement('div');
-		overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;will-change:opacity;';
-		overlay.style.backgroundColor = state ? '#ffffff' : '#1e1e1e';
+		overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;pointer-events:none;opacity:0;will-change:opacity;';
+		overlay.style.backgroundColor = overlayColor;
 		document.body.appendChild(overlay);
 
 		overlay.animate(
 			[{opacity: 0}, {opacity: 1}],
-			{duration: 150, easing: 'ease-out', fill: 'forwards'}
+			{duration: 180, easing: 'ease-out', fill: 'forwards'}
 		).finished.then(() =>
 		{
 			applyTheme();
@@ -107,8 +141,12 @@ export class Theme
 
 					overlay.animate(
 						[{opacity: 1}, {opacity: 0}],
-						{duration: 300, easing: 'ease-in-out', fill: 'forwards'}
-					).finished.then(() => overlay.remove());
+						{duration: 180, easing: 'ease-in-out', fill: 'forwards'}
+					).finished.then(() =>
+					{
+						overlay.remove();
+						this.isTransitioning = false;
+					});
 				});
 			});
 		});

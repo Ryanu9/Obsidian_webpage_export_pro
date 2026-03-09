@@ -114,10 +114,7 @@ export class FooterLinks extends DynamicInsertedFeature<
 			this.updateLinkColors();
 		};
 
-		const themeToggle = document.querySelector(".theme-toggle-input");
-		if (themeToggle) {
-			themeToggle.addEventListener("change", this.themeChangeListener);
-		}
+		document.addEventListener("theme-changed", this.themeChangeListener);
 	}
 
 	protected onAfterMount(): void {
