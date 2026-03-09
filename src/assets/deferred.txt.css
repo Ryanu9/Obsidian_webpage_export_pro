@@ -651,9 +651,14 @@ html, body {
 }
 
 body.is-small-screen #main-horizontal {
+    --small-screen-left-edge-inset: clamp(12px, 2vw, 24px);
+    --small-screen-right-edge-inset: clamp(3px, 0.5vw, 6px);
+    --small-screen-left-gap: clamp(4px, 0.8vw, 10px);
+    --small-screen-right-gap: clamp(1.78px, 0.355vw, 4.44px);
     justify-content: space-between;
-    gap: clamp(4px, 0.8vw, 10px);
-    padding-inline: clamp(12px, 2vw, 24px);
+    gap: 0;
+    padding-left: var(--small-screen-left-edge-inset);
+    padding-right: var(--small-screen-right-edge-inset);
     box-sizing: border-box;
 }
 
@@ -666,6 +671,10 @@ body.is-small-screen #main-horizontal {
 body.is-small-screen #left-content,
 body.is-small-screen #right-content {
     flex: 0 0 auto;
+}
+
+body.is-small-screen #right-content {
+    margin-left: var(--small-screen-right-gap);
 }
 
 #center-content {
@@ -681,6 +690,7 @@ body.is-small-screen #center-content {
     flex: 1 1 0;
     min-width: 0;
     max-width: none;
+    margin-left: var(--small-screen-left-gap);
 }
 
 .hide {

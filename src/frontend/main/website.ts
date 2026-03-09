@@ -991,18 +991,20 @@ export class ObsidianWebsite {
 		const docWidth = this._cachedLayoutWidths.doc;
 		const leftWidth = this._cachedLayoutWidths.left;
 		const rightWidth = this._cachedLayoutWidths.right;
-		const smallScreenEdgeInset = Math.min(
+		const smallScreenLeftEdgeInset = Math.min(
 			Math.max(window.innerWidth * 0.02, 12),
 			24
 		);
+		const smallScreenRightEdgeInset = smallScreenLeftEdgeInset / 4;
 		const smallScreenDocWidth = Math.min(
 			docWidth,
 			getLengthInPixels("22em", this.centerContentEl)
 		);
-		const smallScreenColumnGap = Math.min(
+		const smallScreenLeftColumnGap = Math.min(
 			Math.max(window.innerWidth * 0.008, 4),
 			10
 		);
+		const smallScreenRightColumnGap = smallScreenLeftColumnGap * (4 / 9);
 		const largeScreenMinWidth = Math.max(
 			docWidth + leftWidth + rightWidth,
 			1025
@@ -1011,8 +1013,10 @@ export class ObsidianWebsite {
 			leftWidth +
 				rightWidth +
 				smallScreenDocWidth +
-				smallScreenColumnGap * 2 +
-				smallScreenEdgeInset * 2,
+				smallScreenLeftColumnGap +
+				smallScreenRightColumnGap +
+				smallScreenLeftEdgeInset +
+				smallScreenRightEdgeInset,
 			769
 		);
 		const tabletMinWidth = 481;
