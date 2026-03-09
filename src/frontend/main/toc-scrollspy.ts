@@ -260,17 +260,29 @@ export class TocScrollSpy {
         const style = document.createElement("style");
         style.id = "toc-scrollspy-styles";
         style.textContent = `
-            /* ====== Outline (TOC) — Quartz exact match ====== */
+            /* ====== Outline (TOC) — Chirpy style ====== */
             #outline {
                 position: relative;
                 display: flex;
                 flex-direction: column;
                 overflow-y: auto;
                 min-height: 1.4rem;
+                border-bottom: none !important;
             }
             #outline.is-collapsed {
                 flex: 0 0 auto;
                 overflow-y: visible;
+            }
+
+            /* Remove divider between outline and graph */
+            #outline, #backlinks {
+                border-bottom: none !important;
+            }
+
+            /* Continuous left border on top-level tree items */
+            #outline > .tree-item {
+                border-left: 1px solid var(--background-modifier-border);
+                margin: 0;
             }
 
             /* Flatten nested tree — remove all child indentation from DOM nesting */
@@ -287,12 +299,12 @@ export class TocScrollSpy {
                 border: none !important;
             }
 
-            /* Hide collapse icons and tree icons — Quartz TOC is flat text only */
+            /* Hide collapse icons and tree icons */
             #outline .collapse-icon { display: none !important; }
             #outline .tree-collapse-all { display: none !important; }
             #outline .tree-icon { display: none !important; }
 
-            /* Active indicator bar — animated accent highlight on left line */
+            /* Active indicator bar — slides to highlight active item */
             .outline-indicator {
                 position: absolute;
                 left: 0;
@@ -304,61 +316,77 @@ export class TocScrollSpy {
                 pointer-events: none;
             }
 
-            /* TOC items — left border line + opacity style */
+            /* TOC items — no per-item border, uses container border */
             #outline .tree-item-self {
                 position: relative;
                 display: flex !important;
                 align-items: center;
                 background-color: transparent !important;
-                color: var(--dark, var(--text-normal));
-                opacity: 0.35;
-                transition: 0.5s ease opacity, 0.3s ease color, 0.2s ease border-left-color;
-                padding: 0 !important;
-                border-left: 1px solid var(--background-modifier-border);
+                color: var(--text-muted);
+                transition: 0.2s ease color;
+                padding: 0.15rem 0 0.15rem 0.75rem !important;
+                border: none !important;
             }
 
             #outline .tree-item-inner {
                 display: block !important;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                white-space: nowrap;
                 flex: 1;
                 line-height: 1.6;
                 padding: 0;
-                font-size: 16px;
-                font-weight: 600;
+                font-size: 0.9rem;
+                font-weight: 400;
                 text-decoration: none;
             }
 
-            /* Depth-based indentation (includes 0.75rem gap from left border) */
+            /* Depth-based indentation */
             #outline .tree-item[data-depth="1"] > .tree-item-self { padding-left: 0.75rem !important; }
-            #outline .tree-item[data-depth="2"] > .tree-item-self { padding-left: 1.75rem !important; }
-            #outline .tree-item[data-depth="3"] > .tree-item-self { padding-left: 2.75rem !important; }
-            #outline .tree-item[data-depth="4"] > .tree-item-self { padding-left: 3.75rem !important; }
-            #outline .tree-item[data-depth="5"] > .tree-item-self { padding-left: 4.75rem !important; }
-            #outline .tree-item[data-depth="6"] > .tree-item-self { padding-left: 5.75rem !important; }
+            #outline .tree-item[data-depth="2"] > .tree-item-self { padding-left: 1.5rem !important; }
+            #outline .tree-item[data-depth="3"] > .tree-item-self { padding-left: 2.25rem !important; }
+            #outline .tree-item[data-depth="4"] > .tree-item-self { padding-left: 3rem !important; }
+            #outline .tree-item[data-depth="5"] > .tree-item-self { padding-left: 3.75rem !important; }
+            #outline .tree-item[data-depth="6"] > .tree-item-self { padding-left: 4.5rem !important; }
 
             /* Hovered item */
             #outline .tree-item-self:hover {
-                opacity: 0.75;
+                color: var(--text-normal);
             }
 
-            /* Active (in-view) item */
+            /* Active (in-view) item — Chirpy blue highlight */
             #outline .tree-item-self.is-active {
-                opacity: 1;
+                color: var(--interactive-accent) !important;
                 background: none !important;
-                border-left-color: var(--interactive-accent);
+            }
+            #outline .tree-item-self.is-active .tree-item-inner {
+                font-weight: 600;
             }
 
-            /* ---- Feature header — Quartz button.toc-header ---- */
+            /* Light mode: darker non-active text + vivid blue for active */
+            body.theme-light #outline .tree-item-self {
+                color: #666 !important;
+            }
+            body.theme-light #outline .tree-item-self:hover {
+                color: #333 !important;
+            }
+            body.theme-light #outline .tree-item-self.is-active {
+                color: #0969da !important;
+            }
+            body.theme-light .outline-indicator {
+                background-color: #0969da;
+            }
+
+            /* ---- Feature header — Chirpy style ---- */
             #outline .feature-header {
                 background-color: transparent;
-                border: none;
+                border: none !important;
                 text-align: left;
                 cursor: pointer;
                 padding: 0;
                 display: flex;
                 align-items: center;
-                margin-bottom: 0.25rem;
+                margin-bottom: 0.5rem;
             }
 
             #outline .feature-header .feature-title {
@@ -372,7 +400,7 @@ export class TocScrollSpy {
                 flex-shrink: 0;
             }
 
-            /* Fold chevron icon — Quartz style */
+            /* Fold chevron icon */
             #outline .feature-header .fold {
                 margin-left: 0.3rem;
                 transition: transform 0.3s ease;
