@@ -1923,6 +1923,40 @@ a.backlink {
 	align-items: center;
 }
 
+/* Modern badge/pill style for tags in note header */
+.header .data-bar #tags {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.5em;
+}
+
+.header .data-bar #tags .tags-icon {
+	display: none;
+}
+
+.header .data-bar #tags .tags-content {
+	gap: 0.4em;
+}
+
+.header .data-bar #tags .tags-content a.tag {
+	display: inline-flex;
+	align-items: center;
+	border-radius: 9999px;
+	border: 1px solid transparent;
+	padding: 0.2em 0.75em;
+	font-size: 0.8em;
+	font-weight: 600;
+	line-height: 1.4;
+	text-decoration: none;
+	transition: background-color 0.2s ease, color 0.2s ease;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.header .data-bar #tags .tags-content a.tag:hover {
+	text-decoration: none;
+}
+
 #aliases .aliases-content .alias {
 	font-size: var(--tag-size);
 	padding-inline: 0.25em;
