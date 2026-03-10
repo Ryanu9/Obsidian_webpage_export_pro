@@ -217,8 +217,8 @@ export class CodeBlockManager {
                 border-radius: 8px;
                 overflow: hidden;
                 background-color: var(--code-background);
-                --code-ui-color: #888;
-                --code-ui-color-muted: #777;
+                --code-ui-color: #a0a0a0;
+                --code-ui-color-muted: #909090;
             }
 
             .code-block-header {
@@ -351,7 +351,6 @@ export class CodeBlockManager {
                 grid-column: 1;
                 text-align: right;
                 padding: 1em 0.8em 1em 1em;
-                border-right: 1px solid var(--background-modifier-border);
                 color: var(--code-ui-color-muted);
                 user-select: none;
                 font-family: inherit;
@@ -1067,10 +1066,10 @@ export class CodeBlockManager {
 
         const isDark = document.body.classList.contains('theme-dark');
 
-        const standardColor = isDark ? '#a0a0a0' : '#606060';
-        const mutedColor = isDark ? '#888888' : '#777777';
-        const adjustedColor = ensureContrast(standardColor, bg, 3.5, container);
-        const adjustedMuted = ensureContrast(mutedColor, bg, 3, container);
+        const standardColor = isDark ? '#b0b0b0' : '#505050';
+        const mutedColor = isDark ? '#a0a0a0' : '#606060';
+        const adjustedColor = ensureContrast(standardColor, bg, 5, container);
+        const adjustedMuted = ensureContrast(mutedColor, bg, 4.5, container);
         container.style.setProperty('--code-ui-color', adjustedColor);
         container.style.setProperty('--code-ui-color-muted', adjustedMuted);
 
