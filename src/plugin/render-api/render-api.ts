@@ -942,6 +942,53 @@ export namespace _MarkdownRendererInternal {
 
 		// Insert title into the document
 		(header ?? sizerElement)?.prepend(titleEl);
+
+		// Generate breadcrumb navigation (Quartz style)
+		const pathSegments = source.path.replace(/\.md$/i, '').split('/');
+		if (pathSegments.length > 0 && header) {
+			const breadcrumb = document.createElement("nav");
+			breadcrumb.className = "breadcrumb-container";
+			breadcrumb.setAttribute("aria-label", "breadcrumbs");
+
+			// Home icon
+			const homeDiv = document.createElement("div");
+			homeDiv.className = "breadcrumb-element";
+			const homeLink = document.createElement("a");
+			homeLink.href = "../".repeat(pathSegments.length - 1) || "./";
+			homeLink.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>';
+			homeDiv.appendChild(homeLink);
+
+			const homeSep = document.createElement("span");
+			homeSep.className = "breadcrumb-separator";
+			homeSep.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+			homeDiv.appendChild(homeSep);
+			breadcrumb.appendChild(homeDiv);
+
+			// Folder segments
+			for (let i = 0; i < pathSegments.length - 1; i++) {
+				const segDiv = document.createElement("div");
+				segDiv.className = "breadcrumb-element";
+				const segText = document.createElement("span");
+				segText.textContent = pathSegments[i];
+				segDiv.appendChild(segText);
+
+				const sep = document.createElement("span");
+				sep.className = "breadcrumb-separator";
+				sep.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+				segDiv.appendChild(sep);
+				breadcrumb.appendChild(segDiv);
+			}
+
+			// Current page (last segment, no link, no separator)
+			const currentDiv = document.createElement("div");
+			currentDiv.className = "breadcrumb-element breadcrumb-current";
+			const currentText = document.createElement("span");
+			currentText.textContent = pathSegments[pathSegments.length - 1];
+			currentDiv.appendChild(currentText);
+			breadcrumb.appendChild(currentDiv);
+
+			titleEl.before(breadcrumb);
+		}
 	}
 
 	export async function renderCanvas(view: any, options: MarkdownRendererOptions): Promise<HTMLElement | undefined> {
