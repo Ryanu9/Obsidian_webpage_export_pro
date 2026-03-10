@@ -26,6 +26,7 @@
 		"src/assets/**/*.json"
 	],
 	"exclude": [
-		"quartz/**"
+		"quartz/**",
+		"edict/**"
 	]
 }

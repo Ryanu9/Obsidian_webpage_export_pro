@@ -330,6 +330,23 @@ export class CodeBlockManager {
                 background-color: transparent;
             }
 
+            /* inner wrapper: inline-block so its width = scroll content width */
+            .markdown-rendered pre code > .code-inner {
+                display: inline-block;
+                min-width: 100%;
+            }
+
+            /* 代码高亮行全宽 (relative to .code-inner scroll width) */
+            .markdown-rendered pre code .code-highlight-line,
+            .markdown-rendered pre code .code-highlight-diff-add,
+            .markdown-rendered pre code .code-highlight-diff-remove {
+                min-width: calc(100% + 2em) !important;
+                margin-left: -1em;
+                padding-left: 1em;
+                padding-right: 1em;
+                box-sizing: border-box !important;
+            }
+
             /* 换行模式 */
             .markdown-rendered pre.wrap-code code,
             .markdown-rendered pre.wrap-code.language-ansi > span,
@@ -709,24 +726,52 @@ export class CodeBlockManager {
         const blockHighlightSpans = codeElement.querySelectorAll(
             '.code-highlight-line, .code-highlight-diff-add, .code-highlight-diff-remove'
         );
+        if (blockHighlightSpans.length === 0) return;
 
-        blockHighlightSpans.forEach(span => {
+        // Wrap code content in an inline-block inner span so that
+        // highlight spans' min-width:100% references the scroll content
+        // width (determined by the longest line) rather than the layout width.
+        if (!codeElement.querySelector(':scope > .code-inner')) {
+            const inner = document.createElement('span');
+            inner.className = 'code-inner';
+            while (codeElement.firstChild) {
+                inner.appendChild(codeElement.firstChild);
+            }
+            codeElement.appendChild(inner);
+        }
+
+        // Re-query spans inside the wrapper
+        const spans = codeElement.querySelectorAll(
+            '.code-highlight-line, .code-highlight-diff-add, .code-highlight-diff-remove'
+        );
+
+        spans.forEach(span => {
             const htmlSpan = span as HTMLElement;
-            const next = span.nextSibling;
 
-            const hasTrailingNewline = next &&
-                next.nodeType === Node.TEXT_NODE &&
-                next.textContent !== null &&
-                next.textContent.charAt(0) === '\n';
-
-            if (!hasTrailingNewline) {
-                htmlSpan.style.setProperty('display', 'inline-block', 'important');
-                const newlineNode = document.createTextNode('\n');
-                if (next) {
-                    span.parentNode?.insertBefore(newlineNode, next);
-                } else {
-                    span.parentNode?.appendChild(newlineNode);
+            // Strip trailing \n from inside the span to prevent inline-block
+            // from rendering a taller box that swallows external line breaks
+            const lastChild = span.lastChild;
+            if (lastChild && lastChild.nodeType === Node.TEXT_NODE && lastChild.textContent) {
+                if (lastChild.textContent.endsWith('\n')) {
+                    lastChild.textContent = lastChild.textContent.slice(0, -1);
+                    if (lastChild.textContent === '') {
+                        lastChild.remove();
+                    }
                 }
+            }
+
+            htmlSpan.style.setProperty('display', 'inline-block', 'important');
+
+            // Always insert a \n after the span to compensate for the implicit
+            // line break lost when converting display:block → inline-block.
+            // Any pre-existing \n in the next sibling is separate content
+            // (e.g. an empty line) and must not be reused as this line break.
+            const newlineNode = document.createTextNode('\n');
+            const next = span.nextSibling;
+            if (next) {
+                span.parentNode?.insertBefore(newlineNode, next);
+            } else {
+                span.parentNode?.appendChild(newlineNode);
             }
         });
     }
