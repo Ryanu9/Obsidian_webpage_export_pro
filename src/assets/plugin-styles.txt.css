@@ -1005,6 +1005,15 @@ body.floating-sidebars #right-sidebar .graph-view-placeholder {
 	max-height: 50vh;
 	aspect-ratio: 14 / 13;
 	margin-inline: 0;
+	/* 浮动模式下 sidebar 自身是毛玻璃,graph 容器再叠 blur 会显得杂乱,改为半透明实色 + 细边框 */
+	background: rgba(255, 255, 255, 0.04);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+}
+
+body.theme-light.floating-sidebars #right-sidebar .graph-view-container,
+body.theme-light.floating-sidebars #right-sidebar .graph-view-placeholder {
+	background: rgba(0, 0, 0, 0.03);
 }
 
 /* 手机(竖屏空间最紧)上略微再放大一些,直接用整屏 */

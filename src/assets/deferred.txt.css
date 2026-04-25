@@ -221,20 +221,34 @@ body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
 /* In floating mode, toolbar stays inside the fixed panel (left sidebar only) */
 body.floating-sidebars #left-sidebar .sidebar-toolbar {
     position: fixed;
-    /* 用 --navbar-effective-height 抵消 navbar 占用的位置;变量逻辑见文件顶部 */
-    top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height) + 4px) !important;
+    /* 用 --navbar-effective-height 抵消 navbar 占用的位置;紧贴 mobile-topbar 下方,无间隙 */
+    top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height)) !important;
     left: 0;
     z-index: 101;
     padding: 0.4em var(--sidebar-margin);
     /* 浮动模式下取消桌面端的 margin-top: 2.5em / margin-bottom: 4px,避免与 mobile-topbar 之间出现空白 */
     margin: 0;
     min-width: var(--sidebar-width);
-    background-color: var(--background-secondary);
-    /* 实际可见高度 = 0.8em padding(0.4*2) + ~2em 输入框 ≈ 2.8em;预留 3.2em 给 leaf-content top 计算包含 4px 间隔 */
-    --sidebar-toolbar-floating-height: calc(2.8em + 4px);
-    /* 上方留 4px 与 mobile-topbar 间距 + 整圈圆角形成独立卡片 */
+    /* 与 sidebar 主面板风格统一的毛玻璃效果 */
+    background-color: rgba(20, 20, 22, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    /* 顶部有 mobile-topbar / 底部接 leaf-content,只保留右侧细线 border 形成视觉边缘 */
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: none;
+    /* 实际可见高度 = 0.8em padding(0.4*2) + ~2em 输入框 ≈ 2.8em */
+    --sidebar-toolbar-floating-height: 2.8em;
+    /* 仅右上角圆角(贴 mobile-topbar 那一角),其余直角 — 与下方 leaf-content 无缝拼接 */
     border-top-right-radius: var(--radius-l, 12px);
-    border-bottom-right-radius: var(--radius-l, 12px);
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+body.theme-light.floating-sidebars #left-sidebar .sidebar-toolbar {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-right-color: rgba(0, 0, 0, 0.06);
 }
 
 body.floating-sidebars #left-sidebar .sidebar-toolbar-actions {
@@ -376,31 +390,46 @@ body.floating-sidebars .sidebar {
     position: absolute;
 }
 
-/* On floating/mobile, restore solid panel for overlay */
+/* On floating/mobile, sidebars use iOS-style frosted glass panels */
 body.floating-sidebars .sidebar .leaf-content {
     position: fixed;
     top: var(--mobile-topbar-height);
     bottom: 0;
     max-height: calc(100vh - var(--mobile-topbar-height));
-    background-color: var(--background-secondary);
+    /* 毛玻璃效果:半透明 + 高斯模糊 + 饱和度增强,与 mobile-topbar 风格统一 */
+    background-color: rgba(20, 20, 22, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
     z-index: 100;
     padding-top: 1em;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+body.theme-light.floating-sidebars .sidebar .leaf-content {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-color: rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 body.floating-sidebars #left-sidebar .leaf-content {
     left: 0;
     padding-bottom: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
+    /* 左侧 leaf-content 是 toolbar 下方的内容区,不需要圆角(顶部右上圆角由 toolbar 负责) */
+    border-radius: 0;
+    border-left: none;
     -webkit-mask-image: none;
     mask-image: none;
 }
 
 body.floating-sidebars #right-sidebar .leaf-content {
     right: 0;
-    border-top-left-radius: var(--radius-l);
-    border-bottom-left-radius: var(--radius-l);
+    /* 右侧 sidebar 仅左上角圆角(贴 mobile-topbar 那一角),其余直角 */
+    border-top-left-radius: var(--radius-l, 12px);
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
     /* 直接在浮动模式下用 --navbar-effective-height 抵消 navbar 占用的位置;
        --navbar-effective-height 默认为 0,只有页面里出现 .website-navbar 时才被切到 navbar 高度 */
     top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height)) !important;
@@ -499,9 +528,6 @@ body.floating-sidebars #mobile-topbar {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    /* 底部圆角,让 mobile-topbar 看起来像浮在页面顶部的 iOS 风格 sticky 卡片 */
-    border-bottom-left-radius: var(--radius-l, 12px);
-    border-bottom-right-radius: var(--radius-l, 12px);
     z-index: 200;
     transition: background-color var(--color-fade-speed) ease-in-out,
                 border-color var(--color-fade-speed) ease-in-out;
