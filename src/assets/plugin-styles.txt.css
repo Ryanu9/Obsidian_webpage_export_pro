@@ -973,13 +973,44 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 }
 
 body.is-small-screen #right-sidebar .graph-view-wrapper {
-	width: min(100%, var(--graph-view-width));
+	/* 小屏下不再用 vh 限制宽度,让 graph 跟随 sidebar 宽度自适应 */
+	width: 100%;
 	max-width: 100%;
+	box-sizing: border-box;
+	padding: var(--sidebar-margin);
+	padding-bottom: calc(var(--sidebar-margin) / 2);
 }
 
 body.is-small-screen #right-sidebar .graph-view-container,
 body.is-small-screen #right-sidebar .graph-view-placeholder {
+	width: 100%;
+	max-width: 100%;
+	max-height: 30vh;
+	aspect-ratio: 14 / 13;
 	margin-inline: 0;
+}
+
+/* 浮动模式(平板/手机):graph-view 不再受 vh 限制,改为跟随 sidebar 宽度,高度按 14/13 比例 */
+body.floating-sidebars #right-sidebar .graph-view-wrapper {
+	width: 100%;
+	max-width: 100%;
+	padding: var(--sidebar-margin) var(--sidebar-margin) calc(var(--sidebar-margin) / 2);
+	box-sizing: border-box;
+}
+
+body.floating-sidebars #right-sidebar .graph-view-container,
+body.floating-sidebars #right-sidebar .graph-view-placeholder {
+	width: 100%;
+	max-width: 100%;
+	max-height: 50vh;
+	aspect-ratio: 14 / 13;
+	margin-inline: 0;
+}
+
+/* 手机(竖屏空间最紧)上略微再放大一些,直接用整屏 */
+body.is-phone #right-sidebar .graph-view-container,
+body.is-phone #right-sidebar .graph-view-placeholder {
+	max-height: 60vh;
 }
 
 .graph-view-placeholder:has(.expanded) {

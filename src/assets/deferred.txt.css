@@ -9,7 +9,13 @@ body {
     --sidebar-margin: 12px;
     --navbar-height: 40px;
     --mobile-topbar-height: 0px;
+    /* navbar 在页面出现时的等效高度;只在存在 .website-navbar 时为 navbar-height,否则为 0 */
+    --navbar-effective-height: 0px;
     --img-max-width: 100%;
+}
+
+body:has(.website-navbar) {
+    --navbar-effective-height: var(--navbar-height, 40px);
 }
 
 body.floating-sidebars {
@@ -215,7 +221,8 @@ body.theme-light #left-sidebar .leaf-content::-webkit-scrollbar-thumb:hover {
 /* In floating mode, toolbar stays inside the fixed panel (left sidebar only) */
 body.floating-sidebars #left-sidebar .sidebar-toolbar {
     position: fixed;
-    top: var(--mobile-topbar-height);
+    /* 用 --navbar-effective-height 抵消 navbar 占用的位置;变量逻辑见文件顶部 */
+    top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height) + 4px) !important;
     left: 0;
     z-index: 101;
     padding: 0.4em var(--sidebar-margin);
@@ -223,26 +230,21 @@ body.floating-sidebars #left-sidebar .sidebar-toolbar {
     margin: 0;
     min-width: var(--sidebar-width);
     background-color: var(--background-secondary);
-    --sidebar-toolbar-floating-height: 3.2em;
+    /* 实际可见高度 = 0.8em padding(0.4*2) + ~2em 输入框 ≈ 2.8em;预留 3.2em 给 leaf-content top 计算包含 4px 间隔 */
+    --sidebar-toolbar-floating-height: calc(2.8em + 4px);
+    /* 上方留 4px 与 mobile-topbar 间距 + 整圈圆角形成独立卡片 */
+    border-top-right-radius: var(--radius-l, 12px);
+    border-bottom-right-radius: var(--radius-l, 12px);
 }
 
 body.floating-sidebars #left-sidebar .sidebar-toolbar-actions {
     display: none;
 }
 
-body.floating-sidebars:has(.website-navbar) #left-sidebar .sidebar-toolbar {
-    top: calc(var(--navbar-height) + var(--mobile-topbar-height));
-}
-
 body.floating-sidebars #left-sidebar .leaf-content {
-    top: calc(var(--mobile-topbar-height) + var(--sidebar-toolbar-floating-height, 3.2em));
-    max-height: calc(100vh - var(--mobile-topbar-height) - var(--sidebar-toolbar-floating-height, 3.2em));
+    top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height) + var(--sidebar-toolbar-floating-height, 3.2em)) !important;
+    max-height: calc(100vh - var(--navbar-effective-height, 0px) - var(--mobile-topbar-height) - var(--sidebar-toolbar-floating-height, 3.2em)) !important;
     padding-top: 0;
-}
-
-body.floating-sidebars:has(.website-navbar) #left-sidebar .leaf-content {
-    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + var(--sidebar-toolbar-floating-height, 3.2em));
-    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height) - var(--sidebar-toolbar-floating-height, 3.2em));
 }
 
 /* 浮动模式下 leaf-content 第一个直接子元素的顶部 padding 减小,避免叠加出额外空白 */
@@ -399,6 +401,10 @@ body.floating-sidebars #right-sidebar .leaf-content {
     right: 0;
     border-top-left-radius: var(--radius-l);
     border-bottom-left-radius: var(--radius-l);
+    /* 直接在浮动模式下用 --navbar-effective-height 抵消 navbar 占用的位置;
+       --navbar-effective-height 默认为 0,只有页面里出现 .website-navbar 时才被切到 navbar 高度 */
+    top: calc(var(--navbar-effective-height, 0px) + var(--mobile-topbar-height)) !important;
+    max-height: calc(100vh - var(--navbar-effective-height, 0px) - var(--mobile-topbar-height)) !important;
 }
 
 /* In floating/mobile mode, cards don't need individual borders */
@@ -493,6 +499,9 @@ body.floating-sidebars #mobile-topbar {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    /* 底部圆角,让 mobile-topbar 看起来像浮在页面顶部的 iOS 风格 sticky 卡片 */
+    border-bottom-left-radius: var(--radius-l, 12px);
+    border-bottom-right-radius: var(--radius-l, 12px);
     z-index: 200;
     transition: background-color var(--color-fade-speed) ease-in-out,
                 border-color var(--color-fade-speed) ease-in-out;
@@ -722,9 +731,20 @@ body.is-small-screen #main-horizontal {
     height: fit-content;
 }
 
+/* 有顶部 navbar 时,sticky 锚定额外让出 8px,避免 sidebar 内容(尤其 graph view)紧贴 navbar */
+body:has(.website-navbar) #left-content,
+body:has(.website-navbar) #right-content {
+    top: 0.5em;
+}
+
 body.is-small-screen #left-content,
 body.is-small-screen #right-content {
     flex: 0 0 auto;
+}
+
+/* 小屏 + 有 navbar 时,右侧 sidebar 顶部加大 buffer,确保 graph 上方不被 navbar 遮挡 */
+body.is-small-screen:has(.website-navbar) #right-sidebar .leaf-content {
+    padding-top: 0.5em;
 }
 
 body.is-small-screen #right-content {
