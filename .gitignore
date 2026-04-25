@@ -36,3 +36,5 @@ vault/
 output/
 .cursor/rules/1.mdc
 .github/copilot-instructions.md
+.cursor/rules/pchat.mdc
+.cursor/rules/.cursor/rules/pchat.mdc

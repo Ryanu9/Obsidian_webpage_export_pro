@@ -218,9 +218,12 @@ body.floating-sidebars #left-sidebar .sidebar-toolbar {
     top: var(--mobile-topbar-height);
     left: 0;
     z-index: 101;
-    padding: 0.6em var(--sidebar-margin);
+    padding: 0.4em var(--sidebar-margin);
+    /* 浮动模式下取消桌面端的 margin-top: 2.5em / margin-bottom: 4px,避免与 mobile-topbar 之间出现空白 */
+    margin: 0;
     min-width: var(--sidebar-width);
     background-color: var(--background-secondary);
+    --sidebar-toolbar-floating-height: 3.2em;
 }
 
 body.floating-sidebars #left-sidebar .sidebar-toolbar-actions {
@@ -232,14 +235,19 @@ body.floating-sidebars:has(.website-navbar) #left-sidebar .sidebar-toolbar {
 }
 
 body.floating-sidebars #left-sidebar .leaf-content {
-    top: calc(var(--mobile-topbar-height) + 4em);
-    max-height: calc(100vh - var(--mobile-topbar-height) - 4em);
-    padding-top: 0.25em;
+    top: calc(var(--mobile-topbar-height) + var(--sidebar-toolbar-floating-height, 3.2em));
+    max-height: calc(100vh - var(--mobile-topbar-height) - var(--sidebar-toolbar-floating-height, 3.2em));
+    padding-top: 0;
 }
 
 body.floating-sidebars:has(.website-navbar) #left-sidebar .leaf-content {
-    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + 4em);
-    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height) - 4em);
+    top: calc(var(--navbar-height) + var(--mobile-topbar-height) + var(--sidebar-toolbar-floating-height, 3.2em));
+    max-height: calc(100vh - var(--navbar-height) - var(--mobile-topbar-height) - var(--sidebar-toolbar-floating-height, 3.2em));
+}
+
+/* 浮动模式下 leaf-content 第一个直接子元素的顶部 padding 减小,避免叠加出额外空白 */
+body.floating-sidebars #left-sidebar .leaf-content > *:first-child {
+    padding-top: calc(var(--sidebar-margin) / 2);
 }
 
 /* Hide topbar, collapse icon, and resize handle in floating mode */
