@@ -2890,7 +2890,7 @@ body.theme-light .excalidraw-plugin svg.light {
 	border-radius: 0;
 	background: transparent;
 	color: var(--text-muted);
-	font-size: 0.78rem !important;
+	font-size: 0.85rem !important;
 	line-height: 1.6 !important;
 	min-height: 1.6em;
 	display: inline-block;
