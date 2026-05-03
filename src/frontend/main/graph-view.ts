@@ -89,7 +89,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 	 */
 	private buildGraphData(paths: string[], focusedPath?: string): GraphData {
 		const nodes: Record<string, { type: string; links: Record<string, boolean>; displayText: string }> = {};
-		const weights: Record<string, number> = {};
+		const weights: Record<string, number> | undefined = focusedPath ? {} : undefined;
 		const pathSet = new Set(paths);
 
 		// Create node entries using file path as node ID
@@ -102,7 +102,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 				displayText: fileInfo?.title || path,
 			};
 			// Focused node gets weight 30 (larger), like official filterLocalGraph
-			if (isFocused) weights[path] = 30;
+			if (isFocused && weights) weights[path] = 30;
 		}
 
 		// Build links using file paths as IDs
@@ -120,7 +120,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 			}
 		}
 
-		return { nodes, weights };
+		return weights ? { nodes, weights } : { nodes };
 	}
 
 	public async showGraph(paths?: string[]) {
