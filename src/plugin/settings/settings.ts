@@ -1,4 +1,4 @@
-import { Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, getIcon } from 'obsidian';
+import { Modal, Notice, Plugin, PluginSettingTab, Setting, TAbstractFile, TFile, TFolder, getIcon } from 'obsidian';
 import { Path } from 'src/plugin/utils/path';
 import pluginStylesBlacklist from 'src/assets/third-party-styles-blacklist.txt';
 import { ExportLog } from 'src/plugin/render-api/render-api';
@@ -820,7 +820,7 @@ export class SettingsPage extends PluginSettingTab {
 		await SettingsPage.plugin.saveData(copy);
 	}
 
-	static renameFile(file: TFile, oldPath: string) {
+	static renameFile(file: TAbstractFile, oldPath: string) {
 		const oldPathParsed = new Path(oldPath).path;
 		let fileList = Settings.exportOptions.filesToExport;
 		const index = fileList.indexOf(oldPathParsed);
