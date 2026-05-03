@@ -789,7 +789,7 @@ body.is-small-screen #right-content {
 body.is-small-screen #center-content {
     flex: 1 1 0;
     min-width: 0;
-    max-width: none;
+    max-width: calc(var(--line-width) + 6em);
     margin-left: var(--small-screen-left-gap);
 }
 

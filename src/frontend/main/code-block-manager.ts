@@ -96,14 +96,47 @@ export class CodeBlockManager {
                 this.idleHandle = null;
                 if (this.disposed) return;
                 fn(deadline);
-            }, { timeout: 120 });
+            }, { timeout: this.getIdleTimeout() });
         } else {
             this.fallbackTimeout = window.setTimeout(() => {
                 this.fallbackTimeout = null;
                 if (this.disposed) return;
                 fn();
-            }, 16);
+            }, this.getFallbackDelay());
         }
+    }
+
+    private getViewportWidth(): number {
+        return window.innerWidth || document.documentElement.clientWidth || 1024;
+    }
+
+    private isMobileViewport(): boolean {
+        return this.getViewportWidth() <= 768;
+    }
+
+    private getPreloadMargin(): number {
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
+        const viewportWidth = this.getViewportWidth();
+
+        if (viewportWidth <= 480) return Math.max(1200, viewportHeight * 2);
+        if (viewportWidth <= 768) return Math.max(900, viewportHeight * 1.5);
+        return 300;
+    }
+
+    private getPrepareBatchSize(): number {
+        return this.isMobileViewport() ? 4 : 10;
+    }
+
+    private getVisibleBatchSize(): number {
+        return this.isMobileViewport() ? 1 : 2;
+    }
+
+    private getIdleTimeout(): number {
+        return this.isMobileViewport() ? 500 : 120;
+    }
+
+    private getFallbackDelay(): number {
+        return this.isMobileViewport() ? 80 : 16;
     }
 
     private initObserver() {
@@ -118,7 +151,7 @@ export class CodeBlockManager {
                 }
             });
         }, {
-            rootMargin: '200px 0px', // 提前 200px 开始渲染，提升体验
+            rootMargin: `${this.getPreloadMargin()}px 0px`,
         });
     }
 
@@ -152,7 +185,9 @@ export class CodeBlockManager {
             if (this.disposed) return;
 
             let processedCount = 0;
-            while (this.pendingVisibleContainers.length > 0 && processedCount < 2) {
+            const batchSize = this.getVisibleBatchSize();
+            const preloadMargin = this.getPreloadMargin();
+            while (this.pendingVisibleContainers.length > 0 && processedCount < batchSize) {
                 if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
                     break;
                 }
@@ -165,7 +200,7 @@ export class CodeBlockManager {
                     continue;
                 }
 
-                if (!this.isElementNearViewport(container, 300)) {
+                if (!this.isElementNearViewport(container, preloadMargin)) {
                     this.observer?.observe(container);
                     continue;
                 }
@@ -484,8 +519,9 @@ export class CodeBlockManager {
         this.scheduleWork((deadline?: IdleDeadline) => {
             let index = startIndex;
             let processedCount = 0;
+            const batchSize = this.getPrepareBatchSize();
 
-            while (index < allPreElements.length && processedCount < 10) {
+            while (index < allPreElements.length && processedCount < batchSize) {
                 if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
                     break;
                 }

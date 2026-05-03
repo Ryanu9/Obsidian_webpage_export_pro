@@ -1108,7 +1108,6 @@ export class ObsidianWebsite {
 	private isResizing = false;
 	private checkStillResizingTimeout: NodeJS.Timeout | undefined = undefined;
 	private resizeRAF: number | null = null;
-	private _cachedLayoutWidths: { doc: number; left: number; right: number } | null = null;
 	private _deviceSize: string = "large-screen";
 	public get deviceSize(): string {
 		return this._deviceSize;
@@ -1125,61 +1124,71 @@ export class ObsidianWebsite {
 
 		const localThis = this;
 
-		// Cache layout width computations to avoid forced reflows on every resize.
-		// These CSS values are constant so we only need to compute them once.
-		if (!this._cachedLayoutWidths) {
-			const docWidthCSS =
-				this.metadata.featureOptions.document?.documentWidth ?? "45em";
-			const leftWidthCSS =
-				this.metadata.featureOptions.sidebar?.leftDefaultWidth ?? "20em";
-			const rightWidthCSS =
-				this.metadata.featureOptions.sidebar?.rightDefaultWidth ?? "20em";
+		const bodyStyle = getComputedStyle(document.body);
+		const cssLength = (value: string | undefined, fallback: string, context: Element): number => {
+			const cssValue = value?.trim() || fallback;
+			const pixels = getLengthInPixels(cssValue, context);
+			return Number.isFinite(pixels) && pixels > 0
+				? pixels
+				: getLengthInPixels(fallback, context);
+		};
 
-			this._cachedLayoutWidths = {
-				doc: getLengthInPixels(docWidthCSS, this.centerContentEl),
-				left: this.leftSidebar
-					? getLengthInPixels(leftWidthCSS, this.leftSidebar?.containerEl)
-					: 0,
-				right: this.rightSidebar
-					? getLengthInPixels(rightWidthCSS, this.rightSidebar?.containerEl)
-					: 0,
-			};
-		}
-
-		const docWidth = this._cachedLayoutWidths.doc;
-		const leftWidth = this._cachedLayoutWidths.left;
-		const rightWidth = this._cachedLayoutWidths.right;
+		// These widths can depend on viewport-sized CSS such as
+		// `min(60em, calc(100vw - 2em))`, so they must be recomputed while resizing.
+		const docWidth = cssLength(
+			bodyStyle.getPropertyValue("--line-width") ||
+				bodyStyle.getPropertyValue("--file-line-width") ||
+				this.metadata.featureOptions.document?.documentWidth,
+			"45em",
+			this.centerContentEl
+		);
+		const leftWidth = this.leftSidebar
+			? cssLength(
+				getComputedStyle(this.leftSidebar.containerEl).getPropertyValue("--sidebar-width") ||
+					this.metadata.featureOptions.sidebar?.leftDefaultWidth,
+				"20em",
+				this.leftSidebar.containerEl
+			)
+			: 0;
+		const rightWidth = this.rightSidebar
+			? cssLength(
+				getComputedStyle(this.rightSidebar.containerEl).getPropertyValue("--sidebar-width") ||
+					this.metadata.featureOptions.sidebar?.rightDefaultWidth,
+				"20em",
+				this.rightSidebar.containerEl
+			)
+			: 0;
 		const smallScreenLeftEdgeInset = Math.min(
 			Math.max(window.innerWidth * 0.02, 12),
 			24
 		);
 		const smallScreenRightEdgeInset = smallScreenLeftEdgeInset / 4;
-		const smallScreenDocWidth = Math.min(
-			docWidth,
-			getLengthInPixels("22em", this.centerContentEl)
-		);
 		const smallScreenLeftColumnGap = Math.min(
 			Math.max(window.innerWidth * 0.008, 4),
 			10
 		);
 		const smallScreenRightColumnGap = smallScreenLeftColumnGap * (4 / 9);
+		const edgeAndGapWidth =
+			smallScreenLeftColumnGap +
+			smallScreenRightColumnGap +
+			smallScreenLeftEdgeInset +
+			smallScreenRightEdgeInset;
+		const centerContentMaxWidth =
+			docWidth + getLengthInPixels("6em", this.centerContentEl);
 		const largeScreenMinWidth = Math.max(
-			docWidth + leftWidth + rightWidth,
+			centerContentMaxWidth + leftWidth + rightWidth + edgeAndGapWidth,
 			1025
 		);
 		const smallScreenMinWidth = Math.max(
-			leftWidth +
+			centerContentMaxWidth +
 				rightWidth +
-				smallScreenDocWidth +
-				smallScreenLeftColumnGap +
 				smallScreenRightColumnGap +
-				smallScreenLeftEdgeInset +
 				smallScreenRightEdgeInset,
 			769
 		);
 		const tabletMinWidth = 481;
-		const collapseLeftSidebarMinWidth = 1120;
-		const collapseRightSidebarMinWidth = 1025;
+		const collapseLeftSidebarMinWidth = largeScreenMinWidth;
+		const collapseRightSidebarMinWidth = smallScreenMinWidth;
 		const currentWidth = window.innerWidth;
 
 		if (currentWidth > largeScreenMinWidth) {
