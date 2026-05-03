@@ -19,7 +19,7 @@ export class GraphViewOptions extends InsertedFeatureOptionsWithTitle {
 	edgePruning: number = 100;
 	minNodeRadius: number = 3;
 	maxNodeRadius: number = 6;
-	collisionRadius: number = 25;
+	collisionRadius: number = 60;
 	collisionStrength: number = 0.5;
 
 	info_showOrphanNodes = new FeatureSettingInfo({

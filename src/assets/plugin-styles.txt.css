@@ -868,12 +868,12 @@ body.theme-light #sidebar-theme-toggle .theme-icon-light {
 
 /* Official OB Publish graph color classes mapped to Obsidian CSS variables */
 .graph-view.color-fill { color: var(--graph-node, var(--text-muted)); }
-.graph-view.color-fill-focused { color: var(--interactive-accent); }
-.graph-view.color-fill-tag { color: var(--graph-tag, var(--tag-color, var(--text-accent))); }
-.graph-view.color-fill-unresolved { color: var(--graph-node, var(--text-faint)); opacity: 0.5; }
-.graph-view.color-fill-attachment { color: var(--graph-node, var(--text-muted)); }
-.graph-view.color-arrow { color: var(--graph-text, var(--text-muted)); }
-.graph-view.color-circle { color: var(--graph-line, var(--background-modifier-border)); }
+.graph-view.color-fill-focused { color: var(--graph-node-focused, var(--interactive-accent)); }
+.graph-view.color-fill-tag { color: var(--graph-node-tag, var(--tag-color, var(--text-accent))); }
+.graph-view.color-fill-unresolved { color: var(--graph-node-unresolved, var(--text-faint)); opacity: 0.5; }
+.graph-view.color-fill-attachment { color: var(--graph-node-attachment, var(--text-muted)); }
+.graph-view.color-arrow { color: var(--text-normal); opacity: 0.5; }
+.graph-view.color-circle { color: var(--graph-node-focused, var(--interactive-accent)); }
 .graph-view.color-line { color: var(--graph-line, var(--background-modifier-border)); }
 .graph-view.color-text { color: var(--graph-text, var(--text-normal)); }
 body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
@@ -881,29 +881,29 @@ body.theme-light .graph-view.color-text { color: var(--graph-text, #1a1a1a); }
 .graph-view.color-line-highlight { color: var(--interactive-accent); }
 
 .graph-view-wrapper {
-	--graph-view-max-height: 27vh;
-	--graph-view-width: calc(var(--graph-view-max-height) * 14 / 13);
+	--graph-height: 260px;
+	--graph-view-width: 100%;
 }
 
 #graph-canvas {
 	width: 100%;
 	height: 100%;
-	aspect-ratio: 14 / 13;
+	aspect-ratio: auto;
 	transition: opacity 0.15s ease-in-out;
 }
 
 .graph-view-container.expanded {
 	position: fixed;
-	width: 92%;
-	height: 90%;
+	width: 90vw;
+	height: 90vh;
 	max-height: unset;
 	aspect-ratio: auto;
-	right: 5%;
-	top: 5%;
+	right: 5vw;
+	top: 5vh;
 	z-index: 100;
-	background: rgba(30, 30, 30, 0.35);
-	backdrop-filter: blur(24px) saturate(180%);
-	-webkit-backdrop-filter: blur(24px) saturate(180%);
+	background: var(--background-primary);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
@@ -915,23 +915,26 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-container {
 	position: relative;
-	width: min(100%, var(--graph-view-width));
-	aspect-ratio: 14 / 13;
-	max-height: var(--graph-view-max-height);
-	display: flex;
+	width: 100%;
+	height: var(--graph-height);
+	aspect-ratio: auto;
+	max-height: none;
+	display: block;
 	transition: background-color var(--color-fade-speed) ease-in-out;
 	touch-action: none;
-	border: 1px solid var(--modal-border-color);
-	border-radius: var(--modal-radius);
+	border: var(--border-width, 1px) solid var(--background-modifier-border, var(--modal-border-color));
+	border-radius: 8px;
 	overflow: hidden;
-	margin-inline: auto;
-	background: rgba(30, 30, 30, 0.5);
-	backdrop-filter: blur(24px) saturate(180%);
-	-webkit-backdrop-filter: blur(24px) saturate(180%);
+	padding: 4px;
+	margin-top: 12px;
+	margin-inline: 0;
+	background: var(--background-primary);
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 
 .theme-light .graph-view-container {
-	background: rgba(255, 255, 255, 0.5);
+	background: var(--background-primary);
 }
 
 .graph-icon {
@@ -964,12 +967,13 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 
 .graph-view-placeholder {
 	padding: 0;
-	width: min(100%, var(--graph-view-width));
-	aspect-ratio: 14 / 13;
-	max-height: var(--graph-view-max-height);
+	width: 100%;
+	height: var(--graph-height);
+	aspect-ratio: auto;
+	max-height: none;
 	position: relative;
 	flex: none;
-	margin-inline: auto;
+	margin-inline: 0;
 }
 
 body.is-small-screen #right-sidebar .graph-view-wrapper {
@@ -985,8 +989,8 @@ body.is-small-screen #right-sidebar .graph-view-container,
 body.is-small-screen #right-sidebar .graph-view-placeholder {
 	width: 100%;
 	max-width: 100%;
-	max-height: 30vh;
-	aspect-ratio: 14 / 13;
+	max-height: none;
+	aspect-ratio: auto;
 	margin-inline: 0;
 }
 
@@ -1002,24 +1006,23 @@ body.floating-sidebars #right-sidebar .graph-view-container,
 body.floating-sidebars #right-sidebar .graph-view-placeholder {
 	width: 100%;
 	max-width: 100%;
-	max-height: 50vh;
-	aspect-ratio: 14 / 13;
+	max-height: none;
+	aspect-ratio: auto;
 	margin-inline: 0;
-	/* 浮动模式下 sidebar 自身是毛玻璃,graph 容器再叠 blur 会显得杂乱,改为半透明实色 + 细边框 */
-	background: rgba(255, 255, 255, 0.04);
+	background: var(--background-primary);
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
 }
 
 body.theme-light.floating-sidebars #right-sidebar .graph-view-container,
 body.theme-light.floating-sidebars #right-sidebar .graph-view-placeholder {
-	background: rgba(0, 0, 0, 0.03);
+	background: var(--background-primary);
 }
 
 /* 手机(竖屏空间最紧)上略微再放大一些,直接用整屏 */
 body.is-phone #right-sidebar .graph-view-container,
 body.is-phone #right-sidebar .graph-view-placeholder {
-	max-height: 60vh;
+	max-height: none;
 }
 
 body.is-small-screen #right-sidebar .graph-view-container.expanded,

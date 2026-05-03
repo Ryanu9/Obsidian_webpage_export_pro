@@ -744,7 +744,7 @@ export class ObsidianWebsite {
 
 		document.addEventListener('contentDecrypted', () => {
 			if (this.graphView && this.document) {
-				this.graphView.showGraph([this.document.pathname]);
+				this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [this.document.pathname]);
 			}
 		});
 	}
@@ -816,7 +816,9 @@ export class ObsidianWebsite {
 		this.updateMetaTag("og:image", page.info?.coverImageURL || "");
 
 		// Update graph view and file tree
-		await this.graphView?.showGraph([page.pathname]);
+		if (this.graphView) {
+			await this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [page.pathname]);
+		}
 		this.fileTree?.findByPath(page.pathname)?.setActive();
 		this.fileTree?.revealPath(page.pathname);
 		this.graphView?.setActiveNodeByPath(page.pathname);

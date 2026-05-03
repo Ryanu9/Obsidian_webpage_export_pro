@@ -1238,7 +1238,7 @@ export class GraphRenderer {
 			for (const lnk2 of existingLinks) linkPairs.push([lnk2.source.id, lnk2.target.id]);
 
 			const nodePositions: Record<string, [number, number]> = {};
-			for (const an of addedNodes) nodePositions[an.id] = [an.x ?? 0, an.y ?? 0];
+			for (const node of existingNodes) nodePositions[node.id] = [node.x ?? 0, node.y ?? 0];
 
 			this.worker.postMessage({ nodes: nodePositions, links: linkPairs, alpha: 0.3, run: true });
 			this.changed();
@@ -1358,7 +1358,7 @@ export class GraphRenderer {
 
 		if (window.location.protocol === "file:") {
 			const fileInfo = ObsidianSite.getLocalDataFromId(LinkHandler.getFileDataIdFromURL(workerPath));
-			const data = Uint8Array.from(Array.from(fileInfo.data).map((s: string) => s.charCodeAt(0)));
+			const data = Uint8Array.from(Array.from(fileInfo.data as string, (s) => s.charCodeAt(0)));
 			return new Worker(URL.createObjectURL(new Blob([data], { type: "application/javascript" })));
 		} else {
 			return new Worker(new URL(workerPath, window.location.href).pathname);

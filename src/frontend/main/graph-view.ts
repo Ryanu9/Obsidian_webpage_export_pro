@@ -13,7 +13,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 	// node data
 	public paths: string[] = [];
 	public graphExpanded: boolean = false;
-	private savedPositions: Record<string, [number, number]> = {};
+	private currentFocusedPath: string | undefined = undefined;
 
 	public graphRenderer: GraphRenderer;
 	public graphContainer: HTMLElement;
@@ -45,9 +45,9 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		this.graphRenderer.targetScale = 0.5;
 		this.graphRenderer.setRenderOptions({ textFadeMultiplier: -1 });
 
-		// Node click → navigation (save positions before navigating)
+		// Node click → navigation. The renderer keeps shared nodes alive between
+		// data updates, matching the official Publish graph transition behavior.
 		this.graphRenderer.onNodeClick = (_event: Event, nodeId: string, _nodeType: string) => {
-			this.savedPositions = this.graphRenderer.getNodePositions();
 			this.navigateToNode(nodeId);
 		};
 
@@ -125,6 +125,9 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 	public async showGraph(paths?: string[]) {
 		let linked: string[] = [];
+		const focusedPath = paths ? paths[0] : undefined;
+		this.isGlobalGraph = !paths;
+
 		if (paths) {
 			for (const element of paths) {
 				const fileInfo = ObsidianSite.getWebpageData(element);
@@ -140,9 +143,9 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 			linked = ObsidianSite.metadata.allFiles;
 		}
 
-		this.isGlobalGraph = linked.length == ObsidianSite.metadata.allFiles.length;
-
 		linked = linked.filter((l) => {
+			if (focusedPath && l === focusedPath) return true;
+
 			const data = ObsidianSite.getWebpageData(l);
 			if (!data || !data.type) return false;
 
@@ -166,36 +169,18 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		const uniquePaths = [...new Set(linked)];
 		this.paths = uniquePaths;
 
-		// Determine focused path (the current page)
-		const focusedPath = paths ? paths[0] : undefined;
-
-		// Save positions of old nodes before clearing
-		const oldPositions = this.graphRenderer.getNodePositions();
-		// Merge with any positions saved from click navigation
-		for (const id in this.savedPositions) {
-			if (this.savedPositions.hasOwnProperty(id)) {
-				oldPositions[id] = this.savedPositions[id];
-			}
+		if (focusedPath && this.currentFocusedPath !== focusedPath) {
+			this.graphRenderer.resetPan();
+			this.currentFocusedPath = focusedPath;
+		} else if (!focusedPath) {
+			this.currentFocusedPath = undefined;
 		}
-		this.savedPositions = {};
 
-		// Clear old graph and set new data
+		// Set data incrementally. GraphRenderer.setData() removes stale nodes,
+		// keeps shared nodes, and seeds new nodes near their neighbors like the
+		// official Obsidian Publish graph.
 		const graphData = this.buildGraphData(uniquePaths, focusedPath);
-		this.graphRenderer.clearData();
 		this.graphRenderer.setData(graphData);
-
-		// Restore positions for nodes that exist in both old and new graphs
-		let hasRestoredPositions = false;
-		for (const id in oldPositions) {
-			if (oldPositions.hasOwnProperty(id) && this.graphRenderer.nodeLookup[id]) {
-				this.graphRenderer.setNodePosition(id, oldPositions[id][0], oldPositions[id][1]);
-				hasRestoredPositions = true;
-			}
-		}
-		// Re-send corrected positions to the sim worker
-		if (hasRestoredPositions) {
-			this.graphRenderer.resyncWorker();
-		}
 
 		// Set forces
 		this.graphRenderer.setForces({
