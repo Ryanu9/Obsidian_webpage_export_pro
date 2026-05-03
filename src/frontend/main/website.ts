@@ -71,6 +71,11 @@ export class ObsidianWebsite {
 	public footerLinks: FooterLinks | undefined = undefined;
 	public copyright: Copyright | undefined = undefined;
 	public tocScrollSpy: TocScrollSpy | undefined = undefined;
+	private mobileTocToggleEl: HTMLButtonElement | undefined = undefined;
+	private mobileTocOverlayEl: HTMLElement | undefined = undefined;
+	private mobileTocDrawerEl: HTMLElement | undefined = undefined;
+	private mobileTocTitleEl: HTMLElement | undefined = undefined;
+	private mobileTocContentEl: HTMLElement | undefined = undefined;
 	private sharedSearchIndex: MiniSearch | undefined = undefined;
 	private searchIndexPromise: Promise<MiniSearch | undefined> | undefined = undefined;
 	private graphViewInitPromise: Promise<GraphView | undefined> | undefined = undefined;
@@ -152,6 +157,7 @@ export class ObsidianWebsite {
 		this.initSearchDeferred();
 
 		this.initSidebarToolbar();
+		this.initMobileToc();
 
 		const pathname =
 			document
@@ -321,6 +327,7 @@ export class ObsidianWebsite {
 
 			// Setup collapsible section headers
 			this.setupSectionCollapse();
+			this.syncMobileToc();
 
 		});
 
@@ -466,6 +473,122 @@ export class ObsidianWebsite {
 			const link = breadcrumb.querySelector<HTMLAnchorElement>("a");
 			if (link) link.setAttribute("href", target);
 		});
+	}
+
+	private initMobileToc() {
+		if (this.mobileTocToggleEl) return;
+
+		const toggle = document.createElement("button");
+		toggle.type = "button";
+		toggle.className = "toc-toggle";
+		toggle.hidden = true;
+		toggle.setAttribute("aria-label", "Open table of contents");
+		toggle.setAttribute("aria-expanded", "false");
+		toggle.innerHTML = `
+			<svg class="toc-toggle__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path d="M4 7h16M4 12h16M4 17h16" />
+			</svg>
+			<span>TOC</span>
+		`;
+		toggle.addEventListener("click", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			this.toggleMobileToc();
+		});
+
+		const overlay = document.createElement("div");
+		overlay.className = "toc-overlay";
+		overlay.addEventListener("click", () => this.closeMobileToc());
+
+		const drawer = document.createElement("aside");
+		drawer.className = "toc-drawer";
+		drawer.setAttribute("aria-label", "Table of contents");
+		drawer.setAttribute("aria-hidden", "true");
+
+		const header = document.createElement("div");
+		header.className = "toc-drawer__header";
+
+		const title = document.createElement("div");
+		title.className = "toc-drawer__title";
+		title.textContent = this.getI18nTitle("outline", "Table of Contents");
+
+		const closeButton = document.createElement("button");
+		closeButton.type = "button";
+		closeButton.className = "toc-drawer__close";
+		closeButton.setAttribute("aria-label", "Close table of contents");
+		closeButton.innerHTML = "×";
+		closeButton.addEventListener("click", () => this.closeMobileToc());
+
+		header.append(title, closeButton);
+
+		const content = document.createElement("div");
+		content.className = "toc-drawer__content";
+		content.addEventListener("click", (event) => {
+			if ((event.target as HTMLElement).closest("a[href]")) this.closeMobileToc();
+		});
+
+		drawer.append(header, content);
+		document.body.append(toggle, overlay, drawer);
+		document.addEventListener("keydown", (event) => {
+			if (event.key == "Escape") this.closeMobileToc();
+		});
+
+		this.mobileTocToggleEl = toggle;
+		this.mobileTocOverlayEl = overlay;
+		this.mobileTocDrawerEl = drawer;
+		this.mobileTocTitleEl = title;
+		this.mobileTocContentEl = content;
+	}
+
+	private syncMobileToc() {
+		if (!this.mobileTocToggleEl || !this.mobileTocContentEl || !this.mobileTocTitleEl) return;
+
+		const outline = document.querySelector("#outline") as HTMLElement | null;
+		const hasOutline = !!outline?.querySelector(".tree-item-self[href]");
+		this.mobileTocToggleEl.hidden = !hasOutline;
+
+		if (!outline || !hasOutline) {
+			this.mobileTocContentEl.replaceChildren();
+			this.closeMobileToc();
+			return;
+		}
+
+		this.mobileTocTitleEl.textContent = this.getI18nTitle("outline", "Table of Contents");
+
+		const clone = outline.cloneNode(true) as HTMLElement;
+		clone.id = "toc-mobile";
+		clone.classList.add("toc-drawer__outline");
+		clone.querySelectorAll("[id]").forEach((element) => {
+			if (element != clone) element.removeAttribute("id");
+		});
+		clone.querySelector(".feature-header")?.remove();
+		clone.querySelectorAll(".collapse-icon, .tree-collapse-all").forEach((element) => element.remove());
+		clone.querySelectorAll(".is-collapsed").forEach((element) => element.classList.remove("is-collapsed"));
+		clone.querySelectorAll<HTMLElement>(".tree-item-children").forEach((element) => element.style.removeProperty("display"));
+
+		this.mobileTocContentEl.replaceChildren(clone);
+		LinkHandler.initializeLinks(this.mobileTocContentEl);
+	}
+
+	private toggleMobileToc() {
+		if (document.body.classList.contains("toc-open")) this.closeMobileToc();
+		else this.openMobileToc();
+	}
+
+	private openMobileToc() {
+		if (this.mobileTocToggleEl?.hidden) return;
+
+		this.leftSidebar && (this.leftSidebar.collapsed = true);
+		this.rightSidebar && (this.rightSidebar.collapsed = true);
+		document.body.classList.add("toc-open");
+		this.mobileTocToggleEl?.setAttribute("aria-expanded", "true");
+		this.mobileTocDrawerEl?.setAttribute("aria-hidden", "false");
+	}
+
+	private closeMobileToc() {
+		document.body.classList.remove("toc-open");
+		this.mobileTocToggleEl?.setAttribute("aria-expanded", "false");
+		this.mobileTocDrawerEl?.setAttribute("aria-hidden", "true");
 	}
 
 	private setupSectionCollapse() {
