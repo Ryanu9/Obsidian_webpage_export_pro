@@ -98,7 +98,8 @@ export const language: i18n =
 			info_allowFoldingLists: "Дозволити чи заборонити згортання списків",
 			info_allowFoldingHeadings: "Дозволити чи заборонити згортання заголовків",
 			info_documentWidth: "Ширина документа",
-			info_showCreatedUpdatedTime: "Показати час створення та оновлення під заголовком сторінки"
+			info_showCreatedUpdatedTime: "Показати час створення та оновлення під заголовком сторінки",
+			info_breadcrumbHomePath: "Exported page path opened when clicking the breadcrumb home element, for example index.html. Leave empty to use the generated relative path."
 		},
 		sidebars: {
 			title: "Бічні панелі",

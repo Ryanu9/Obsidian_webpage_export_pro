@@ -103,6 +103,7 @@ export interface i18n {
 			info_allowFoldingHeadings: string;
 			info_documentWidth: string;
 			info_showCreatedUpdatedTime: string;
+			info_breadcrumbHomePath: string;
 		},
 		sidebars: {
 			title: string;

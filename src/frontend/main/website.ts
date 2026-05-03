@@ -177,6 +177,7 @@ export class ObsidianWebsite {
 
 		this.onDocumentLoad((doc) => {
 			this.normalizeFeaturedCards();
+			this.normalizeBreadcrumbTargets();
 
 			if (!ObsidianSite.metadata.ignoreMetadata) {
 				const insertBacklinks =
@@ -450,6 +451,20 @@ export class ObsidianWebsite {
 				const element = content.querySelector(`:scope > ${selector}`);
 				if (element) content.appendChild(element);
 			}
+		});
+	}
+
+	private normalizeBreadcrumbTargets() {
+		const target = ObsidianSite.metadata?.featureOptions?.document?.breadcrumbHomePath?.trim().replace(/^\/+/, "");
+		if (!target) return;
+
+		document.querySelectorAll<HTMLElement>(".breadcrumb-container > .breadcrumb-element:first-child").forEach((breadcrumb) => {
+			breadcrumb.dataset.breadcrumbTarget = target;
+			breadcrumb.setAttribute("role", "link");
+			breadcrumb.setAttribute("tabindex", "0");
+
+			const link = breadcrumb.querySelector<HTMLAnchorElement>("a");
+			if (link) link.setAttribute("href", target);
 		});
 	}
 

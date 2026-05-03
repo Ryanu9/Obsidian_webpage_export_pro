@@ -946,6 +946,7 @@ export namespace _MarkdownRendererInternal {
 		// Generate breadcrumb navigation (Quartz style)
 		const pathSegments = source.path.replace(/\.md$/i, '').split('/');
 		if (pathSegments.length > 0 && header) {
+			const breadcrumbHomePath = (Settings.exportOptions.documentOptions.breadcrumbHomePath ?? "").trim().replace(/^\/+/, "");
 			const breadcrumb = document.createElement("nav");
 			breadcrumb.className = "breadcrumb-container";
 			breadcrumb.setAttribute("aria-label", "breadcrumbs");
@@ -953,8 +954,13 @@ export namespace _MarkdownRendererInternal {
 			// Home icon
 			const homeDiv = document.createElement("div");
 			homeDiv.className = "breadcrumb-element";
+			if (breadcrumbHomePath) {
+				homeDiv.setAttribute("data-breadcrumb-target", breadcrumbHomePath);
+				homeDiv.setAttribute("role", "link");
+				homeDiv.setAttribute("tabindex", "0");
+			}
 			const homeLink = document.createElement("a");
-			homeLink.href = "../".repeat(pathSegments.length - 1) || "./";
+			homeLink.href = breadcrumbHomePath || "../".repeat(pathSegments.length - 1) || "./";
 			homeLink.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>';
 			homeDiv.appendChild(homeLink);
 

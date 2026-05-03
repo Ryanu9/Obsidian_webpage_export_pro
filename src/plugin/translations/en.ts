@@ -99,7 +99,8 @@ export const language: i18n =
 			info_allowFoldingLists: "Whether or not to allow lists to be folded",
 			info_allowFoldingHeadings: "Whether or not to allow headings to be folded",
 			info_documentWidth: "The width of the document",
-			info_showCreatedUpdatedTime: "Show created and updated time below the page title"
+			info_showCreatedUpdatedTime: "Show created and updated time below the page title",
+			info_breadcrumbHomePath: "Exported page path opened when clicking the breadcrumb home element, for example index.html. Leave empty to use the generated relative path."
 		},
 		sidebars: {
 			title: "Sidebars",

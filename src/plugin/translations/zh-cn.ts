@@ -98,7 +98,8 @@ export const language: i18n =
 			info_allowFoldingLists: "是否允许列表折叠",
 			info_allowFoldingHeadings: "是否允许标题折叠",
 			info_documentWidth: "文档的宽度",
-			info_showCreatedUpdatedTime: "在页面标题下方显示创建和更新时间"
+			info_showCreatedUpdatedTime: "在页面标题下方显示创建和更新时间",
+			info_breadcrumbHomePath: "点击面包屑首页元素时跳转到的导出页面路径，例如 index.html。留空则使用导出时生成的默认相对路径。"
 		},
 		sidebars: {
 			title: "侧边栏",

@@ -7,6 +7,7 @@ export class DocumentOptions extends FeatureOptions
 	allowFoldingHeadings: boolean = true;
 	documentWidth: string = "45em";
 	showCreatedUpdatedTime: boolean = true;
+	breadcrumbHomePath: string = "index.html";
 
 	info_allowFoldingLists = new FeatureSettingInfo({
 		show: true,
@@ -23,6 +24,11 @@ export class DocumentOptions extends FeatureOptions
 	info_showCreatedUpdatedTime = new FeatureSettingInfo({
 		show: true,
 		description: i18n.settings.document.info_showCreatedUpdatedTime
+	});
+	info_breadcrumbHomePath = new FeatureSettingInfo({
+		show: true,
+		description: i18n.settings.document.info_breadcrumbHomePath,
+		placeholder: "index.html"
 	});
 
 	constructor()

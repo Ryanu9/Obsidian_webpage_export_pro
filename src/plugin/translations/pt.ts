@@ -99,7 +99,8 @@ export const language: i18n =
 			info_allowFoldingLists: "Permitir que listas sejam recolhidas",
 			info_allowFoldingHeadings: "Permitir que cabeçalhos sejam recolhidos",
 			info_documentWidth: "A largura do documento",
-			info_showCreatedUpdatedTime: "Mostrar hora de criação e atualização abaixo do título da página"
+			info_showCreatedUpdatedTime: "Mostrar hora de criação e atualização abaixo do título da página",
+			info_breadcrumbHomePath: "Exported page path opened when clicking the breadcrumb home element, for example index.html. Leave empty to use the generated relative path."
 		},
 		sidebars: {
 			title: "Barras Laterais",

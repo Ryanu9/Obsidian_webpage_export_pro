@@ -3,6 +3,7 @@ import { FilePreviewPopover } from "./link-preview";
 const LINK_SELECTOR = ".internal-link, a.tag, a.tree-item-self, a.footnote-link";
 const FEATURED_TAG_SELECTOR = "[data-featured-tag-search]";
 const FEATURED_CARD_SELECTOR = ".featured-card";
+const BREADCRUMB_TARGET_SELECTOR = ".breadcrumb-element[data-breadcrumb-target]";
 
 export class LinkHandler
 {
@@ -18,6 +19,14 @@ export class LinkHandler
 			if (event.key != "Enter" && event.key != " ") return;
 
 			const target = event.target as HTMLElement;
+			const breadcrumb = target.closest(BREADCRUMB_TARGET_SELECTOR) as HTMLElement | null;
+			if (breadcrumb)
+			{
+				event.preventDefault();
+				this.openBreadcrumbTarget(breadcrumb);
+				return;
+			}
+
 			const tag = target.closest(FEATURED_TAG_SELECTOR) as HTMLElement | null;
 			if (!tag) return;
 
@@ -28,6 +37,14 @@ export class LinkHandler
 		document.body.addEventListener("click", (event) =>
 		{
 			const target = event.target as HTMLElement;
+			const breadcrumb = target.closest(BREADCRUMB_TARGET_SELECTOR) as HTMLElement | null;
+			if (breadcrumb)
+			{
+				event.preventDefault();
+				this.openBreadcrumbTarget(breadcrumb);
+				return;
+			}
+
 			const tag = target.closest(FEATURED_TAG_SELECTOR) as HTMLElement | null;
 			if (tag)
 			{
@@ -75,6 +92,14 @@ export class LinkHandler
 		if (input) input.value = query;
 		input?.closest("#search-container")?.classList.add("has-content");
 		void ObsidianSite.search?.searchParseFilters(query);
+	}
+
+	private static openBreadcrumbTarget(breadcrumb: HTMLElement)
+	{
+		const target = breadcrumb.dataset.breadcrumbTarget;
+		if (!target) return;
+
+		void ObsidianSite.loadURL(target);
 	}
 
 	public static initializeLinks(onElement: HTMLElement)
