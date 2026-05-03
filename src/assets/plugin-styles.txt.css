@@ -2674,29 +2674,29 @@ body.theme-light .excalidraw-plugin svg.light {
 /*#region Featured Homepage */
 
 .featured-homepage {
-	max-width: 54rem;
+	width: 100%;
+	max-width: var(--line-width);
 	margin: 1rem auto 3rem;
 	padding: 0.5rem 0;
 	container-type: inline-size;
 }
 
 #center-content:has(.featured-homepage) {
-	max-width: min(100%, 66rem);
-}
-
-#center-content:has(.featured-homepage) > .obsidian-document {
-	padding-left: clamp(1rem, 4vw, 3rem);
-	padding-right: clamp(1rem, 4vw, 3rem);
+	max-width: calc(var(--line-width) + 6em);
 }
 
 .markdown-preview-sizer:has(> .featured-homepage) {
-	max-width: 54rem !important;
-	flex-basis: 54rem !important;
+	max-width: var(--line-width) !important;
+	flex-basis: var(--line-width) !important;
 }
 
 .featured-homepage__header {
 	display: block !important;
 	margin-bottom: 1.1rem;
+}
+
+.markdown-preview-sizer:has(> .featured-homepage) > .footer > .yaml-properties-container > .yaml-properties-header {
+	display: none !important;
 }
 
 .featured-homepage__title {
