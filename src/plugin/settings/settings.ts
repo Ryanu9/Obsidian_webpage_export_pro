@@ -268,6 +268,7 @@ export class SettingsPage extends PluginSettingTab {
 		createFeatureSetting(section, lang.properties.title, Settings.exportOptions.propertiesOptions, lang.properties.description);
 		createFeatureSetting(section, lang.codeBlock.title, Settings.exportOptions.codeBlockOptions, lang.codeBlock.description);
 		createFeatureSetting(section, lang.vercelInsights.title, Settings.exportOptions.vercelInsightsOptions, lang.vercelInsights.description);
+		createFeatureSetting(section, lang.featuredHomepage.title, Settings.exportOptions.featuredHomepageOptions, lang.featuredHomepage.description);
 		createFeatureSetting(section, lang.rss.title, Settings.exportOptions.rssOptions, lang.rss.description);
 		createFeatureSetting(section, lang.giscus.title, Settings.exportOptions.giscusOptions, lang.giscus.description, (container) => {
 			const giscus = Settings.exportOptions.giscusOptions;
@@ -671,12 +672,14 @@ export class SettingsPage extends PluginSettingTab {
 				// @ts-ignore
 				const attributes = stylesheets[i].ownerNode?.attributes;
 				if (attributes) {
+					const attrList = Array.from(attributes) as Attr[];
+
 					// First try to find most meaningful data attribute
 					const priorityPrefixes = ['source-plugin', 'type', 'name', 'source'];
 					let foundPriorityAttr = false;
 
 					for (const prefix of priorityPrefixes) {
-						const attr = Array.from(attributes).find((a: Attr) => a.name === `data-${prefix}`);
+						const attr = attrList.find((a) => a.name === `data-${prefix}`);
 						if (attr) {
 							// @ts-ignore
 							stylesheets[i].ownerNode.id = `${prefix}-${attr.value}-stylesheet`;
@@ -687,9 +690,9 @@ export class SettingsPage extends PluginSettingTab {
 
 					if (!foundPriorityAttr) {
 						// Collect all data attributes
-						const dataAttrs = Array.from(attributes)
-							.filter((attr: Attr) => attr.name.startsWith('data-'))
-							.map((attr: Attr) => ({
+						const dataAttrs = attrList
+							.filter((attr) => attr.name.startsWith('data-'))
+							.map((attr) => ({
 								name: attr.name.substring(5),
 								value: attr.value
 							}));

@@ -115,6 +115,57 @@ export function createText(container: HTMLElement, name: string, get: () => stri
 	return setting;
 }
 
+export function createVaultMarkdownPathInput(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, desc: string = "", placeholder: string = ""): Setting {
+	const setting = new Setting(container);
+	const errorText = createError(container);
+	const suggestionList = container.createEl("datalist");
+	suggestionList.id = `vault-markdown-paths-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+
+	const normalize = (value: string) => value.replaceAll("\\", "/").replace(/^\/+/, "").trim();
+	const validate = (value: string): string => {
+		value = normalize(value);
+		if (value == "") return "";
+		if (!value.toLowerCase().endsWith(".md")) return i18n.settings.featuredHomepage.validation_homepageSourcePath;
+		if (!app.vault.getFileByPath(value)) return i18n.pathValidations.mustExist;
+		return "";
+	};
+
+	const refreshSuggestions = () => {
+		suggestionList.empty();
+		const files = app.vault.getMarkdownFiles().map((file) => file.path).sort((a, b) => a.localeCompare(b));
+		for (const path of files) {
+			suggestionList.createEl("option", { attr: { value: path } });
+		}
+	};
+
+	const value = normalize(get());
+	errorText.setText(validate(value));
+
+	setting.setName(name);
+	if (desc != "") setting.setDesc(desc);
+	setting.addText((text) => {
+		text.inputEl.style.width = "100%";
+		text.inputEl.setAttribute("list", suggestionList.id);
+		text.setPlaceholder(placeholder)
+			.setValue(value)
+			.onChange(async (rawValue) => {
+				const normalizedValue = normalize(rawValue);
+				const error = validate(normalizedValue);
+				errorText.setText(error);
+				if (error == "") {
+					set(normalizedValue);
+					await SettingsPage.saveSettings();
+				}
+			});
+
+		text.inputEl.addEventListener("focus", refreshSuggestions);
+	});
+
+	refreshSuggestions();
+	container.appendChild(errorText);
+	return setting;
+}
+
 export function createDropdown(container: HTMLElement, name: string, get: () => string, set: (value: string) => void, options: Record<string, string>, desc: string = ""): Setting {
 	// swap the record keys and values
 	const newOptions: Record<string, string> = {};
@@ -320,6 +371,11 @@ export function generateSettingsFromObject(obj: any, container: HTMLElement) {
 
 		if (settinginfo.dropdownOptions) {
 			createDropdown(container, name, () => value, (v) => obj[key] = v, settinginfo.dropdownOptions, description);
+			continue;
+		}
+
+		if (settinginfo.vaultMarkdownPath) {
+			createVaultMarkdownPathInput(container, name, () => value, (v) => obj[key] = v, description, settinginfo.placeholder);
 			continue;
 		}
 

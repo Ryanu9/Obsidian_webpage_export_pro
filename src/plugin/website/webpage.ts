@@ -13,6 +13,7 @@ import { Shared } from "src/shared/shared";
 import { moment } from "obsidian";
 import { encryptContent } from "src/plugin/utils/encryption-utils";
 import { LockScreen } from "src/plugin/features/lock-screen";
+import { FeaturedHomepage } from "src/plugin/features/featured-homepage";
 
 export class WebpageOutputData {
 	public html: string = "";
@@ -187,7 +188,7 @@ export class Webpage extends Attachment {
 			return "";
 		}
 
-		const skipSelector = ".math, svg, img, .frontmatter, .metadata-container, .heading-after, style, script, .heading-collapse-indicator, .heading-anchor-copy-button, .list-bullet, .copy-code-button, .code-lang-label";
+		const skipSelector = ".featured-homepage, .math, svg, img, .frontmatter, .metadata-container, .heading-after, style, script, .heading-collapse-indicator, .heading-anchor-copy-button, .list-bullet, .copy-code-button, .code-lang-label";
 		const blockTags = new Set(['DIV', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'TR', 'BLOCKQUOTE', 'PRE', 'HR', 'BR', 'UL', 'OL', 'TABLE', 'SECTION', 'ARTICLE', 'HEADER', 'FOOTER']);
 
 		function extractText(element: Element): string {
@@ -397,6 +398,18 @@ export class Webpage extends Attachment {
 	}
 
 	private get coverImageURL(): string | undefined {
+		const frontmatterImage = this.frontmatterImageSrc;
+		if (frontmatterImage)
+		{
+			if (frontmatterImage.startsWith("http") || frontmatterImage.startsWith("data:")) return frontmatterImage;
+
+			const resolvedPath = this.website.getFilePathFromSrc(frontmatterImage, this.source.path);
+			const attachment = this.website.index.getFile(resolvedPath.pathname, true);
+			if (attachment) return attachment.targetPath.path;
+
+			return resolvedPath.slugify(this.exportOptions.slugifyPaths).path;
+		}
+
 		if (!this.viewElement) return undefined;
 		let mediaPathStr = this.viewElement.querySelector("img")?.getAttribute("src") ?? "";
 		if (mediaPathStr.startsWith("data:")) return undefined;
@@ -425,6 +438,11 @@ export class Webpage extends Attachment {
 	private get frontmatter(): FrontMatterCache {
 		const frontmatter = app.metadataCache.getFileCache(this.source)?.frontmatter ?? {};
 		return frontmatter;
+	}
+
+	private get frontmatterImageSrc(): string {
+		const property = this.exportOptions.featuredHomepageOptions?.imageProperty ?? "image";
+		return FeaturedHomepage.normalizeImageSource(this.frontmatter[property] ?? this.frontmatter["image"]);
 	}
 
 	private get srcLinks(): string[] {
@@ -552,7 +570,7 @@ export class Webpage extends Attachment {
 	}
 
 	public async getAttachments(): Promise<Attachment[]> {
-		const sources = this.srcLinks;
+		const sources = [this.frontmatterImageSrc, ...this.srcLinks].filter((src) => src && src.trim().length > 0);
 		for (const src of sources) {
 			if ((!src.startsWith("app://") && /\w+:(\/\/|\\\\)/.exec(src)) || // link is a URL except for app://
 				src.startsWith("data:")) // link is a data URL

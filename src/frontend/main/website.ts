@@ -176,6 +176,7 @@ export class ObsidianWebsite {
 		FilePreviewPopover.loadPinnedPreviews();
 
 		this.onDocumentLoad((doc) => {
+			this.normalizeFeaturedCards();
 
 			if (!ObsidianSite.metadata.ignoreMetadata) {
 				const insertBacklinks =
@@ -325,7 +326,6 @@ export class ObsidianWebsite {
 		// Set initial history state
 		if (this.isHttp) {
 			let initialPath = this.document.pathname;
-			if (initialPath == "index.html") initialPath = "";
 
 			// Preserve query parameters (especially for OAuth callbacks like Giscus)
 			const currentUrl = new URL(window.location.href);
@@ -338,7 +338,7 @@ export class ObsidianWebsite {
 			history.replaceState(
 				{ pathname: this.document.pathname },
 				this.document.title,
-				initialPath
+				this.toHistoryURL(initialPath)
 			);
 		}
 
@@ -409,6 +409,48 @@ export class ObsidianWebsite {
 		})();
 
 		return this.searchIndexPromise;
+	}
+
+	private normalizeFeaturedCards() {
+		document.querySelectorAll<HTMLElement>(".featured-card > .featured-card__media").forEach((media) => {
+			const card = media.closest(".featured-card") as HTMLElement | null;
+			const content = card?.querySelector(".featured-card__content") as HTMLElement | null;
+			if (!content) return;
+
+			const excerpt = content.querySelector(".featured-card__excerpt");
+			if (excerpt?.parentElement == content) {
+				excerpt.before(media);
+			} else {
+				content.appendChild(media);
+			}
+		});
+
+		document.querySelectorAll<HTMLElement>(".featured-card__meta > .featured-card__tags").forEach((tags) => {
+			const content = tags.closest(".featured-card__content") as HTMLElement | null;
+			if (!content) return;
+
+			const excerpt = content.querySelector(".featured-card__excerpt");
+			if (excerpt?.parentElement == content) {
+				excerpt.after(tags);
+			} else {
+				content.appendChild(tags);
+			}
+		});
+
+		document.querySelectorAll<HTMLElement>(".featured-card__content").forEach((content) => {
+			const orderedSelectors = [
+				".featured-card__media",
+				".featured-card__meta",
+				".featured-card__title",
+				".featured-card__tags",
+				".featured-card__excerpt",
+			];
+
+			for (const selector of orderedSelectors) {
+				const element = content.querySelector(`:scope > ${selector}`);
+				if (element) content.appendChild(element);
+			}
+		});
 	}
 
 	private setupSectionCollapse() {
@@ -596,6 +638,7 @@ export class ObsidianWebsite {
 
 		// if this document is already loaded
 		if (this.document.pathname == url || this.document.pathname == url.split('#')[0]) {
+			this.pushDocumentHistory(this.document.pathname, this.document.title, pushState);
 			if (header) this.document.scrollToHeader(header);
 			else if (!url.includes('#')) {
 				new Notice("This page is already loaded.");
@@ -641,15 +684,7 @@ export class ObsidianWebsite {
 		this.graphView?.setActiveNodeByPath(page.pathname);
 		this.document = page;
 
-		if (this.document && this.isHttp && pushState) {
-			let currentPath = this.document.pathname;
-			if (currentPath == "index.html") currentPath = "";
-			history.pushState(
-				{ pathname: currentPath },
-				this.document.title,
-				currentPath
-			);
-		}
+		this.pushDocumentHistory(this.document.pathname, this.document.title, pushState);
 
 		// update outline - TODO: make this a dynamic inserted feature
 		let newOutlineEl = page.sourceHtml.querySelector("#outline") as HTMLElement;
@@ -677,6 +712,20 @@ export class ObsidianWebsite {
 		}, 100); // Small delay to ensure the DOM is updated
 
 		return page;
+	}
+
+	private pushDocumentHistory(pathname: string, title: string, pushState: boolean): void {
+		if (!this.isHttp || !pushState) return;
+
+		const historyURL = this.toHistoryURL(pathname);
+		if (window.location.href == historyURL) return;
+
+		history.pushState({ pathname }, title, historyURL);
+	}
+
+	private toHistoryURL(pathname: string): string {
+		if (pathname == "" || pathname == "/" || pathname == "\\") pathname = "index.html";
+		return new URL(pathname, document.baseURI).href;
 	}
 
 	public async fetch(url: string): Promise<Response | undefined> {
@@ -938,35 +987,6 @@ export class ObsidianWebsite {
 
 		const localThis = this;
 
-		function widthNowInRange(low: number, high: number) {
-			const w = window.innerWidth;
-			return (
-				(w > low &&
-					w < high &&
-					localThis.lastScreenWidth == undefined) ||
-				(w > low &&
-					w < high &&
-					((localThis.lastScreenWidth ?? 0) <= low ||
-						(localThis.lastScreenWidth ?? 0) >= high))
-			);
-		}
-
-		function widthNowGreaterThan(value: number) {
-			const w = window.innerWidth;
-			return (
-				(w > value && localThis.lastScreenWidth == undefined) ||
-				(w > value && (localThis.lastScreenWidth ?? 0) < value)
-			);
-		}
-
-		function widthNowLessThan(value: number) {
-			const w = window.innerWidth;
-			return (
-				(w < value && localThis.lastScreenWidth == undefined) ||
-				(w < value && (localThis.lastScreenWidth ?? 0) > value)
-			);
-		}
-
 		// Cache layout width computations to avoid forced reflows on every resize.
 		// These CSS values are constant so we only need to compute them once.
 		if (!this._cachedLayoutWidths) {
@@ -1020,10 +1040,11 @@ export class ObsidianWebsite {
 			769
 		);
 		const tabletMinWidth = 481;
+		const collapseLeftSidebarMinWidth = 1120;
+		const collapseRightSidebarMinWidth = 1025;
+		const currentWidth = window.innerWidth;
 
-		if (
-			widthNowGreaterThan(largeScreenMinWidth)
-		) {
+		if (currentWidth > largeScreenMinWidth) {
 			this.deviceSize = "large-screen";
 			document.body.classList.toggle("floating-sidebars", false);
 			document.body.classList.toggle("is-large-screen", true);
@@ -1033,21 +1054,19 @@ export class ObsidianWebsite {
 
 			if (this.leftSidebar) this.leftSidebar.collapsed = false;
 			if (this.rightSidebar) this.rightSidebar.collapsed = false;
-		} else if (
-			widthNowInRange(smallScreenMinWidth, largeScreenMinWidth)
-		) {
+		} else if (currentWidth > smallScreenMinWidth) {
+			const shouldCollapseLeftSidebar = currentWidth < collapseLeftSidebarMinWidth;
+			const shouldCollapseRightSidebar = currentWidth < collapseRightSidebarMinWidth;
 			this.deviceSize = "small screen";
-			document.body.classList.toggle("floating-sidebars", false);
+			document.body.classList.toggle("floating-sidebars", shouldCollapseRightSidebar);
 			document.body.classList.toggle("is-large-screen", false);
 			document.body.classList.toggle("is-small-screen", true);
 			document.body.classList.toggle("is-tablet", false);
 			document.body.classList.toggle("is-phone", false);
 
-			if (this.leftSidebar) this.leftSidebar.collapsed = false;
-			if (this.rightSidebar) this.rightSidebar.collapsed = false;
-		} else if (
-			widthNowInRange(tabletMinWidth, smallScreenMinWidth)
-		) {
+			if (this.leftSidebar) this.leftSidebar.collapsed = shouldCollapseLeftSidebar;
+			if (this.rightSidebar) this.rightSidebar.collapsed = shouldCollapseRightSidebar;
+		} else if (currentWidth > tabletMinWidth) {
 			this.deviceSize = "tablet";
 			document.body.classList.toggle("floating-sidebars", true);
 			document.body.classList.toggle("is-large-screen", false);
@@ -1055,16 +1074,9 @@ export class ObsidianWebsite {
 			document.body.classList.toggle("is-tablet", true);
 			document.body.classList.toggle("is-phone", false);
 
-			if (
-				this.leftSidebar &&
-				this.rightSidebar &&
-				!this.leftSidebar.collapsed
-			) {
-				this.rightSidebar.collapsed = true;
-			}
-		} else if (
-			widthNowLessThan(tabletMinWidth)
-		) {
+			if (this.leftSidebar) this.leftSidebar.collapsed = true;
+			if (this.rightSidebar) this.rightSidebar.collapsed = true;
+		} else {
 			this.deviceSize = "phone";
 			document.body.classList.toggle("floating-sidebars", true);
 			document.body.classList.toggle("is-large-screen", false);

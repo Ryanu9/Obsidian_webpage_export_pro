@@ -185,6 +185,30 @@ export interface i18n {
 			info_links: string;
 			info_moveThemeToggleToNavbar: string;
 		},
+		featuredHomepage: {
+			title: string;
+			description: string;
+			info_featuredProperty: string;
+			info_imageProperty: string;
+			info_dateProperty: string;
+			info_categoryProperty: string;
+			info_featuredOrderProperty: string;
+			info_homepageSourcePath: string;
+			info_homepageTargetPath: string;
+			validation_homepageSourcePath: string;
+			info_subtitle: string;
+			info_maxItems: string;
+			info_tagLimit: string;
+			info_excerptLength: string;
+			info_layout: string;
+			info_sortBy: string;
+			info_showHeroCard: string;
+			info_showDate: string;
+			info_showTags: string;
+			info_showExcerpt: string;
+			info_fallbackImagePath: string;
+			info_hideWhenEmpty: string;
+		},
 		footerLinks: {
 			title: string;
 			description: string;

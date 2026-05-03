@@ -1,6 +1,8 @@
 import { FilePreviewPopover } from "./link-preview";
 
 const LINK_SELECTOR = ".internal-link, a.tag, a.tree-item-self, a.footnote-link";
+const FEATURED_TAG_SELECTOR = "[data-featured-tag-search]";
+const FEATURED_CARD_SELECTOR = ".featured-card";
 
 export class LinkHandler
 {
@@ -11,9 +13,30 @@ export class LinkHandler
 		if (this.delegationInitialized) return;
 		this.delegationInitialized = true;
 
+		document.body.addEventListener("keydown", (event) =>
+		{
+			if (event.key != "Enter" && event.key != " ") return;
+
+			const target = event.target as HTMLElement;
+			const tag = target.closest(FEATURED_TAG_SELECTOR) as HTMLElement | null;
+			if (!tag) return;
+
+			event.preventDefault();
+			this.searchFeaturedTag(tag);
+		});
+
 		document.body.addEventListener("click", (event) =>
 		{
 			const target = event.target as HTMLElement;
+			const tag = target.closest(FEATURED_TAG_SELECTOR) as HTMLElement | null;
+			if (tag)
+			{
+				event.preventDefault();
+				event.stopPropagation();
+				this.searchFeaturedTag(tag);
+				return;
+			}
+
 			const link = target.closest(LINK_SELECTOR) as HTMLElement | null;
 
 			if (!link) return;
@@ -42,6 +65,18 @@ export class LinkHandler
 		});
 	}
 
+	private static searchFeaturedTag(tag: HTMLElement)
+	{
+		const query = tag.dataset.featuredTagSearch;
+		if (!query) return;
+
+		const input = document.querySelector('input[type="search"]') as HTMLInputElement | null;
+		input?.focus();
+		if (input) input.value = query;
+		input?.closest("#search-container")?.classList.add("has-content");
+		void ObsidianSite.search?.searchParseFilters(query);
+	}
+
 	public static initializeLinks(onElement: HTMLElement)
 	{
 		this.initDelegation();
@@ -61,6 +96,8 @@ export class LinkHandler
 			}
 			else if (link.classList.contains("internal-link"))
 			{
+				if (link.matches(FEATURED_CARD_SELECTOR)) return;
+
 				if (!ObsidianSite.metadata?.ignoreMetadata && 
 					ObsidianSite.metadata?.featureOptions?.linkPreview?.enabled)
 				{

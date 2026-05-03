@@ -102,6 +102,7 @@ export class TreeItem
 	public get href(): string | undefined { return this._href; }
 	public set href(value: string | undefined) { this._href = value; this.dataRef = this.dataRef ?? value; }
 	public dataRef: string | undefined = undefined;
+	public sourcePath: string | undefined = undefined;
 	public minCollapsableDepth: number = 1;
 	public isCollapsed: boolean = false;
 	public childContainer: HTMLDivElement | undefined = undefined;
@@ -221,7 +222,8 @@ export class TreeItem
 		if (this.href) 
 			itemLinkEl.setAttribute("href", this.href);
 
-		itemLinkEl.setAttribute("data-path", this.dataRef ?? this.href ?? this.title);
+		itemLinkEl.setAttribute("data-path", this.href ?? this.dataRef ?? this.title);
+		if (this.sourcePath) itemLinkEl.setAttribute("data-source-path", this.sourcePath);
 
 		this.insertIcon(itemLinkEl);
 		await this.insertInner(itemLinkEl);

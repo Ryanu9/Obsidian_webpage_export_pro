@@ -99,6 +99,7 @@ export class Index {
 				copyright: options.copyrightOptions,
 				codeBlock: options.codeBlockOptions,
 				vercelInsights: options.vercelInsightsOptions,
+				featuredHomepage: options.featuredHomepageOptions,
 			};
 
 			// set global values

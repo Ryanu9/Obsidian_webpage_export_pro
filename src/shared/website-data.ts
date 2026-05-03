@@ -15,6 +15,7 @@ import { ThemeToggleOptions } from "./features/theme-toggle";
 import { CopyrightOptions } from "./features/copyright";
 import { FooterLinksOptions } from "./features/footer-links";
 import { NavbarOptions } from "./features/navbar";
+import { FeaturedHomepageOptions } from "./features/featured-homepage";
 
 export enum EmojiStyle {
 	Native = "Native",
@@ -168,6 +169,11 @@ export class WebsiteOptions {
 	 */
 	vercelInsights: VercelInsightsOptions;
 
+	/**
+	 * The options for the featured homepage feature.
+	 */
+	featuredHomepage: FeaturedHomepageOptions;
+
 	public static fromJSON(json: string): WebsiteOptions {
 		let data = Object.assign(new WebsiteOptions(), JSON.parse(json));
 		data.backlinks = Object.assign(new BacklinksOptions(), data.backlinks);
@@ -190,6 +196,7 @@ export class WebsiteOptions {
 		data.copyright = Object.assign(new CopyrightOptions(), data.copyright ?? {});
 		data.codeBlock = Object.assign(new CodeBlockOptions(), data.codeBlock ?? {});
 		data.vercelInsights = Object.assign(new VercelInsightsOptions(), data.vercelInsights ?? {});
+		data.featuredHomepage = Object.assign(new FeaturedHomepageOptions(), data.featuredHomepage ?? {});
 
 		return data;
 	}

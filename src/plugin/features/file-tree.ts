@@ -23,6 +23,8 @@ export class FileTree extends Tree {
 
 	/** Map from source vault path to FileTreeItem for quick lookup */
 	public pathToItem: Map<string, FileTreeItem> = new Map();
+	/** Map from source-root-relative path to the actual exported href. */
+	public hrefBySourcePath: Map<string, string> = new Map();
 
 
 	public constructor(files: Path[], keepOriginalExtensions: boolean = false, sort = true) {
@@ -99,6 +101,7 @@ export class FileTree extends Tree {
 			if (currentParentNode instanceof FileTreeItem && currentParentNode.dataRef === file.path) {
 				const targetPath = file.copy; // path for href
 				const tfile = app.vault.getAbstractFileByPath(file.path);
+				currentParentNode.sourcePath = file.path;
 
 				currentParentNode.isFolder = file.isDirectory; // Correctly set isFolder for the final node
 
@@ -115,7 +118,7 @@ export class FileTree extends Tree {
 						currentParentNode.icon = (await _MarkdownRendererInternal.getIconForFile(tfile)).icon;
 					}
 				}
-				currentParentNode.href = targetPath.path; // This is the output href
+				currentParentNode.href = this.hrefBySourcePath.get(file.path) ?? targetPath.path; // This is the output href
 			}
 		}
 

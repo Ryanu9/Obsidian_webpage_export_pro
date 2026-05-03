@@ -16,6 +16,7 @@ import { GraphView } from "src/plugin/features/graph-view";
 import { ThemeToggle } from "src/plugin/features/theme-toggle";
 import { SearchInput } from "src/plugin/features/search-input";
 import { Utils } from "src/plugin/utils/utils";
+import { FeaturedHomepage } from "src/plugin/features/featured-homepage";
 
 
 export class Website
@@ -24,6 +25,10 @@ export class Website
 	public index: WebsiteIndex;
 	
 	private sourceFiles: TFile[] = [];
+	public get filesToExport(): TFile[]
+	{
+		return [...this.sourceFiles];
+	}
 
 	public fileTree: FileTree;
 	public fileTreeAsset: AssetLoader;
@@ -141,6 +146,7 @@ export class Website
 
 		let rootPath = this.findCommonRootPath(this.sourceFiles);
 		this.exportOptions.exportRoot = rootPath;
+		this.includeFeaturedHomepageSourceFile();
 		console.log("Root path: " + rootPath);
 
 		await AssetHandler.reloadAssets(this.exportOptions);
@@ -163,6 +169,10 @@ export class Website
 			ExportLog.error(error, "Problem creating webpage template");
 		}
 
+		const featuredHomepageSourceFile = this.exportOptions.featuredHomepageOptions.enabled
+			? FeaturedHomepage.findHomepageSourceFile(this.sourceFiles, this.exportOptions.featuredHomepageOptions, this)
+			: undefined;
+
 		// create webpages
 		for (const file of this.sourceFiles)
 		{
@@ -184,6 +194,10 @@ export class Website
 				if (isConvertable)
 				{
 					let webpage = new Webpage(file, file.name, this, this.exportOptions);
+					if (featuredHomepageSourceFile && file.path == featuredHomepageSourceFile.path)
+					{
+						FeaturedHomepage.applyHomepageTargetPath(webpage, this.exportOptions.featuredHomepageOptions, this);
+					}
 					webpage.showInTree = true;
 					await this.index.addFile(webpage);
 				}
@@ -205,6 +219,9 @@ export class Website
 			{
 				const paths = this.index.attachmentsShownInTree.map((file) => new Path(file.sourcePathRootRelative ?? ""));
 				this.fileTree = new FileTree(paths, false, true);
+				this.index.attachmentsShownInTree.forEach((file) => {
+					if (file.sourcePathRootRelative) this.fileTree.hrefBySourcePath.set(file.sourcePathRootRelative, file.targetPath.path);
+				});
 				this.fileTree.makeLinksWebStyle = this.exportOptions.slugifyPaths ?? true;
 				this.fileTree.showNestingIndicator = true;
 				this.fileTree.generateWithItemsClosed = true;
@@ -235,6 +252,33 @@ export class Website
 		}
 
 		return this;
+	}
+
+	private includeFeaturedHomepageSourceFile(): void
+	{
+		const options = this.exportOptions.featuredHomepageOptions;
+		if (!options.enabled) return;
+
+		const sourcePath = FeaturedHomepage.normalizeHomepageSourcePath(options.homepageSourcePath);
+		if (!sourcePath) return;
+
+		const file = app.vault.getFileByPath(sourcePath);
+		if (!file)
+		{
+			ExportLog.warning("Featured Homepage source file not found: " + sourcePath);
+			return;
+		}
+
+		if (!MarkdownRendererAPI.isConvertable(file.extension))
+		{
+			ExportLog.warning("Featured Homepage source file is not exportable: " + sourcePath);
+			return;
+		}
+
+		if (!this.sourceFiles.some((sourceFile) => sourceFile.path == file.path))
+		{
+			this.sourceFiles.push(file);
+		}
 	}
 	
 	/**
@@ -268,11 +312,29 @@ export class Website
 		this.validateSettings();
 
 		// only render the updated and new files
+		const featuredItems = this.exportOptions.featuredHomepageOptions.enabled
+			? await FeaturedHomepage.collect(this)
+			: [];
+
 		let webpages = this.index.webpages;
 		webpages = webpages.filter((webpage) => 
 		{
 			return this.index.updatedFiles.includes(webpage) || this.index.newFiles.includes(webpage)
 		});
+
+		let featuredHomepage: Webpage | undefined;
+
+		if (this.exportOptions.featuredHomepageOptions.enabled)
+		{
+			const allWebpages = this.index.allFiles.filter((file) => file instanceof Webpage) as Webpage[];
+			featuredHomepage = FeaturedHomepage.findHomepage(allWebpages, this.exportOptions.featuredHomepageOptions, this);
+			if (featuredHomepage && !webpages.includes(featuredHomepage)) webpages.push(featuredHomepage);
+			if (featuredHomepage)
+			{
+				webpages = webpages.filter((webpage) => webpage != featuredHomepage);
+				webpages.push(featuredHomepage);
+			}
+		}
 
 		const downloads = AssetHandler.getDownloads(this.destination, this.exportOptions);
 		this.index.addFiles(downloads);
@@ -295,6 +357,16 @@ export class Website
 			await Utils.delay(0);
 			const built = await webpage.build();
 			await Utils.delay(0);
+			if (built && this.exportOptions.featuredHomepageOptions.enabled && featuredHomepage == webpage)
+			{
+				FeaturedHomepage.inject(
+					webpage,
+					featuredItems,
+					this.exportOptions.featuredHomepageOptions,
+					FeaturedHomepage.isExplicitHomepageSource(webpage, this.exportOptions.featuredHomepageOptions)
+				);
+				await webpage.generateOutput();
+			}
 			if (built) await this.index.addFile(webpage);
 			else await this.index.removeFile(webpage);
 			// save the file and then dispose of the webpage

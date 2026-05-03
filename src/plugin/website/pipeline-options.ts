@@ -20,6 +20,7 @@ import { FooterLinksOptions } from "src/shared/features/footer-links";
 import { NavbarOptions } from "src/shared/features/navbar";
 import { CodeBlockOptions } from "src/shared/features/code-block";
 import { VercelInsightsOptions } from "src/shared/features/vercel-insights";
+import { FeaturedHomepageOptions } from "src/shared/features/featured-homepage";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -139,6 +140,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * The options for the Vercel Insights feature.
 	 */
 	vercelInsightsOptions: VercelInsightsOptions = new VercelInsightsOptions();
+
+	/**
+	 * The options for the featured homepage feature.
+	 */
+	featuredHomepageOptions: FeaturedHomepageOptions = new FeaturedHomepageOptions();
 
 	/**
 	 * Make outline links relative instead of absolute.

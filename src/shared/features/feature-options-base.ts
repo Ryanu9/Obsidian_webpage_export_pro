@@ -41,6 +41,7 @@ export class FeatureSettingInfo
 	placeholder?: string = "";
 	multiline?: boolean = false;
 	isColor?: boolean = false;
+	vaultMarkdownPath?: boolean = false;
 
 	fileInputOptions?:
 	{
@@ -62,6 +63,7 @@ export class FeatureSettingInfo
 			placeholder?: string, 
 			multiline?: boolean,
 			isColor?: boolean,
+			vaultMarkdownPath?: boolean,
 			fileInputOptions?:
 			{
 				defaultPath?: string, 
@@ -82,6 +84,7 @@ export class FeatureSettingInfo
 			this.placeholder = options.placeholder ?? this.placeholder;
 			this.multiline = options.multiline ?? this.multiline;
 			this.isColor = options.isColor ?? this.isColor;
+			this.vaultMarkdownPath = options.vaultMarkdownPath ?? this.vaultMarkdownPath;
 			this.fileInputOptions = options.fileInputOptions ?? this.fileInputOptions;
 			this.dropdownOptions = options.dropdownTypes ?? this.dropdownOptions;
 		}

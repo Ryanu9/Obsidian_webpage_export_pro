@@ -32,10 +32,11 @@ export class Sidebar
 
 		const isPhone = ObsidianSite.deviceSize === "phone";
 		const isTablet = ObsidianSite.deviceSize === "tablet"; // Tablets also often have floating sidebars
+		const isFloating = document.body.classList.contains("floating-sidebars");
 
 		if (!collapse) { // Sidebar is being opened
-			if (isPhone) {
-				// Ticket 1: Close the other sidebar if it's open on phone
+			if (isPhone || isFloating) {
+				// Floating layouts should only show one sidebar at a time.
 				if (this.isLeft) {
 					if (ObsidianSite.rightSidebar && !ObsidianSite.rightSidebar.collapsed) {
 						ObsidianSite.rightSidebar.collapsed = true;
@@ -47,9 +48,8 @@ export class Sidebar
 				}
 			}
 
-			// Ticket 2 (for phone) & general click-outside for floating sidebars (tablet)
-			// Add body click listener if on phone or tablet
-			if (isPhone || isTablet) {
+			// Add body click listener for every floating sidebar layout.
+			if (isPhone || isTablet || isFloating) {
 				// Ensure listener isn't added multiple times by removing it first (just in case)
 				// The bound method this.clickOutsideCollapse is used.
 				document.body.removeEventListener("click", this.clickOutsideCollapse);
@@ -229,9 +229,10 @@ export class Sidebar
 
 		const isPhone = ObsidianSite.deviceSize === "phone";
 		const isTablet = ObsidianSite.deviceSize === "tablet";
+		const isFloating = document.body.classList.contains("floating-sidebars");
 
-		// Only collapse if on phone or tablet (where this floating behavior is desired)
-		if (isPhone || isTablet) {
+		// Only collapse if on a floating sidebar layout.
+		if (isPhone || isTablet || isFloating) {
 			this.collapsed = true; 
 			// Setting this.collapsed = true will trigger the setter, 
 			// which in turn will remove the event listener from document.body.
