@@ -1025,8 +1025,8 @@ body.is-phone #right-sidebar .graph-view-placeholder {
 body.is-small-screen #right-sidebar .graph-view-container.expanded,
 body.floating-sidebars #right-sidebar .graph-view-container.expanded {
 	position: fixed;
-	left: 0.75rem;
-	right: 0.75rem;
+	left: clamp(1.5rem, 7vw, 5rem);
+	right: clamp(1.5rem, 7vw, 5rem);
 	top: calc(var(--navbar-effective-height, 0px) + 0.75rem);
 	bottom: 0.75rem;
 	width: auto;
@@ -1059,9 +1059,9 @@ body.floating-sidebars #right-sidebar .leaf-content:has(.graph-view-container.ex
 }
 
 body.is-phone #right-sidebar .graph-view-container.expanded {
-	left: 0.5rem;
-	right: 0.5rem;
-	bottom: 0.5rem;
+	left: clamp(1.25rem, 7vw, 3rem);
+	right: clamp(1.25rem, 7vw, 3rem);
+	bottom: 0.75rem;
 }
 
 body:is(.is-small-screen, .floating-sidebars) #right-sidebar .graph-view-placeholder:has(.expanded) {
