@@ -2850,6 +2850,7 @@ body.theme-light .excalidraw-plugin svg.light {
 	white-space: normal;
 	overflow: visible;
 	text-overflow: clip;
+	line-clamp: unset;
 	-webkit-line-clamp: unset;
 	-webkit-box-orient: unset;
 }
@@ -2868,6 +2869,7 @@ body.theme-light .excalidraw-plugin svg.light {
 	white-space: normal;
 	overflow: visible;
 	max-height: none;
+	line-clamp: unset;
 	-webkit-line-clamp: unset;
 	-webkit-box-orient: unset;
 }
@@ -2875,35 +2877,40 @@ body.theme-light .excalidraw-plugin svg.light {
 .featured-card__tags {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.3rem 0.7rem;
+	gap: 0.4em;
 	min-width: 0;
 	max-height: none;
 	margin: 0.15rem 0 0;
 	overflow: visible;
 	white-space: normal;
+	line-clamp: unset;
 	-webkit-line-clamp: unset;
 	-webkit-box-orient: unset;
 }
 
 .featured-card__tag {
-	padding: 0;
-	border-radius: 0;
-	background: transparent;
-	color: var(--text-muted);
-	font-size: 0.85rem !important;
-	line-height: 1.6 !important;
-	min-height: 1.6em;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	border-radius: 9999px;
+	border: 1px solid transparent;
+	padding: 0.2em 0.75em;
+	background-color: var(--tag-background, transparent);
+	color: var(--tag-color, var(--text-accent));
+	font-size: 0.8em;
+	font-weight: 600;
+	line-height: 1.4;
+	text-decoration: none;
+	white-space: nowrap;
 	cursor: pointer;
-	transition: background-color 120ms ease, color 120ms ease;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .featured-card__tag:hover,
+.featured-card__tag:active,
 .featured-card__tag:focus-visible {
-	background: transparent;
-	color: var(--text-accent);
+	background-color: #1f6feb !important;
+	color: #fff !important;
+	text-decoration: none !important;
 	outline: none;
 }
 

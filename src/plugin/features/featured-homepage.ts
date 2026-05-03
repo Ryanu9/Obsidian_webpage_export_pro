@@ -235,7 +235,7 @@ export class FeaturedHomepage {
 			const tags = content.createDiv({ cls: "featured-card__tags" });
 			item.tags.slice(0, Math.max(0, options.tagLimit)).forEach((tag) => {
 				tags.createSpan({
-					cls: "featured-card__tag",
+					cls: "featured-card__tag tag",
 					text: tag,
 					attr: {
 						"data-featured-tag-search": tag,
