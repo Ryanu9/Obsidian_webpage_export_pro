@@ -2962,8 +2962,13 @@ body.theme-light .excalidraw-plugin svg.light {
 	min-height: 0;
 	object-fit: contain;
 	object-position: center;
+	cursor: pointer;
 	filter: none;
 	transition: transform 220ms ease;
+}
+
+body.is-large-screen:not(.floating-sidebars) .featured-card__media img {
+	cursor: zoom-in;
 }
 
 .featured-card:hover .featured-card__media img,
@@ -2983,13 +2988,48 @@ body.theme-light .excalidraw-plugin svg.light {
 }
 
 @container (max-width: 560px) {
+	.featured-card__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.72rem;
+		padding: 1rem 1rem 1.1rem;
+		line-height: 1.58;
+	}
+
+	.featured-card__content::after {
+		display: none;
+	}
+
+	.featured-card__meta {
+		order: 1;
+		margin: 0 !important;
+	}
+
+	.featured-card__title {
+		order: 2;
+		margin: 0 !important;
+	}
+
 	.featured-card__media {
-		float: right;
-		width: clamp(7rem, 34vw, 9rem);
-		height: clamp(7rem, 34vw, 9rem);
-		min-height: clamp(7rem, 34vw, 9rem);
-		margin: 0 0 0.85rem 1rem;
+		order: 3;
+		float: none;
+		align-self: center;
+		width: min(100%, 15rem);
+		height: auto;
+		min-height: 0;
+		aspect-ratio: 1 / 1;
+		margin: 0.05rem auto;
 		padding: 0;
+	}
+
+	.featured-card__tags {
+		order: 4;
+		margin: 0;
+	}
+
+	.featured-card__excerpt {
+		order: 5;
+		margin: 0 !important;
 	}
 
 	.featured-card {
@@ -2999,13 +3039,48 @@ body.theme-light .excalidraw-plugin svg.light {
 }
 
 @media (max-width: 560px) {
+	.featured-card__content {
+		display: flex;
+		flex-direction: column;
+		gap: 0.72rem;
+		padding: 1rem 1rem 1.1rem;
+		line-height: 1.58;
+	}
+
+	.featured-card__content::after {
+		display: none;
+	}
+
+	.featured-card__meta {
+		order: 1;
+		margin: 0 !important;
+	}
+
+	.featured-card__title {
+		order: 2;
+		margin: 0 !important;
+	}
+
 	.featured-card__media {
-		float: right;
-		width: clamp(7rem, 34vw, 9rem);
-		height: clamp(7rem, 34vw, 9rem);
-		min-height: clamp(7rem, 34vw, 9rem);
-		margin: 0 0 0.85rem 1rem;
+		order: 3;
+		float: none;
+		align-self: center;
+		width: min(100%, 15rem);
+		height: auto;
+		min-height: 0;
+		aspect-ratio: 1 / 1;
+		margin: 0.05rem auto;
 		padding: 0;
+	}
+
+	.featured-card__tags {
+		order: 4;
+		margin: 0;
+	}
+
+	.featured-card__excerpt {
+		order: 5;
+		margin: 0 !important;
 	}
 
 	.featured-card {

@@ -1,8 +1,10 @@
 import { FilePreviewPopover } from "./link-preview";
+import { ImageZoom } from "./image-zoom";
 
 const LINK_SELECTOR = ".internal-link, a.tag, a.tree-item-self, a.footnote-link";
 const FEATURED_TAG_SELECTOR = "[data-featured-tag-search]";
 const FEATURED_CARD_SELECTOR = ".featured-card";
+const FEATURED_CARD_IMAGE_SELECTOR = ".featured-card__media img";
 const BREADCRUMB_TARGET_SELECTOR = ".breadcrumb-element[data-breadcrumb-target]";
 
 export class LinkHandler
@@ -37,6 +39,15 @@ export class LinkHandler
 		document.body.addEventListener("click", (event) =>
 		{
 			const target = event.target as HTMLElement;
+			const featuredImage = target.closest(FEATURED_CARD_IMAGE_SELECTOR) as HTMLImageElement | null;
+			if (featuredImage && this.shouldZoomFeaturedCardImage())
+			{
+				event.preventDefault();
+				event.stopPropagation();
+				ImageZoom.getInstance().show(featuredImage);
+				return;
+			}
+
 			const breadcrumb = target.closest(BREADCRUMB_TARGET_SELECTOR) as HTMLElement | null;
 			if (breadcrumb)
 			{
@@ -80,6 +91,11 @@ export class LinkHandler
 				}
 			}
 		});
+	}
+
+	private static shouldZoomFeaturedCardImage(): boolean
+	{
+		return ObsidianSite.deviceSize === "large-screen" && !document.body.classList.contains("floating-sidebars");
 	}
 
 	private static searchFeaturedTag(tag: HTMLElement)
