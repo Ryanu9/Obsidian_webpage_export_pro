@@ -7,6 +7,8 @@ export class TocScrollSpy {
     private indicatorEl: HTMLElement | null = null;
     private currentPathname = "";
     private pendingScrollFrame: number | null = null;
+    private pendingUpdateFrame: number | null = null;
+    private updateToken = 0;
     private static stylesInjected = false;
 
     constructor() {
@@ -16,6 +18,12 @@ export class TocScrollSpy {
     public updateHeadings(): void {
         const site = (window as any).ObsidianSite;
         const doc = site?.document;
+        const token = ++this.updateToken;
+
+        if (this.pendingUpdateFrame) {
+            cancelAnimationFrame(this.pendingUpdateFrame);
+            this.pendingUpdateFrame = null;
+        }
 
         // 断开旧观察器
         this.observer?.disconnect();
@@ -31,13 +39,20 @@ export class TocScrollSpy {
         // Pre-collapse tree items immediately to avoid expand-then-collapse flash
         this.preCollapseItems();
 
-        // 延迟初始化，确保 DOM 渲染完成
-        setTimeout(() => {
-            this.initHeadings(doc);
-            this.setupObserver();
-            this.createIndicator();
-            this.updateOverflowGradients();
-        }, 300);
+        // Wait for the replaced outline/document DOM to reach the next layout frame without
+        // paying a fixed 300ms tax on every navigation.
+        this.pendingUpdateFrame = requestAnimationFrame(() => {
+            this.pendingUpdateFrame = requestAnimationFrame(() => {
+                this.pendingUpdateFrame = null;
+                if (token !== this.updateToken) return;
+
+                this.initHeadings(doc);
+                this.createIndicator();
+                this.setupObserver();
+                this.syncActiveHeading();
+                this.updateOverflowGradients();
+            });
+        });
     }
 
     private initHeadings(doc: any): void {

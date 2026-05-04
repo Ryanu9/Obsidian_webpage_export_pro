@@ -320,6 +320,7 @@ export const language: i18n =
 			description: "Configurações para páginas protegidas por senha.",
 			info_enablePageEncryption: "Ativar criptografia de página",
 			info_defaultEncryptionPassword: "Senha de criptografia padrão",
+			info_masterEncryptionPassword: "Senha mestra para todas as páginas criptografadas (deixe vazio para desativar)",
 			info_encryptionPromptText: "Título da tela de desbloqueio",
 			info_encryptionDescriptionText: "Descrição da tela de desbloqueio",
 			info_enableGiscusOnEncryptedPages: "Ativar comentários do Giscus em páginas criptografadas",

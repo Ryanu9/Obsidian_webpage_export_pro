@@ -314,6 +314,7 @@ export const language: i18n =
 			description: "Impostazioni per le pagine protette da password.",
 			info_enablePageEncryption: "Abilita la crittografia della pagina",
 			info_defaultEncryptionPassword: "Password di crittografia predefinita",
+			info_masterEncryptionPassword: "Password principale per tutte le pagine crittografate (lascia vuoto per disabilitare)",
 			info_encryptionPromptText: "Titolo schermata di sblocco",
 			info_encryptionDescriptionText: "Descrizione schermata di sblocco",
 			info_enableGiscusOnEncryptedPages: "Abilita i commenti di Giscus sulle pagine crittografate",

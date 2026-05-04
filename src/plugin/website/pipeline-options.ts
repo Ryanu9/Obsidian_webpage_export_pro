@@ -234,6 +234,11 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	defaultEncryptionPassword: string = "123456";
 
 	/**
+	 * Master password that can unlock every encrypted page in addition to each page password.
+	 */
+	masterEncryptionPassword: string = "";
+
+	/**
 	 * Title text for the encryption lock screen.
 	 */
 	encryptionPromptText: string = "";

@@ -321,6 +321,7 @@ export const language: i18n =
 			description: "Settings for password-protected pages.",
 			info_enablePageEncryption: "Enable page encryption",
 			info_defaultEncryptionPassword: "Default encryption password",
+			info_masterEncryptionPassword: "Master password for all encrypted pages (leave empty to disable)",
 			info_encryptionPromptText: "Unlock screen title",
 			info_encryptionDescriptionText: "Unlock screen description",
 			info_enableGiscusOnEncryptedPages: "Enable Giscus comments on encrypted pages",

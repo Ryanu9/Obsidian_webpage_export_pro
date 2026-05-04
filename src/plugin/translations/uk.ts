@@ -319,6 +319,7 @@ export const language: i18n =
 			description: "Налаштування для сторінок, захищених паролем.",
 			info_enablePageEncryption: "Увімкнути шифрування сторінок",
 			info_defaultEncryptionPassword: "Стандартний пароль шифрування",
+			info_masterEncryptionPassword: "Майстер-пароль для всіх зашифрованих сторінок (залиште порожнім, щоб вимкнути)",
 			info_encryptionPromptText: "Заголовок екрана розблокування",
 			info_encryptionDescriptionText: "Опис екрана розблокування",
 			info_enableGiscusOnEncryptedPages: "Увімкнути коментарі Giscus на зашифрованих сторінках",

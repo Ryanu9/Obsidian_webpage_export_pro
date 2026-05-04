@@ -82,13 +82,13 @@ export class Webpage extends Attachment {
 	public outputData: WebpageOutputData = new WebpageOutputData();
 
 	public get isEncryptedPage(): boolean {
-		return this.encryptionPassword != undefined;
+		return this.encryptionPasswords.length > 0;
 	}
 
 	public async generateOutput() {
 		const output = new WebpageOutputData();
-		const encryptionPassword = this.encryptionPassword;
-		const isEncryptedPage = encryptionPassword != undefined;
+		const encryptionPasswords = this.encryptionPasswords;
+		const isEncryptedPage = encryptionPasswords.length > 0;
 		const publicDescription = isEncryptedPage ? "" : this.descriptionOrShortenedContent;
 
 		output.title = this.title;
@@ -119,14 +119,14 @@ export class Webpage extends Attachment {
 		if (this.exportOptions.enablePageEncryption) {
 			const locked = this.frontmatter?.["locked"] === true;
 			if (locked) {
-				if (encryptionPassword) {
+				if (encryptionPasswords.length > 0) {
 					const centerContent = this.pageDocument.querySelector("#center-content");
 					if (centerContent) {
 						const originalHtml = centerContent.innerHTML;
 
 						// Encrypt content
 						try {
-							const encryptedData = encryptContent(originalHtml, encryptionPassword);
+							const encryptedData = encryptionPasswords.map(password => encryptContent(originalHtml, password));
 
 							// Generate lock screen HTML
 							centerContent.innerHTML = LockScreen.generateLockScreenHtml(
@@ -168,7 +168,7 @@ export class Webpage extends Attachment {
 							scriptEl.setAttribute("data-unlock-script", "true"); // Mark for SPA handling
 							this.pageDocument.body.appendChild(scriptEl);
 
-							ExportLog.log(`Encrypted page: ${this.source.path}`, "Encryption");
+							ExportLog.log(`Encrypted page: ${this.source.path} (${encryptionPasswords.length} password${encryptionPasswords.length === 1 ? "" : "s"})`, "Encryption");
 						}
 						catch (e) {
 							ExportLog.error(e, `Failed to encrypt page: ${this.source.path}`);
@@ -188,15 +188,17 @@ export class Webpage extends Attachment {
 		this.outputData = output;
 	}
 
-	private get encryptionPassword(): string | undefined {
-		if (!this.exportOptions.enablePageEncryption) return undefined;
-		if (this.frontmatter?.["locked"] !== true) return undefined;
+	private get encryptionPasswords(): string[] {
+		if (!this.exportOptions.enablePageEncryption) return [];
+		if (this.frontmatter?.["locked"] !== true) return [];
 
 		const frontmatterPassword = this.frontmatter?.["password"]?.toString().trim();
 		const defaultPassword = this.exportOptions.defaultEncryptionPassword?.trim();
-		const password = frontmatterPassword || defaultPassword;
+		const pagePassword = frontmatterPassword || defaultPassword;
+		const masterPassword = this.exportOptions.masterEncryptionPassword?.trim();
+		const passwords = [pagePassword, masterPassword].filter((password): password is string => !!password);
 
-		return password || undefined;
+		return [...new Set(passwords)];
 	}
 
 	private get searchContent(): string {

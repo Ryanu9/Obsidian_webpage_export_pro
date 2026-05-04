@@ -526,6 +526,11 @@ export class SettingsPage extends PluginSettingTab {
 			(value) => Settings.exportOptions.defaultEncryptionPassword = value,
 			lang.pageEncryption.info_defaultEncryptionPassword);
 
+		createText(section, lang.pageEncryption.info_masterEncryptionPassword,
+			() => Settings.exportOptions.masterEncryptionPassword,
+			(value) => Settings.exportOptions.masterEncryptionPassword = value,
+			lang.pageEncryption.info_masterEncryptionPassword);
+
 		createText(section, lang.pageEncryption.info_encryptionPromptText,
 			() => Settings.exportOptions.encryptionPromptText,
 			(value) => Settings.exportOptions.encryptionPromptText = value,

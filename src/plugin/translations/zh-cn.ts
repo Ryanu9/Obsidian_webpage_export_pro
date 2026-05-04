@@ -320,6 +320,7 @@ export const language: i18n =
 			description: "密码保护页面的设置。",
 			info_enablePageEncryption: "开启加密文章功能",
 			info_defaultEncryptionPassword: "加密文章的默认密码",
+			info_masterEncryptionPassword: "加密文章的万能密码（留空则禁用）",
 			info_encryptionPromptText: "解锁界面标题",
 			info_encryptionDescriptionText: "解锁界面提示",
 			info_enableGiscusOnEncryptedPages: "开启加密文章的 Giscus 评论区",

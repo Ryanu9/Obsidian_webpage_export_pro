@@ -34,12 +34,13 @@ export class LockScreen {
 `;
     }
 
-    public static generateDecryptionScript(encryptedData: EncryptedData): string {
+    public static generateDecryptionScript(encryptedData: EncryptedData | EncryptedData[]): string {
         const t = i18n.settings.lockScreen;
         return `
 // 注意：这段代码是在用户的浏览器中运行的
 (function() {
     const encryptedData = ${JSON.stringify(encryptedData)}; 
+    const encryptedPayloads = Array.isArray(encryptedData) ? encryptedData : [encryptedData];
     const DOM_IDS = ${JSON.stringify(DOM_IDS)};
     const translations = ${JSON.stringify(t)};
     
@@ -90,6 +91,18 @@ export class LockScreen {
         );
         
         return new TextDecoder().decode(decryptedBuffer);
+    }
+
+    async function decryptAny(password) {
+        let lastError = null;
+        for (const data of encryptedPayloads) {
+            try {
+                return await decrypt(password, data);
+            } catch (e) {
+                lastError = e;
+            }
+        }
+        throw lastError || new Error('Unable to decrypt content');
     }
     
     function hideTOC() {
@@ -158,7 +171,7 @@ export class LockScreen {
         if (!password) { errorEl.textContent = translations.inputPlaceholder; errorEl.style.display = 'block'; return; }
         
         try {
-            const htmlContent = await decrypt(password, encryptedData);
+            const htmlContent = await decryptAny(password);
             await applyDecryptedContent(htmlContent, password);
         } catch (e) {
             console.error(e);
@@ -173,7 +186,7 @@ export class LockScreen {
         const pool = getPasswordPool();
         for (const pw of pool) {
             try {
-                const htmlContent = await decrypt(pw, encryptedData);
+                const htmlContent = await decryptAny(pw);
                 await applyDecryptedContent(htmlContent, pw);
                 return true;
             } catch { /* wrong password, continue */ }
@@ -226,7 +239,7 @@ export class LockScreen {
             const legacyPass = localStorage.getItem(legacyKey);
             if (legacyPass && passInput) {
                 try {
-                    const htmlContent = await decrypt(legacyPass, encryptedData);
+                    const htmlContent = await decryptAny(legacyPass);
                     await applyDecryptedContent(htmlContent, legacyPass);
                     localStorage.removeItem(legacyKey);
                 } catch { localStorage.removeItem(legacyKey); }

@@ -324,6 +324,7 @@ export interface i18n {
 			description: string;
 			info_enablePageEncryption: string;
 			info_defaultEncryptionPassword: string;
+			info_masterEncryptionPassword: string;
 			info_encryptionPromptText: string;
 			info_encryptionDescriptionText: string;
 			info_enableGiscusOnEncryptedPages: string;

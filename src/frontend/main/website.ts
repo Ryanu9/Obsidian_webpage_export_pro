@@ -1,7 +1,7 @@
 import { Search } from "./search";
 import { Sidebar } from "./sidebars";
 import { Tree } from "./trees";
-import { Bounds, delay, getLengthInPixels, waitUntil } from "./utils";
+import { Bounds, getLengthInPixels, waitUntil } from "./utils";
 import { WebpageDocument as ObsidianDocument } from "./document";
 import {
 	DocumentType,
@@ -351,9 +351,9 @@ export class ObsidianWebsite {
 			);
 		}
 
-		this.centerContentEl.style.visibility = "";
 		this.isLoaded = true;
 		this.onloadCallbacks.forEach((cb) => cb(this.document));
+		this.centerContentEl.style.visibility = "";
 
 		requestAnimationFrame(() => {
 			document.body.classList.add("sidebar-loaded");
@@ -861,24 +861,27 @@ export class ObsidianWebsite {
 			ObsidianSite.outlineTree = new Tree(newOutlineEl, 1);
 		}
 
-		setTimeout(async () => {
+		await this.nextAnimationFrame();
 
-			this.onloadCallbacks.forEach((cb) => cb(page));
+		this.onloadCallbacks.forEach((cb) => cb(page));
 
-			await page.show();
+		await page.show();
 
-			if (header) {
-				page.scrollToHeader(header);
-			} else {
-				this.horizontalLayout.scrollTo({
-					top: 0,
-					left: 0,
-					behavior: "auto"
-				});
-			}
-		}, 100); // Small delay to ensure the DOM is updated
+		if (header) {
+			page.scrollToHeader(header);
+		} else {
+			this.horizontalLayout.scrollTo({
+				top: 0,
+				left: 0,
+				behavior: "auto"
+			});
+		}
 
 		return page;
+	}
+
+	private nextAnimationFrame(): Promise<void> {
+		return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 	}
 
 	private pushDocumentHistory(pathname: string, title: string, pushState: boolean): void {
@@ -1096,7 +1099,7 @@ export class ObsidianWebsite {
 		loading: boolean,
 		inside: HTMLElement = this.centerContentEl
 	) {
-		inside.style.transitionDuration = "";
+		inside.style.transitionDuration = loading ? "0s" : "";
 		inside.classList.toggle("hide", loading);
 		this.loadingEl.classList.toggle("show", loading);
 		// this.graphView?.graphRenderer?.canvas.classList.toggle("hide", loading);
@@ -1110,7 +1113,8 @@ export class ObsidianWebsite {
 				viewBounds.center.y - this.loadingEl.offsetHeight / 2 + "px";
 		}
 
-		await delay(200);
+		await this.nextAnimationFrame();
+		if (loading) inside.style.transitionDuration = "";
 	}
 
 	private createLoadingEl() {
