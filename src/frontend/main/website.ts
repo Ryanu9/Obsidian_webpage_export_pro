@@ -76,6 +76,7 @@ export class ObsidianWebsite {
 	private mobileTocDrawerEl: HTMLElement | undefined = undefined;
 	private mobileTocTitleEl: HTMLElement | undefined = undefined;
 	private mobileTocContentEl: HTMLElement | undefined = undefined;
+	private readonly minMobileTocHeadingCount = 2;
 	private sharedSearchIndex: MiniSearch | undefined = undefined;
 	private searchIndexPromise: Promise<MiniSearch | undefined> | undefined = undefined;
 	private graphViewInitPromise: Promise<GraphView | undefined> | undefined = undefined;
@@ -545,10 +546,11 @@ export class ObsidianWebsite {
 		if (!this.mobileTocToggleEl || !this.mobileTocContentEl || !this.mobileTocTitleEl) return;
 
 		const outline = document.querySelector("#outline") as HTMLElement | null;
-		const hasOutline = !!outline?.querySelector(".tree-item-self[href]");
-		this.mobileTocToggleEl.hidden = !hasOutline;
+		const tocLinks = outline ? this.getMeaningfulMobileTocLinks(outline) : [];
+		const shouldShowToc = this.isMobileTocArticlePage() && tocLinks.length >= this.minMobileTocHeadingCount;
+		this.mobileTocToggleEl.hidden = !shouldShowToc;
 
-		if (!outline || !hasOutline) {
+		if (!outline || !shouldShowToc) {
 			this.mobileTocContentEl.replaceChildren();
 			this.closeMobileToc();
 			return;
@@ -569,6 +571,29 @@ export class ObsidianWebsite {
 
 		this.mobileTocContentEl.replaceChildren(clone);
 		LinkHandler.initializeLinks(this.mobileTocContentEl);
+	}
+
+	private isMobileTocArticlePage(): boolean {
+		if (!this.document?.isMainDocument) return false;
+		if (this.document.documentType != DocumentType.Markdown) return false;
+		if (this.document.info?.encrypted) return false;
+		if (document.querySelector("#password-lock-container")) return false;
+		if (this.centerContentEl?.querySelector(".featured-homepage")) return false;
+
+		return true;
+	}
+
+	private getMeaningfulMobileTocLinks(outline: HTMLElement): HTMLAnchorElement[] {
+		const currentTitle = this.document?.title?.replace(/\s+/g, " ").trim();
+
+		return Array.from(outline.querySelectorAll<HTMLAnchorElement>(".tree-item-self[href]"))
+			.filter((link) => {
+				const heading = (link.getAttribute("heading-name") ?? link.querySelector(".tree-item-inner")?.textContent ?? link.textContent ?? "")
+					.replace(/\s+/g, " ")
+					.trim();
+
+				return heading.length > 0 && heading != currentTitle;
+			});
 	}
 
 	private toggleMobileToc() {
