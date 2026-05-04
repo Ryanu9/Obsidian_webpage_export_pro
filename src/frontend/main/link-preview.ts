@@ -64,6 +64,53 @@ export class FilePreviewPopover
 	private showTimeout: number | null = null;
 	private onRemove: () => void;
 	private outsideClickListener: (event: PointerEvent) => void; 
+	private static delegatedPreviewsInitialized = false;
+	private static activeHoverPreview: FilePreviewPopover | null = null;
+	private static activeHoverLink: HTMLElement | null = null;
+
+	public static initDelegatedPreviews() {
+		if (this.delegatedPreviewsInitialized) return;
+		this.delegatedPreviewsInitialized = true;
+
+		document.body.addEventListener("pointerover", (event) => {
+			if (!ObsidianSite.metadata?.featureOptions?.linkPreview?.enabled) return;
+
+			const target = event.target as HTMLElement;
+			const link = target.closest(".internal-link") as HTMLElement | null;
+			if (!link || link.matches(".featured-card")) return;
+			if (link.contains(event.relatedTarget as Node | null)) return;
+			if (this.activeHoverLink === link) return;
+
+			const href = link.getAttribute("href");
+			if (!href || href === "null" || href.startsWith("http") || href.startsWith("mailto:")) return;
+			if (!ObsidianSite.documentExists(href)) return;
+
+			this.activeHoverPreview?.startRemoveTimeout();
+
+			let preview: FilePreviewPopover;
+			preview = new FilePreviewPopover(link, href, () => {
+				if (this.activeHoverPreview === preview) this.activeHoverPreview = null;
+				if (this.activeHoverLink === link) this.activeHoverLink = null;
+			});
+			this.activeHoverPreview = preview;
+			this.activeHoverLink = link;
+			preview.startShowTimeout();
+		});
+
+		document.body.addEventListener("pointerout", (event) => {
+			const link = (event.target as HTMLElement).closest(".internal-link") as HTMLElement | null;
+			if (!link || link !== this.activeHoverLink) return;
+			if (link.contains(event.relatedTarget as Node | null)) return;
+
+			this.activeHoverPreview?.startRemoveTimeout();
+			this.activeHoverPreview?.clearShowTimeout();
+		});
+
+		document.body.addEventListener("click", () => {
+			this.activeHoverPreview?.startRemoveTimeout();
+			this.activeHoverPreview?.clearShowTimeout();
+		});
+	}
 
 	public static initializeLink(link: HTMLElement, target: string) {
 		let preview: FilePreviewPopover | null = null;

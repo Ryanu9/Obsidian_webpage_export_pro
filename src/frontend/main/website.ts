@@ -146,7 +146,7 @@ export class ObsidianWebsite {
 
 		this.createLoadingEl();
 
-		if (fileTreeEl) this.fileTree = new Tree(fileTreeEl);
+		this.initFileTreeDeferred(fileTreeEl);
 		if (outlineTreeEl) {
 			this.outlineTree = new Tree(outlineTreeEl, 1);
 		}
@@ -544,6 +544,12 @@ export class ObsidianWebsite {
 
 	private syncMobileToc() {
 		if (!this.mobileTocToggleEl || !this.mobileTocContentEl || !this.mobileTocTitleEl) return;
+		if (this.deviceSize === "large-screen") {
+			this.mobileTocToggleEl.hidden = true;
+			this.mobileTocContentEl.replaceChildren();
+			this.closeMobileToc();
+			return;
+		}
 
 		const outline = document.querySelector("#outline") as HTMLElement | null;
 		const tocLinks = outline ? this.getMeaningfulMobileTocLinks(outline) : [];
@@ -769,9 +775,11 @@ export class ObsidianWebsite {
 		});
 
 		document.addEventListener('contentDecrypted', () => {
-			if (this.graphView && this.document) {
-				this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [this.document.pathname]);
-			}
+			this.scheduleIdle(() => {
+				if (this.graphView && this.document) {
+					void this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [this.document.pathname]);
+				}
+			}, 1200);
 		});
 	}
 
@@ -843,13 +851,9 @@ export class ObsidianWebsite {
 
 		this.document = page;
 
-		// Update graph view and file tree
-		if (this.graphView) {
-			await this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [page.pathname]);
-		}
+		// Update file tree immediately; graph recalculation is lower priority and should not block page display.
 		this.fileTree?.findByPath(page.pathname)?.setActive();
 		this.fileTree?.revealPath(page.pathname);
-		this.graphView?.setActiveNodeByPath(page.pathname);
 
 		this.pushDocumentHistory(this.document.pathname, this.document.title, pushState);
 
@@ -858,7 +862,7 @@ export class ObsidianWebsite {
 		if (newOutlineEl) {
 			newOutlineEl = document.adoptNode(newOutlineEl);
 			document.querySelector("#outline")?.replaceWith(newOutlineEl);
-			ObsidianSite.outlineTree = new Tree(newOutlineEl, 1);
+			this.initOutlineTreeDeferred(newOutlineEl);
 		}
 
 		await this.nextAnimationFrame();
@@ -877,11 +881,26 @@ export class ObsidianWebsite {
 			});
 		}
 
+		this.scheduleIdle(() => {
+			if (!this.graphView) return;
+			void this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [page.pathname])
+				.then(() => this.graphView?.setActiveNodeByPath(page.pathname));
+		}, 1200);
+
 		return page;
 	}
 
 	private nextAnimationFrame(): Promise<void> {
 		return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+	}
+
+	private scheduleIdle(fn: () => void, timeout: number = 700): void {
+		const requestIdle = (window as any).requestIdleCallback as
+			| ((callback: () => void, options?: { timeout?: number }) => number)
+			| undefined;
+
+		if (requestIdle) requestIdle(fn, { timeout });
+		else window.setTimeout(fn, 32);
 	}
 
 	private pushDocumentHistory(pathname: string, title: string, pushState: boolean): void {
@@ -1010,9 +1029,9 @@ export class ObsidianWebsite {
 			| ((callback: () => void, options?: { timeout?: number }) => number)
 			| undefined;
 		if (requestIdle) {
-			requestIdle(() => initializeLocalGraph(), { timeout: 2000 });
+			requestIdle(() => initializeLocalGraph(), { timeout: 5000 });
 		} else {
-			setTimeout(() => initializeLocalGraph(), 500);
+			setTimeout(() => initializeLocalGraph(), 1500);
 		}
 	}
 
@@ -1035,6 +1054,35 @@ export class ObsidianWebsite {
 		});
 
 		return this.graphViewInitPromise;
+	}
+
+	private initFileTreeDeferred(fileTreeEl: HTMLElement | null) {
+		if (!fileTreeEl) return;
+
+		// Navigation should work immediately; full TreeItem construction can wait until the page is usable.
+		LinkHandler.initializeLinks(fileTreeEl);
+
+		this.scheduleIdle(() => {
+			if (this.fileTree || !fileTreeEl.isConnected) return;
+			this.fileTree = new Tree(fileTreeEl);
+
+			const activePath = this.document?.pathname;
+			if (activePath) {
+				this.fileTree.findByPath(activePath)?.setActive();
+				this.fileTree.revealPath(activePath);
+			}
+		}, 1200);
+	}
+
+	private initOutlineTreeDeferred(outlineEl: HTMLElement) {
+		this.outlineTree = undefined;
+		LinkHandler.initializeLinks(outlineEl);
+
+		this.scheduleIdle(() => {
+			if (!outlineEl.isConnected) return;
+			this.outlineTree = new Tree(outlineEl, 1);
+			this.tocScrollSpy?.updateHeadings();
+		}, 600);
 	}
 
 	public getLocalDataFromId(id: string): any | undefined {

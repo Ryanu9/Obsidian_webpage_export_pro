@@ -6,6 +6,10 @@ export class CodeBlockManager {
     private themeObserver: MutationObserver | null = null;
     private resizeHandler: (() => void) | null = null;
     private trackedLineNumbers = new Map<HTMLPreElement, HTMLElement>();
+    private codeBlockObserver: IntersectionObserver | null = null;
+    private pendingPreElements: HTMLPreElement[] = [];
+    private codeBlockIdleHandle: number | null = null;
+    private codeBlockFallbackTimeout: number | null = null;
     private disposed: boolean = false;
 
     private getTranslation(key: string, defaultValue: string): string {
@@ -53,6 +57,20 @@ export class CodeBlockManager {
             window.removeEventListener('resize', this.resizeHandler);
             this.resizeHandler = null;
         }
+        this.codeBlockObserver?.disconnect();
+        this.codeBlockObserver = null;
+
+        const cancelIdle = (window as any).cancelIdleCallback as ((handle: number) => void) | undefined;
+        if (this.codeBlockIdleHandle !== null) {
+            cancelIdle?.(this.codeBlockIdleHandle);
+            this.codeBlockIdleHandle = null;
+        }
+        if (this.codeBlockFallbackTimeout !== null) {
+            window.clearTimeout(this.codeBlockFallbackTimeout);
+            this.codeBlockFallbackTimeout = null;
+        }
+
+        this.pendingPreElements = [];
         this.trackedLineNumbers.clear();
         this.processedContainers = [];
     }
@@ -360,10 +378,89 @@ export class CodeBlockManager {
             ...ansiBlocks
         ].filter((element): element is HTMLPreElement => element instanceof HTMLPreElement)));
 
-        // Code block chrome changes layout (container, header, line-number column, collapse height).
-        // Build it while the document is still hidden by the page-loading state so scrolling never
-        // reveals late DOM insertion or content jumps.
-        allPreElements.forEach(pre => this.prepareCodeBlock(pre));
+        const initialPreElements: HTMLPreElement[] = [];
+        const deferredPreElements: HTMLPreElement[] = [];
+
+        for (const pre of allPreElements) {
+            const shouldProcessImmediately = initialPreElements.length < 6 ||
+                (initialPreElements.length < 12 && this.isNearViewport(pre, 1200));
+
+            if (shouldProcessImmediately) {
+                initialPreElements.push(pre);
+            } else {
+                deferredPreElements.push(pre);
+            }
+        }
+
+        // Keep above-the-fold code blocks layout-stable, but do not synchronously enhance every
+        // code block in very long writeups. The rest are processed during idle time or shortly
+        // before they enter the viewport.
+        initialPreElements.forEach(pre => this.prepareCodeBlock(pre));
+
+        this.pendingPreElements = deferredPreElements;
+        this.observePendingCodeBlocks();
+        this.schedulePendingCodeBlocks();
+    }
+
+    private isNearViewport(element: HTMLElement, margin: number): boolean {
+        const rect = element.getBoundingClientRect();
+        return rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
+    }
+
+    private observePendingCodeBlocks() {
+        if (this.pendingPreElements.length === 0 || typeof IntersectionObserver === 'undefined') return;
+
+        this.codeBlockObserver?.disconnect();
+        this.codeBlockObserver = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                const pre = entry.target as HTMLPreElement;
+                this.codeBlockObserver?.unobserve(pre);
+                this.prepareCodeBlock(pre);
+                this.pendingPreElements = this.pendingPreElements.filter(item => item !== pre);
+            }
+        }, { rootMargin: '900px 0px' });
+
+        this.pendingPreElements.forEach(pre => this.codeBlockObserver?.observe(pre));
+    }
+
+    private schedulePendingCodeBlocks() {
+        if (this.disposed || this.pendingPreElements.length === 0 || this.codeBlockIdleHandle !== null || this.codeBlockFallbackTimeout !== null) return;
+
+        const requestIdle = (window as any).requestIdleCallback as
+            | ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
+            | undefined;
+
+        if (requestIdle) {
+            this.codeBlockIdleHandle = requestIdle((deadline) => {
+                this.codeBlockIdleHandle = null;
+                this.processPendingCodeBlocks(deadline);
+            }, { timeout: 700 });
+        } else {
+            this.codeBlockFallbackTimeout = window.setTimeout(() => {
+                this.codeBlockFallbackTimeout = null;
+                this.processPendingCodeBlocks();
+            }, 32);
+        }
+    }
+
+    private processPendingCodeBlocks(deadline?: IdleDeadline) {
+        if (this.disposed) return;
+
+        let processed = 0;
+        while (this.pendingPreElements.length > 0 && processed < 3) {
+            if (processed > 0 && deadline && deadline.timeRemaining() <= 6) break;
+
+            const pre = this.pendingPreElements.shift();
+            if (!pre) break;
+            this.codeBlockObserver?.unobserve(pre);
+            if (!pre.isConnected || pre.getAttribute('data-processed') === 'true') continue;
+
+            this.prepareCodeBlock(pre);
+            processed++;
+        }
+
+        this.schedulePendingCodeBlocks();
     }
 
     private prepareCodeBlock(pre: HTMLPreElement) {

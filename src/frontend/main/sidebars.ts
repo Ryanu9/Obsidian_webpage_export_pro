@@ -194,24 +194,32 @@ export class Sidebar
 		const el = this.contentEl;
 		if (!el) return;
 
-		const update = () => {
+		let updateFrame: number | null = null;
+		const updateNow = () => {
 			const overflows = el.scrollHeight > el.clientHeight + 1;
 			const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 2;
 			el.classList.toggle("has-bottom-fade", overflows && !atBottom);
 		};
+		const scheduleUpdate = () => {
+			if (updateFrame !== null) return;
+			updateFrame = requestAnimationFrame(() => {
+				updateFrame = null;
+				updateNow();
+			});
+		};
 
-		el.addEventListener("scroll", update, { passive: true });
+		el.addEventListener("scroll", scheduleUpdate, { passive: true });
 
 		// Re-check whenever the content or layout might change
-		const ro = new ResizeObserver(update);
+		const ro = new ResizeObserver(scheduleUpdate);
 		ro.observe(el);
 
 		// Also observe mutations (tree expand/collapse)
-		const mo = new MutationObserver(update);
+		const mo = new MutationObserver(scheduleUpdate);
 		mo.observe(el, { childList: true, subtree: true });
 
 		// Initial check
-		update();
+		scheduleUpdate();
 	}
 
 	private clickOutsideCollapse(event: MouseEvent)

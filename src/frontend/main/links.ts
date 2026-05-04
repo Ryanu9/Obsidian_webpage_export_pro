@@ -15,6 +15,7 @@ export class LinkHandler
 	{
 		if (this.delegationInitialized) return;
 		this.delegationInitialized = true;
+		FilePreviewPopover.initDelegatedPreviews();
 
 		document.body.addEventListener("keydown", (event) =>
 		{
@@ -122,8 +123,11 @@ export class LinkHandler
 	{
 		this.initDelegation();
 
-		onElement?.querySelectorAll(LINK_SELECTOR).forEach(function(link: HTMLElement)
-		{
+		const links = Array.from(onElement?.querySelectorAll<HTMLElement>(LINK_SELECTOR) ?? []);
+		const processLink = (link: HTMLElement) => {
+			if (link.dataset.linkStateInitialized === "true") return;
+			link.dataset.linkStateInitialized = "true";
+
 			const target = link.getAttribute("href") ?? "null";
 
 			if(target == "null")
@@ -135,17 +139,30 @@ export class LinkHandler
 			{
 				link.classList.add("is-unresolved");
 			}
-			else if (link.classList.contains("internal-link"))
-			{
-				if (link.matches(FEATURED_CARD_SELECTOR)) return;
+		};
 
-				if (!ObsidianSite.metadata?.ignoreMetadata && 
-					ObsidianSite.metadata?.featureOptions?.linkPreview?.enabled)
-				{
-					FilePreviewPopover.initializeLink(link, target);
-				}
+		const initialBatchSize = 160;
+		links.slice(0, initialBatchSize).forEach(processLink);
+
+		let index = initialBatchSize;
+		const processRemaining = (deadline?: IdleDeadline) => {
+			let processed = 0;
+			while (index < links.length && processed < 250) {
+				if (processed > 0 && deadline && deadline.timeRemaining() <= 4) break;
+				processLink(links[index]);
+				index++;
+				processed++;
 			}
-		});
+
+			if (index >= links.length) return;
+			const requestIdle = window.requestIdleCallback as
+				| ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
+				| undefined;
+			if (requestIdle) requestIdle(processRemaining, { timeout: 500 });
+			else window.setTimeout(() => processRemaining(), 32);
+		};
+
+		if (index < links.length) processRemaining();
 	}
 
 	public static getPathnameFromURL(url: string): string

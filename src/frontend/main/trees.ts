@@ -184,7 +184,6 @@ export class TreeItem
 			// Remove collapse icon if not collapsible
 			if (this.collapseIconEl && !(this instanceof Tree))
 			{
-				console.log(this);
 				this.collapseIconEl.remove();
 				this.collapseIconEl = undefined;
 			}
@@ -438,6 +437,13 @@ export class Tree extends TreeItem
 	{
 		const item = this.findByPath(path);
 		if (!item) return;
-		item.collapsed = false;
+
+		this.overrideAnimationLength(0);
+		let current: TreeItem | undefined = item;
+		while (current) {
+			if (current.collapsable) current.collapsed = false;
+			current = current.parent;
+		}
+		this.restoreAnimationLength();
 	}
 }

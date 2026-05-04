@@ -123,6 +123,10 @@ export class LockScreen {
         if (!pool.includes(pw)) { pool.push(pw); sessionStorage.setItem(POOL_KEY, JSON.stringify(pool)); }
     }
 
+    function nextFrame() {
+        return new Promise(resolve => requestAnimationFrame(() => resolve()));
+    }
+
     async function applyDecryptedContent(htmlContent, password) {
         if (window.__tocHideObserver) {
             window.__tocHideObserver.disconnect();
@@ -141,6 +145,8 @@ export class LockScreen {
             else newScript.textContent = oldScript.textContent;
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
+
+        await nextFrame();
         
         addToPool(password);
         
@@ -152,12 +158,12 @@ export class LockScreen {
         
         if (window.ObsidianSite && window.ObsidianSite.document) {
             window.ObsidianSite.document.documentEl = container.querySelector('.obsidian-document') || container;
-            
+
+            // 先执行文档类自身初始化，再触发全局加载回调；顺序与普通页面切换保持一致。
+            await window.ObsidianSite.document.postLoadInit();
+
             // 触发全局加载回调，确保所有 feature (如 tags) 被正确初始化并显示
             window.ObsidianSite.triggerOnDocumentLoad(window.ObsidianSite.document);
-            
-            // 执行文档类自身的初始化
-            await window.ObsidianSite.document.postLoadInit();
         }
 
         // 发送解密成功事件
