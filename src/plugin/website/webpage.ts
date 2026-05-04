@@ -19,6 +19,7 @@ export class WebpageOutputData {
 	public html: string = "";
 	public title: string = "";
 	public icon: string = "";
+	public encrypted: boolean = false;
 	public description: string = "";
 	public author: string = "";
 	public fullURL: string = "";
@@ -80,47 +81,52 @@ export class Webpage extends Attachment {
 
 	public outputData: WebpageOutputData = new WebpageOutputData();
 
+	public get isEncryptedPage(): boolean {
+		return this.encryptionPassword != undefined;
+	}
+
 	public async generateOutput() {
 		const output = new WebpageOutputData();
+		const encryptionPassword = this.encryptionPassword;
+		const isEncryptedPage = encryptionPassword != undefined;
+		const publicDescription = isEncryptedPage ? "" : this.descriptionOrShortenedContent;
+
 		output.title = this.title;
 		output.icon = this.icon;
-		output.description = this.descriptionOrShortenedContent;
+		output.encrypted = isEncryptedPage;
+		output.description = publicDescription;
 		output.author = this.author;
 		output.fullURL = this.fullURL;
 		output.rssDate = this.rssDate;
 		output.pathToRoot = this.pathToRoot.path;
-		output.coverImageURL = this.coverImageURL ?? "";
-		output.allTags = this.allTags;
+		output.coverImageURL = isEncryptedPage ? "" : this.coverImageURL ?? "";
 		output.frontmatterTags = this.frontmatterTags;
+		output.allTags = isEncryptedPage ? output.frontmatterTags : this.allTags;
 		output.aliases = this.aliases;
 		output.backlinks = this.backlinks;
-		output.headings = this.headings;
-		output.renderedHeadings = await this.getRenderedHeadings();
-		output.descriptionOrShortenedContent = this.descriptionOrShortenedContent;
-		output.searchContent = this.searchContent;
-		output.srcLinks = this.srcLinks;
-		output.hrefLinks = this.hrefLinks;
-		output.linksToOtherFiles = this.linksToOtherFiles;
+		output.inlineTags = isEncryptedPage ? [] : this.inlineTags;
+		output.headings = isEncryptedPage ? [] : this.headings;
+		output.renderedHeadings = isEncryptedPage ? [] : await this.getRenderedHeadings();
+		output.descriptionOrShortenedContent = publicDescription;
+		output.searchContent = isEncryptedPage ? "" : this.searchContent;
+		output.srcLinks = isEncryptedPage ? [] : this.srcLinks;
+		output.hrefLinks = isEncryptedPage ? [] : this.hrefLinks;
+		output.linksToOtherFiles = isEncryptedPage ? [] : this.linksToOtherFiles;
 
 		// --------------------------------------------------------------------------------
-		// Page Encryption Logic (在提取 metadata 之后执行)
+		// Page Encryption Logic (在生成安全的公开 metadata 之后执行)
 		// --------------------------------------------------------------------------------
 		if (this.exportOptions.enablePageEncryption) {
 			const locked = this.frontmatter?.["locked"] === true;
 			if (locked) {
-				let password = this.frontmatter?.["password"]?.toString();
-				if (!password || password.trim() === "") {
-					password = this.exportOptions.defaultEncryptionPassword;
-				}
-
-				if (password && password.trim() !== "") {
+				if (encryptionPassword) {
 					const centerContent = this.pageDocument.querySelector("#center-content");
 					if (centerContent) {
 						const originalHtml = centerContent.innerHTML;
 
 						// Encrypt content
 						try {
-							const encryptedData = encryptContent(originalHtml, password);
+							const encryptedData = encryptContent(originalHtml, encryptionPassword);
 
 							// Generate lock screen HTML
 							centerContent.innerHTML = LockScreen.generateLockScreenHtml(
@@ -180,6 +186,17 @@ export class Webpage extends Attachment {
 		this.data = output.html;
 
 		this.outputData = output;
+	}
+
+	private get encryptionPassword(): string | undefined {
+		if (!this.exportOptions.enablePageEncryption) return undefined;
+		if (this.frontmatter?.["locked"] !== true) return undefined;
+
+		const frontmatterPassword = this.frontmatter?.["password"]?.toString().trim();
+		const defaultPassword = this.exportOptions.defaultEncryptionPassword?.trim();
+		const password = frontmatterPassword || defaultPassword;
+
+		return password || undefined;
 	}
 
 	private get searchContent(): string {
@@ -312,7 +329,7 @@ export class Webpage extends Attachment {
 	public get headings(): { heading: string, level: number, id: string, headingEl: HTMLElement }[] {
 		const headers: { heading: string, level: number, id: string, headingEl: HTMLElement }[] = [];
 		if (this.pageDocument) {
-			this.pageDocument.querySelectorAll(".heading").forEach((headerEl: HTMLElement) => {
+			this.pageDocument.querySelectorAll<HTMLElement>(".heading").forEach((headerEl) => {
 				let level = parseInt(headerEl.tagName[1]);
 				if (headerEl.closest("[class^='block-language-']") || headerEl.closest(".markdown-embed.inline-embed")) level += 6;
 				const heading = headerEl.getAttribute("data-heading") ?? headerEl.innerText ?? "";
@@ -390,9 +407,9 @@ export class Webpage extends Attachment {
 	}
 
 	private get backlinks(): Webpage[] {
-		// @ts-ignore
-		const backlinks = Array.from(app.metadataCache.getBacklinksForFile(this.source)?.data?.keys?.() || []);
-		let linkedWebpages = backlinks.map((path: string) => this.website.index.getWebpage(path)) as Webpage[];
+		// @ts-ignore Obsidian exposes this at runtime, but the bundled type definition omits it.
+		const backlinks = Array.from((app.metadataCache.getBacklinksForFile(this.source)?.data?.keys?.() ?? []) as Iterable<string>);
+		let linkedWebpages = backlinks.map((path) => this.website.index.getWebpage(path)) as Webpage[];
 		linkedWebpages = linkedWebpages.filter((page) => page != undefined);
 		return linkedWebpages;
 	}

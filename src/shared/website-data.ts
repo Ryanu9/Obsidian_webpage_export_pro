@@ -58,6 +58,7 @@ export interface WebpageData extends FileData {
 	title: string;
 	pathToRoot: string;
 	icon: string;
+	encrypted?: boolean;
 	description: string;
 	author: string;
 	coverImageURL: string;

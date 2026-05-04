@@ -27,7 +27,7 @@ export class Index {
 		{
 			idField: 'path',
 			fields: ['title', 'aliases', 'headers', 'tags', 'path', 'content'],
-			storeFields: ['title', 'aliases', 'headers', 'tags', 'path', 'content'],
+			storeFields: ['title', 'aliases', 'headers', 'tags', 'path', 'content', 'encrypted'],
 			processTerm: (term: any, _fieldName: any) =>
 				this.stopWords.includes(term) ? null : term.toLowerCase()
 		}
@@ -252,6 +252,7 @@ export class Index {
 		// determine if the file is new, updated, or unchanged
 		let updatedFile = false;
 		let newFile = false;
+		const forceEncryptedWebpageRefresh = file instanceof Webpage && file.isEncryptedPage;
 		const key = file.targetPath.path;
 		if (!this.hadFile(key)) {
 			this.newFiles.push(file);
@@ -260,8 +261,8 @@ export class Index {
 		else {
 			const oldData = this.getOldFile(key);
 			if (oldData) {
-				if (oldData.modifiedTime != file.sourceStat.mtime || oldData.sourceSize != file.sourceStat.size) {
-					this.updatedFiles.push(file);
+				if (oldData.modifiedTime != file.sourceStat.mtime || oldData.sourceSize != file.sourceStat.size || forceEncryptedWebpageRefresh) {
+					if (!this.updatedFiles.includes(file)) this.updatedFiles.push(file);
 					updatedFile = true;
 				}
 			}
@@ -394,6 +395,7 @@ export class Index {
 			const webpageInfo: WebpageData = {} as WebpageData;
 			webpageInfo.title = webpage.title;
 			webpageInfo.icon = webpage.icon;
+			webpageInfo.encrypted = webpage.outputData.encrypted;
 			webpageInfo.description = webpage.outputData.descriptionOrShortenedContent;
 			webpageInfo.aliases = webpage.outputData.aliases;
 			webpageInfo.inlineTags = webpage.outputData.inlineTags;
@@ -446,7 +448,8 @@ export class Index {
 				this.minisearch.discard(webpagePath);
 			}
 
-			const headersInfo = await webpage.outputData.renderedHeadings;
+			const encrypted = webpage.outputData.encrypted;
+			const headersInfo = encrypted ? [] : await webpage.outputData.renderedHeadings;
 			if (headersInfo.length > 0 && headersInfo[0].level == 1 && headersInfo[0].heading == webpage.title) headersInfo.shift();
 			const headers = headersInfo.map((header) => header.heading);
 
@@ -454,9 +457,10 @@ export class Index {
 				title: webpage.title,
 				aliases: webpage.outputData.aliases,
 				headers: headers,
-				tags: webpage.outputData.allTags,
+				tags: encrypted ? webpage.outputData.frontmatterTags : webpage.outputData.allTags,
 				path: webpagePath,
-				content: webpage.outputData.description + " " + webpage.outputData.searchContent,
+				content: encrypted ? "" : `${webpage.outputData.description} ${webpage.outputData.searchContent}`.trim(),
+				encrypted,
 			});
 		}
 	}

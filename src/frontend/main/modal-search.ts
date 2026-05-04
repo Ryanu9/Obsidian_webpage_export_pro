@@ -3,6 +3,7 @@ import MiniSearch, { SearchResult } from "minisearch";
 interface SearchResultItem extends SearchResult {
 	title: string;
 	path: string;
+	encrypted?: boolean;
 	headers?: string[];
 	tags?: string[];
 	aliases?: string[];
@@ -13,6 +14,7 @@ const contextWindowWords = 30;
 const numSearchResults = 12;
 const numTagResults = 5;
 const modalSearchInputDebounceMs = 120;
+const encryptedContentLabel = "此内容已加密";
 
 export class ModalSearch {
 	private index: MiniSearch | null = null;
@@ -232,10 +234,12 @@ export class ModalSearch {
 	}
 
 	private formatForDisplay(term: string, result: SearchResultItem): SearchResultItem {
+		const encrypted = result.encrypted === true;
+
 		return {
 			...result,
 			title: this.highlightText(term, result.title ?? ''),
-			content: this.highlightText(term, result.content ?? '', true),
+			content: encrypted ? encryptedContentLabel : this.highlightText(term, result.content ?? '', true),
 			tags: this.highlightTags(term, result.tags ?? []) as any,
 		};
 	}

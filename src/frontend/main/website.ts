@@ -403,7 +403,8 @@ export class ObsidianWebsite {
 
 				const indexJSON = await indexResp.json();
 				this.sharedSearchIndex = MiniSearch.loadJS(indexJSON, {
-					fields: ['title', 'path', 'tags', 'headers', 'aliases', 'content']
+					fields: ['title', 'path', 'tags', 'headers', 'aliases', 'content'],
+					storeFields: ['title', 'aliases', 'headers', 'tags', 'path', 'content', 'encrypted']
 				});
 				return this.sharedSearchIndex;
 			} catch (e) {
