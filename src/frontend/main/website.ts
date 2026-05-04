@@ -841,6 +841,8 @@ export class ObsidianWebsite {
 		this.updateMetaTag("og:url", window.location.href);
 		this.updateMetaTag("og:image", page.info?.coverImageURL || "");
 
+		this.document = page;
+
 		// Update graph view and file tree
 		if (this.graphView) {
 			await this.graphView.showGraph(this.graphView.isGlobalGraph ? undefined : [page.pathname]);
@@ -848,7 +850,6 @@ export class ObsidianWebsite {
 		this.fileTree?.findByPath(page.pathname)?.setActive();
 		this.fileTree?.revealPath(page.pathname);
 		this.graphView?.setActiveNodeByPath(page.pathname);
-		this.document = page;
 
 		this.pushDocumentHistory(this.document.pathname, this.document.title, pushState);
 

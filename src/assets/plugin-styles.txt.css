@@ -950,8 +950,17 @@ body:is(.is-phone, .is-tablet) .graph-view-container.expanded {
 	height: 20px;
 }
 
+.graph-icon[hidden] {
+	display: none !important;
+}
+
 .graph-icon:hover {
 	color: var(--interactive-accent);
+}
+
+.graph-icon.graph-back {
+	top: 6px;
+	left: 6px;
 }
 
 .graph-icon.graph-expand {

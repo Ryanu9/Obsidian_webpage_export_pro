@@ -17,8 +17,10 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 	public graphRenderer: GraphRenderer;
 	public graphContainer: HTMLElement;
+	public backGraphButton: HTMLElement;
 	public globalGraphButton: HTMLElement;
 	public expandGraphButton: HTMLElement;
+	private graphNavigationHistory: string[] = [];
 
 	private _isGlobalGraph: boolean = false;
 	public get isGlobalGraph(): boolean {
@@ -31,6 +33,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 	constructor(featureEl: HTMLElement) {
 		super(ObsidianSite.metadata.featureOptions.graphView, featureEl);
 		this.graphContainer = featureEl.querySelector(".graph-view-container") as HTMLElement;
+		this.backGraphButton = this.ensureBackGraphButton();
 		this.globalGraphButton = featureEl.querySelector(".graph-global.graph-icon") as HTMLElement;
 		this.expandGraphButton = featureEl.querySelector(".graph-expand.graph-icon") as HTMLElement;
 
@@ -57,6 +60,23 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		});
 
 		this.initUIEvents();
+		this.updateBackButtonState();
+	}
+
+	private ensureBackGraphButton(): HTMLElement {
+		let button = this.graphContainer.querySelector(".graph-back.graph-icon") as HTMLElement | null;
+		if (!button) {
+			button = document.createElement("div");
+			button.className = "graph-icon graph-back";
+			button.setAttribute("role", "button");
+			button.setAttribute("aria-label", "Back");
+			button.setAttribute("data-tooltip-position", "top");
+			this.graphContainer.prepend(button);
+		}
+
+		button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-undo-2"><path d="M9 14 4 9l5-5"></path><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"></path></svg>`;
+		button.hidden = true;
+		return button;
 	}
 
 	private initUIEvents() {
@@ -65,6 +85,12 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		this.expandGraphButton?.addEventListener("click", event => {
 			event.stopPropagation();
 			localThis.toggleExpandedGraph();
+		});
+
+		this.backGraphButton?.addEventListener("click", event => {
+			event.preventDefault();
+			event.stopPropagation();
+			void localThis.returnToPreviousGraphNode();
 		});
 
 		this.globalGraphButton?.addEventListener("click", event => {
@@ -194,10 +220,60 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 		const localSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-circle-dot"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="1"/></svg>`;
 		const globalSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="svg-icon lucide-git-fork"><circle cx="12" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9"/><path d="M12 12v3"/></svg>`;
 		this.globalGraphButton.innerHTML = this.isGlobalGraph ? localSVG : globalSVG;
+		this.updateBackButtonState();
+	}
+
+	private pushGraphNavigationHistory(path: string | undefined) {
+		if (!path) return;
+		const lastPath = this.graphNavigationHistory[this.graphNavigationHistory.length - 1];
+		if (lastPath === path) return;
+		this.graphNavigationHistory.push(path);
+	}
+
+	private getCurrentDocumentPath(): string | undefined {
+		return ObsidianSite.document?.pathname;
+	}
+
+	private popPreviousGraphPath(): string | undefined {
+		const currentPath = this.getCurrentDocumentPath();
+		while (this.graphNavigationHistory.length > 0) {
+			const previousPath = this.graphNavigationHistory.pop();
+			if (previousPath && previousPath !== currentPath) {
+				return previousPath;
+			}
+		}
+		return undefined;
+	}
+
+	private updateBackButtonState() {
+		if (!this.backGraphButton) return;
+		const currentPath = this.getCurrentDocumentPath();
+		while (this.graphNavigationHistory.length > 0 && this.graphNavigationHistory[this.graphNavigationHistory.length - 1] === currentPath) {
+			this.graphNavigationHistory.pop();
+		}
+		const canGoBack = this.graphNavigationHistory.length > 0;
+		this.backGraphButton.hidden = !canGoBack;
+		this.backGraphButton.setAttribute("aria-disabled", canGoBack ? "false" : "true");
+		const previousPath = this.graphNavigationHistory[this.graphNavigationHistory.length - 1];
+		const previousTitle = previousPath ? (ObsidianSite.getWebpageData(previousPath)?.title || previousPath) : "";
+		this.backGraphButton.setAttribute("aria-label", previousTitle ? `Back to ${previousTitle}` : "Back");
+	}
+
+	private async returnToPreviousGraphNode() {
+		const previousPath = this.popPreviousGraphPath();
+		this.updateBackButtonState();
+		if (!previousPath) return;
+		if (this.graphExpanded) this.toggleExpandedGraph();
+		await ObsidianSite.loadURL(previousPath);
+		this.updateBackButtonState();
 	}
 
 	private async navigateToNode(path: string) {
 		if (!path) return;
+		const currentPath = this.getCurrentDocumentPath();
+		if (currentPath && currentPath !== path) {
+			this.pushGraphNavigationHistory(currentPath);
+		}
 		if (this.graphExpanded) this.toggleExpandedGraph();
 		await ObsidianSite.loadURL(path);
 	}
