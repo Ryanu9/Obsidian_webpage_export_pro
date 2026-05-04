@@ -95,7 +95,7 @@ export class Webpage extends Attachment {
 
 		const giscusOptions = this.exportOptions.giscusOptions;
 		const payload = JSON.stringify({
-			version: 2,
+			version: 3,
 			passwords: encryptionPasswords,
 			prompt: this.exportOptions.encryptionPromptText,
 			description: this.exportOptions.encryptionDescriptionText,

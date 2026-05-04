@@ -7,7 +7,7 @@ import {
 } from "./feature-options-base";
 
 export class PropertiesOptions extends InsertedFeatureOptionsWithTitle {
-	hideProperties: string[];
+	hideProperties: string[] = ["password"];
 	info_hideProperties = new FeatureSettingInfo({
 		show: true,
 		name: i18n.settings.properties.info_hideProperties,

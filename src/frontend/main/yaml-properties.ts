@@ -1,6 +1,8 @@
 import { WebpageData } from "src/shared/website-data";
 
 export class YamlProperties {
+    private static readonly sensitivePropertyKeys = new Set(["password"]);
+
     constructor() { }
 
     public parseAndDisplayYamlProperties(documentData: WebpageData, container: HTMLElement): void {
@@ -13,9 +15,12 @@ export class YamlProperties {
 
         // Custom filter based on hideProperties
         const filteredFrontmatter: Record<string, any> = {};
-        const hiddenProps = propertiesOptions.hideProperties || [];
+        const hiddenProps = new Set([
+            ...(propertiesOptions.hideProperties || []),
+            ...YamlProperties.sensitivePropertyKeys,
+        ].map((key: string) => key.toLowerCase()));
         for (const key in frontmatter) {
-            if (!hiddenProps.includes(key)) {
+            if (!hiddenProps.has(key.toLowerCase())) {
                 filteredFrontmatter[key] = frontmatter[key];
             }
         }
