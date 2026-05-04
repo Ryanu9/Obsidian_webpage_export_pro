@@ -14,6 +14,7 @@ import { moment } from "obsidian";
 import { encryptContent } from "src/plugin/utils/encryption-utils";
 import { LockScreen } from "src/plugin/features/lock-screen";
 import { FeaturedHomepage } from "src/plugin/features/featured-homepage";
+import * as crypto from "crypto";
 
 export class WebpageOutputData {
 	public html: string = "";
@@ -83,6 +84,40 @@ export class Webpage extends Attachment {
 
 	public get isEncryptedPage(): boolean {
 		return this.encryptionPasswords.length > 0;
+	}
+
+	public get encryptionCacheKey(): string | undefined {
+		const encryptionPasswords = this.encryptionPasswords;
+		if (encryptionPasswords.length === 0) return undefined;
+
+		const secret = this.exportOptions.encryptionCacheSecret;
+		if (!secret) return undefined;
+
+		const giscusOptions = this.exportOptions.giscusOptions;
+		const payload = JSON.stringify({
+			version: 2,
+			passwords: encryptionPasswords,
+			prompt: this.exportOptions.encryptionPromptText,
+			description: this.exportOptions.encryptionDescriptionText,
+			enableGiscusOnEncryptedPages: this.exportOptions.enableGiscusOnEncryptedPages,
+			giscus: this.exportOptions.enableGiscusOnEncryptedPages && giscusOptions.enabled
+				? {
+					repo: giscusOptions.repo,
+					repoId: giscusOptions.repoId,
+					category: giscusOptions.category,
+					categoryId: giscusOptions.categoryId,
+					mapping: giscusOptions.mapping,
+					strict: giscusOptions.strict,
+					reactionsEnabled: giscusOptions.reactionsEnabled,
+					emitMetadata: giscusOptions.emitMetadata,
+					inputPosition: giscusOptions.inputPosition,
+					lang: giscusOptions.lang,
+					loading: giscusOptions.loading,
+				}
+				: undefined,
+		});
+
+		return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 	}
 
 	public async generateOutput() {

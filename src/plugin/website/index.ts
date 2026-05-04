@@ -252,7 +252,6 @@ export class Index {
 		// determine if the file is new, updated, or unchanged
 		let updatedFile = false;
 		let newFile = false;
-		const forceEncryptedWebpageRefresh = file instanceof Webpage && file.isEncryptedPage;
 		const key = file.targetPath.path;
 		if (!this.hadFile(key)) {
 			this.newFiles.push(file);
@@ -261,7 +260,7 @@ export class Index {
 		else {
 			const oldData = this.getOldFile(key);
 			if (oldData) {
-				if (oldData.modifiedTime != file.sourceStat.mtime || oldData.sourceSize != file.sourceStat.size || forceEncryptedWebpageRefresh) {
+				if (oldData.modifiedTime != file.sourceStat.mtime || oldData.sourceSize != file.sourceStat.size || this.webpageCacheMetadataChanged(file, key)) {
 					if (!this.updatedFiles.includes(file)) this.updatedFiles.push(file);
 					updatedFile = true;
 				}
@@ -308,6 +307,23 @@ export class Index {
 				this.updateAttachment(file);
 			}
 		}
+	}
+
+	private webpageCacheMetadataChanged(file: Attachment | Webpage, key: string): boolean {
+		if (!(file instanceof Webpage)) return false;
+
+		const oldWebpage = this.getOldWebpage(key);
+		if (!oldWebpage) return true;
+
+		if ((oldWebpage.encrypted ?? false) != file.isEncryptedPage) return true;
+
+		const oldEncryptionCacheKey = oldWebpage.encryptionCacheKey;
+		const currentEncryptionCacheKey = file.encryptionCacheKey;
+		if (oldEncryptionCacheKey || currentEncryptionCacheKey) {
+			return oldEncryptionCacheKey != currentEncryptionCacheKey;
+		}
+
+		return false;
 	}
 
 	public async addFiles(files: (Attachment | Webpage)[]) {
@@ -413,6 +429,7 @@ export class Index {
 			webpageInfo.sourceSize = webpage.source.stat.size;
 			webpageInfo.sourcePath = new Path(webpage.source.path).path;
 			webpageInfo.exportPath = webpage.targetPath.path;
+			webpageInfo.encryptionCacheKey = webpage.encryptionCacheKey;
 			webpageInfo.showInTree = webpage.showInTree;
 			webpageInfo.treeOrder = webpage.treeOrder;
 			webpageInfo.backlinks = webpage.outputData.backlinks.map((backlink) => backlink.targetPath.path);
@@ -428,6 +445,7 @@ export class Index {
 			fileInfo.sourceSize = webpageInfo.sourceSize;
 			fileInfo.sourcePath = webpageInfo.sourcePath;
 			fileInfo.exportPath = webpageInfo.exportPath;
+			fileInfo.encryptionCacheKey = webpageInfo.encryptionCacheKey;
 			fileInfo.showInTree = webpageInfo.showInTree;
 			fileInfo.treeOrder = webpageInfo.treeOrder;
 			fileInfo.backlinks = webpageInfo.backlinks;

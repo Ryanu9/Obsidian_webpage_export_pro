@@ -45,6 +45,7 @@ export interface FileData {
 	backlinks: string[];
 	type: string;
 	data: string | null;
+	encryptionCacheKey?: string;
 }
 
 export interface WebpageData extends FileData {

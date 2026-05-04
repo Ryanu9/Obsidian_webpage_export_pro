@@ -21,6 +21,7 @@ import { NavbarOptions } from "src/shared/features/navbar";
 import { CodeBlockOptions } from "src/shared/features/code-block";
 import { VercelInsightsOptions } from "src/shared/features/vercel-insights";
 import { FeaturedHomepageOptions } from "src/shared/features/featured-homepage";
+import * as crypto from "crypto";
 
 export class ExportPipelineOptions extends MarkdownRendererOptions {
 	// Features that can be toggled on or off
@@ -237,6 +238,12 @@ export class ExportPipelineOptions extends MarkdownRendererOptions {
 	 * Master password that can unlock every encrypted page in addition to each page password.
 	 */
 	masterEncryptionPassword: string = "";
+
+	/**
+	 * Local-only secret used to HMAC encryption cache fingerprints.
+	 * This is saved in plugin settings, but never exported into website metadata.
+	 */
+	encryptionCacheSecret: string = crypto.randomBytes(32).toString("hex");
 
 	/**
 	 * Title text for the encryption lock screen.
