@@ -564,12 +564,13 @@ export class WebpageDocument {
 			);
 		}
 
-		// Initialize Code Blocks and Media without blocking the render path
+		// Build layout-affecting code block chrome before the document is shown;
+		// media enhancements can still wait for idle time.
 		if (this.documentEl) {
 			const documentEl = this.documentEl;
 			this.codeBlockManager?.dispose();
 			this.codeBlockManager = new CodeBlockManager(documentEl);
-			this.scheduleIdle(() => this.codeBlockManager?.init());
+			this.codeBlockManager.init();
 			this.scheduleIdle(() => {
 				if (!documentEl.isConnected) return;
 				new MediaManager(documentEl).init();

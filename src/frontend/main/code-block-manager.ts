@@ -1,19 +1,12 @@
-import { delay } from "./utils";
 import { ensureContrast } from "./color-utils";
 
 export class CodeBlockManager {
     private containerEl: HTMLElement;
     private processedContainers: HTMLElement[] = [];
-    private observer: IntersectionObserver | null = null;
     private themeObserver: MutationObserver | null = null;
     private resizeHandler: (() => void) | null = null;
     private trackedLineNumbers = new Map<HTMLPreElement, HTMLElement>();
-    private idleHandle: number | null = null;
-    private fallbackTimeout: number | null = null;
     private disposed: boolean = false;
-    private pendingVisibleContainers: HTMLElement[] = [];
-    private visibleContainerSet = new Set<HTMLElement>();
-    private visibleQueueScheduled: boolean = false;
 
     private getTranslation(key: string, defaultValue: string): string {
         try {
@@ -50,112 +43,21 @@ export class CodeBlockManager {
 
     constructor(containerEl: HTMLElement) {
         this.containerEl = containerEl;
-        this.initObserver();
     }
 
     public dispose() {
         this.disposed = true;
-        this.observer?.disconnect();
-        this.observer = null;
         this.themeObserver?.disconnect();
         this.themeObserver = null;
         if (this.resizeHandler) {
             window.removeEventListener('resize', this.resizeHandler);
             this.resizeHandler = null;
         }
-        this.clearScheduledWork();
         this.trackedLineNumbers.clear();
         this.processedContainers = [];
-        this.pendingVisibleContainers = [];
-        this.visibleContainerSet.clear();
-        this.visibleQueueScheduled = false;
     }
 
-    private clearScheduledWork() {
-        const cancelIdle = (window as any).cancelIdleCallback as ((handle: number) => void) | undefined;
-        if (this.idleHandle !== null) {
-            if (cancelIdle) {
-                cancelIdle(this.idleHandle);
-            }
-            this.idleHandle = null;
-        }
-        if (this.fallbackTimeout !== null) {
-            window.clearTimeout(this.fallbackTimeout);
-            this.fallbackTimeout = null;
-        }
-    }
-
-    private scheduleWork(fn: (deadline?: IdleDeadline) => void) {
-        if (this.disposed) return;
-        const requestIdle = (window as any).requestIdleCallback as
-            | ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
-            | undefined;
-
-        if (requestIdle) {
-            this.idleHandle = requestIdle((deadline) => {
-                this.idleHandle = null;
-                if (this.disposed) return;
-                fn(deadline);
-            }, { timeout: this.getIdleTimeout() });
-        } else {
-            this.fallbackTimeout = window.setTimeout(() => {
-                this.fallbackTimeout = null;
-                if (this.disposed) return;
-                fn();
-            }, this.getFallbackDelay());
-        }
-    }
-
-    private getViewportWidth(): number {
-        return window.innerWidth || document.documentElement.clientWidth || 1024;
-    }
-
-    private isMobileViewport(): boolean {
-        return this.getViewportWidth() <= 768;
-    }
-
-    private getPreloadMargin(): number {
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 800;
-        const viewportWidth = this.getViewportWidth();
-
-        if (viewportWidth <= 480) return Math.max(1200, viewportHeight * 2);
-        if (viewportWidth <= 768) return Math.max(900, viewportHeight * 1.5);
-        return 300;
-    }
-
-    private getPrepareBatchSize(): number {
-        return this.isMobileViewport() ? 4 : 10;
-    }
-
-    private getVisibleBatchSize(): number {
-        return this.isMobileViewport() ? 1 : 2;
-    }
-
-    private getIdleTimeout(): number {
-        return this.isMobileViewport() ? 500 : 120;
-    }
-
-    private getFallbackDelay(): number {
-        return this.isMobileViewport() ? 80 : 16;
-    }
-
-    private initObserver() {
-        if (typeof IntersectionObserver === 'undefined') return;
-
-        this.observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const container = entry.target as HTMLElement;
-                    this.enqueueVisibleCodeBlock(container);
-                    this.observer?.unobserve(container);
-                }
-            });
-        }, {
-            rootMargin: `${this.getPreloadMargin()}px 0px`,
-        });
-    }
-
-    private lazyProcessCodeBlock(container: HTMLElement) {
+    private processCodeBlock(container: HTMLElement) {
         if (this.disposed || container.getAttribute('data-lazy-processed') === 'true') return;
 
         const pre = container.querySelector('pre');
@@ -169,63 +71,9 @@ export class CodeBlockManager {
         container.setAttribute('data-lazy-processed', 'true');
     }
 
-    private enqueueVisibleCodeBlock(container: HTMLElement) {
-        if (this.disposed || container.getAttribute('data-lazy-processed') === 'true') return;
-        if (this.visibleContainerSet.has(container)) return;
-        this.visibleContainerSet.add(container);
-        this.pendingVisibleContainers.push(container);
-        this.scheduleVisibleQueue();
-    }
-
-    private scheduleVisibleQueue() {
-        if (this.visibleQueueScheduled || this.disposed) return;
-        this.visibleQueueScheduled = true;
-        this.scheduleWork((deadline?: IdleDeadline) => {
-            this.visibleQueueScheduled = false;
-            if (this.disposed) return;
-
-            let processedCount = 0;
-            const batchSize = this.getVisibleBatchSize();
-            const preloadMargin = this.getPreloadMargin();
-            while (this.pendingVisibleContainers.length > 0 && processedCount < batchSize) {
-                if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
-                    break;
-                }
-
-                const container = this.pendingVisibleContainers.shift();
-                if (!container) break;
-                this.visibleContainerSet.delete(container);
-
-                if (!container.isConnected || container.getAttribute('data-lazy-processed') === 'true') {
-                    continue;
-                }
-
-                if (!this.isElementNearViewport(container, preloadMargin)) {
-                    this.observer?.observe(container);
-                    continue;
-                }
-
-                this.lazyProcessCodeBlock(container);
-                processedCount++;
-            }
-
-            if (this.pendingVisibleContainers.length > 0) {
-                this.scheduleVisibleQueue();
-            }
-        });
-    }
-
-    private isElementNearViewport(element: HTMLElement, margin: number): boolean {
-        const rect = element.getBoundingClientRect();
-        return rect.bottom >= -margin && rect.top <= window.innerHeight + margin;
-    }
-
-    public async init() {
+    public init() {
         if (this.disposed) return;
         this.injectStyles();
-        // Delay slightly to ensure DOM is ready if needed, similar to other features
-        await delay(10);
-        if (this.disposed) return;
         this.initCodeBlocks();
         this.setupThemeObserver();
         this.setupResizeListener();
@@ -512,29 +360,10 @@ export class CodeBlockManager {
             ...ansiBlocks
         ].filter((element): element is HTMLPreElement => element instanceof HTMLPreElement)));
 
-        this.processCodeBlockBatch(allPreElements, 0);
-    }
-
-    private processCodeBlockBatch(allPreElements: HTMLPreElement[], startIndex: number) {
-        this.scheduleWork((deadline?: IdleDeadline) => {
-            let index = startIndex;
-            let processedCount = 0;
-            const batchSize = this.getPrepareBatchSize();
-
-            while (index < allPreElements.length && processedCount < batchSize) {
-                if (deadline && processedCount > 0 && deadline.timeRemaining() <= 4) {
-                    break;
-                }
-
-                this.prepareCodeBlock(allPreElements[index]);
-                index++;
-                processedCount++;
-            }
-
-            if (index < allPreElements.length) {
-                this.processCodeBlockBatch(allPreElements, index);
-            }
-        });
+        // Code block chrome changes layout (container, header, line-number column, collapse height).
+        // Build it while the document is still hidden by the page-loading state so scrolling never
+        // reveals late DOM insertion or content jumps.
+        allPreElements.forEach(pre => this.prepareCodeBlock(pre));
     }
 
     private prepareCodeBlock(pre: HTMLPreElement) {
@@ -570,11 +399,7 @@ export class CodeBlockManager {
             this.setupCollapse(pre, container);
         }
 
-        if (this.observer) {
-            this.observer.observe(container);
-        } else {
-            this.lazyProcessCodeBlock(container);
-        }
+        this.processCodeBlock(container);
 
         pre.setAttribute('data-processed', 'true');
     }
