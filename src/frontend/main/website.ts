@@ -1201,19 +1201,21 @@ export class ObsidianWebsite {
 			10
 		);
 		const smallScreenRightColumnGap = smallScreenLeftColumnGap * (4 / 9);
-		const edgeAndGapWidth =
-			smallScreenLeftColumnGap +
-			smallScreenRightColumnGap +
-			smallScreenLeftEdgeInset +
-			smallScreenRightEdgeInset;
-		const centerContentMaxWidth =
-			docWidth + getLengthInPixels("6em", this.centerContentEl);
+		const minReadableDocWidth = Math.min(
+			docWidth,
+			getLengthInPixels("40em", this.centerContentEl)
+		);
+		// Keep both desktop sidebars visible until the markdown reading column itself
+		// has shrunk to about 40em. The center leaf only needs to reserve the document's
+		// horizontal padding here; its wider max-width gutter can be sacrificed first.
+		const centerContentCollapseWidth =
+			minReadableDocWidth + getLengthInPixels("3em", this.centerContentEl);
 		const largeScreenMinWidth = Math.max(
-			centerContentMaxWidth + leftWidth + rightWidth + edgeAndGapWidth,
+			centerContentCollapseWidth + leftWidth + rightWidth,
 			1025
 		);
 		const smallScreenMinWidth = Math.max(
-			centerContentMaxWidth +
+			centerContentCollapseWidth +
 				rightWidth +
 				smallScreenRightColumnGap +
 				smallScreenRightEdgeInset,
