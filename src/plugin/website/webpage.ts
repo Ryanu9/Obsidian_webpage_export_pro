@@ -95,7 +95,7 @@ export class Webpage extends Attachment {
 
 		const giscusOptions = this.exportOptions.giscusOptions;
 		const payload = JSON.stringify({
-			version: 3,
+			version: 4,
 			passwords: encryptionPasswords,
 			prompt: this.exportOptions.encryptionPromptText,
 			description: this.exportOptions.encryptionDescriptionText,
@@ -146,7 +146,7 @@ export class Webpage extends Attachment {
 		output.searchContent = isEncryptedPage ? "" : this.searchContent;
 		output.srcLinks = isEncryptedPage ? [] : this.srcLinks;
 		output.hrefLinks = isEncryptedPage ? [] : this.hrefLinks;
-		output.linksToOtherFiles = isEncryptedPage ? [] : this.linksToOtherFiles;
+		output.linksToOtherFiles = this.linksToOtherFiles;
 
 		// --------------------------------------------------------------------------------
 		// Page Encryption Logic (在生成安全的公开 metadata 之后执行)

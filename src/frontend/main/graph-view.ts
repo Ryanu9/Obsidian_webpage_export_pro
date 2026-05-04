@@ -151,18 +151,19 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 
 	public async showGraph(paths?: string[]) {
 		let linked: string[] = [];
+		const directlyLinked = new Set<string>();
 		const focusedPath = paths ? paths[0] : undefined;
 		this.isGlobalGraph = !paths;
 
 		if (paths) {
 			for (const element of paths) {
 				const fileInfo = ObsidianSite.getWebpageData(element);
-				if (fileInfo?.backlinks)
-					linked.push(...fileInfo.backlinks);
-				if (fileInfo?.links)
-					linked.push(...fileInfo.links.map((l: string) => LinkHandler.getPathnameFromURL(l)));
-				if (fileInfo?.attachments)
-					linked.push(...fileInfo.attachments);
+				const backlinks: string[] = fileInfo?.backlinks || [];
+				const links = (fileInfo?.links || []).map((l: string) => LinkHandler.getPathnameFromURL(l));
+				const attachments: string[] = fileInfo?.attachments || [];
+
+				linked.push(...backlinks, ...links, ...attachments);
+				backlinks.concat(links, attachments).forEach((link) => directlyLinked.add(link));
 			}
 			linked.push(...paths);
 		} else {
@@ -178,7 +179,7 @@ export class GraphView extends InsertedFeature<GraphViewOptions> {
 			const backlinks = data.backlinks || [];
 			const links = data.links || [];
 
-			if (!this.options.showOrphanNodes && backlinks.length == 0 && links.length == 0)
+			if (!this.options.showOrphanNodes && !directlyLinked.has(l) && backlinks.length == 0 && links.length == 0)
 				return false;
 
 			if (!this.options.showAttachments && (data.type == "attachment" || data.type == "media" || data.type == "other"))
