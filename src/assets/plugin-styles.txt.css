@@ -2020,6 +2020,10 @@ body.is-phone .toc-toggle:not([hidden]) {
 	transition: transform 150ms ease, border-color 150ms ease, background-color 150ms ease, color 150ms ease;
 }
 
+body.floating-sidebars:has(#left-sidebar:not(.is-collapsed)) .toc-toggle:not([hidden]) {
+	display: none !important;
+}
+
 body.is-phone .toc-toggle:not([hidden]):hover,
 body.is-phone .toc-toggle:not([hidden]):focus-visible {
 	transform: translateY(-1px);
