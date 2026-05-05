@@ -8,6 +8,8 @@ export class CodeBlockManager {
     private trackedLineNumbers = new Map<HTMLPreElement, HTMLElement>();
     private codeBlockObserver: IntersectionObserver | null = null;
     private pendingPreElements: HTMLPreElement[] = [];
+    private queuedPreElements: HTMLPreElement[] = [];
+    private queuedPreElementSet = new Set<HTMLPreElement>();
     private codeBlockIdleHandle: number | null = null;
     private codeBlockFallbackTimeout: number | null = null;
     private disposed: boolean = false;
@@ -71,6 +73,8 @@ export class CodeBlockManager {
         }
 
         this.pendingPreElements = [];
+        this.queuedPreElements = [];
+        this.queuedPreElementSet.clear();
         this.trackedLineNumbers.clear();
         this.processedContainers = [];
     }
@@ -392,14 +396,14 @@ export class CodeBlockManager {
             }
         }
 
-        // Keep above-the-fold code blocks layout-stable, but do not synchronously enhance every
-        // code block in very long writeups. The rest are processed during idle time or shortly
-        // before they enter the viewport.
+        // Keep above-the-fold code blocks layout-stable, but do not eagerly enhance every code
+        // block in very long writeups. Deferred blocks stay as plain <pre> nodes until they are
+        // close to the viewport; this avoids spending the first few seconds generating headers,
+        // collapse controls, and thousands of line-number nodes the reader cannot see yet.
         initialPreElements.forEach(pre => this.prepareCodeBlock(pre));
 
         this.pendingPreElements = deferredPreElements;
         this.observePendingCodeBlocks();
-        this.schedulePendingCodeBlocks();
     }
 
     private isNearViewport(element: HTMLElement, margin: number): boolean {
@@ -408,7 +412,13 @@ export class CodeBlockManager {
     }
 
     private observePendingCodeBlocks() {
-        if (this.pendingPreElements.length === 0 || typeof IntersectionObserver === 'undefined') return;
+        if (this.pendingPreElements.length === 0) return;
+
+        if (typeof IntersectionObserver === 'undefined') {
+            const fallbackPreElements = this.pendingPreElements.splice(0);
+            fallbackPreElements.forEach(pre => this.enqueuePendingCodeBlock(pre));
+            return;
+        }
 
         this.codeBlockObserver?.disconnect();
         this.codeBlockObserver = new IntersectionObserver((entries) => {
@@ -416,16 +426,40 @@ export class CodeBlockManager {
                 if (!entry.isIntersecting) continue;
                 const pre = entry.target as HTMLPreElement;
                 this.codeBlockObserver?.unobserve(pre);
-                this.prepareCodeBlock(pre);
-                this.pendingPreElements = this.pendingPreElements.filter(item => item !== pre);
+                this.removePendingPreElement(pre);
+                this.enqueuePendingCodeBlock(pre);
             }
-        }, { rootMargin: '900px 0px' });
+        }, { rootMargin: '1600px 0px' });
 
         this.pendingPreElements.forEach(pre => this.codeBlockObserver?.observe(pre));
     }
 
+    private removePendingPreElement(pre: HTMLPreElement) {
+        const index = this.pendingPreElements.indexOf(pre);
+        if (index !== -1) {
+            this.pendingPreElements.splice(index, 1);
+        }
+    }
+
+    private trackPendingPreElement(pre: HTMLPreElement) {
+        if (this.disposed || !pre.isConnected || pre.getAttribute('data-processed') === 'true') return;
+        if (this.pendingPreElements.includes(pre)) return;
+
+        this.pendingPreElements.push(pre);
+        this.codeBlockObserver?.observe(pre);
+    }
+
+    private enqueuePendingCodeBlock(pre: HTMLPreElement) {
+        if (this.disposed || !pre.isConnected || pre.getAttribute('data-processed') === 'true') return;
+        if (this.queuedPreElementSet.has(pre)) return;
+
+        this.queuedPreElementSet.add(pre);
+        this.queuedPreElements.push(pre);
+        this.schedulePendingCodeBlocks();
+    }
+
     private schedulePendingCodeBlocks() {
-        if (this.disposed || this.pendingPreElements.length === 0 || this.codeBlockIdleHandle !== null || this.codeBlockFallbackTimeout !== null) return;
+        if (this.disposed || this.queuedPreElements.length === 0 || this.codeBlockIdleHandle !== null || this.codeBlockFallbackTimeout !== null) return;
 
         const requestIdle = (window as any).requestIdleCallback as
             | ((callback: (deadline: IdleDeadline) => void, options?: { timeout?: number }) => number)
@@ -435,12 +469,12 @@ export class CodeBlockManager {
             this.codeBlockIdleHandle = requestIdle((deadline) => {
                 this.codeBlockIdleHandle = null;
                 this.processPendingCodeBlocks(deadline);
-            }, { timeout: 700 });
+            }, { timeout: 300 });
         } else {
             this.codeBlockFallbackTimeout = window.setTimeout(() => {
                 this.codeBlockFallbackTimeout = null;
                 this.processPendingCodeBlocks();
-            }, 32);
+            }, 16);
         }
     }
 
@@ -448,13 +482,19 @@ export class CodeBlockManager {
         if (this.disposed) return;
 
         let processed = 0;
-        while (this.pendingPreElements.length > 0 && processed < 3) {
-            if (processed > 0 && deadline && deadline.timeRemaining() <= 6) break;
+        const maxBlocksPerBatch = deadline ? 2 : 1;
+        while (this.queuedPreElements.length > 0 && processed < maxBlocksPerBatch) {
+            if (processed > 0 && deadline && deadline.timeRemaining() <= 8) break;
 
-            const pre = this.pendingPreElements.shift();
+            const pre = this.queuedPreElements.shift();
             if (!pre) break;
-            this.codeBlockObserver?.unobserve(pre);
+            this.queuedPreElementSet.delete(pre);
             if (!pre.isConnected || pre.getAttribute('data-processed') === 'true') continue;
+
+            if (this.codeBlockObserver && !this.isNearViewport(pre, 2000)) {
+                this.trackPendingPreElement(pre);
+                continue;
+            }
 
             this.prepareCodeBlock(pre);
             processed++;
