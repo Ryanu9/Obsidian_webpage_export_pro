@@ -80,6 +80,7 @@ export class ObsidianWebsite {
 	private sharedSearchIndex: MiniSearch | undefined = undefined;
 	private searchIndexPromise: Promise<MiniSearch | undefined> | undefined = undefined;
 	private graphViewInitPromise: Promise<GraphView | undefined> | undefined = undefined;
+	private fileTreeInitPromise: Promise<void> | undefined = undefined;
 
 	public entryPage: string;
 
@@ -354,6 +355,7 @@ export class ObsidianWebsite {
 		this.isLoaded = true;
 		this.onloadCallbacks.forEach((cb) => cb(this.document));
 		this.centerContentEl.style.visibility = "";
+		this.initDeferredFileTreeInclude(leftSidebarEl);
 
 		requestAnimationFrame(() => {
 			document.body.classList.add("sidebar-loaded");
@@ -1059,8 +1061,8 @@ export class ObsidianWebsite {
 	private initFileTreeDeferred(fileTreeEl: HTMLElement | null) {
 		if (!fileTreeEl) return;
 
-		// Navigation should work immediately; full TreeItem construction can wait until the page is usable.
-		LinkHandler.initializeLinks(fileTreeEl);
+		// Body-level link delegation is initialized by document links; the expensive file-tree link
+		// state scan can wait for Tree construction. Plain anchors still work before this finishes.
 
 		this.scheduleIdle(() => {
 			if (this.fileTree || !fileTreeEl.isConnected) return;
@@ -1072,6 +1074,50 @@ export class ObsidianWebsite {
 				this.fileTree.revealPath(activePath);
 			}
 		}, 1200);
+	}
+
+	private initDeferredFileTreeInclude(leftSidebarEl: HTMLElement | null) {
+		if (this.fileTree || this.fileTreeInitPromise || !this.getDeferredFileTreeInclude()) return;
+
+		const loadFileTree = () => {
+			void this.loadDeferredFileTreeInclude();
+		};
+
+		leftSidebarEl?.addEventListener("pointerenter", loadFileTree, { once: true });
+		leftSidebarEl?.addEventListener("focusin", loadFileTree, { once: true });
+		document.querySelector("#search-container input")?.addEventListener("focus", loadFileTree, { once: true });
+
+		window.setTimeout(() => {
+			this.scheduleIdle(loadFileTree, 2500);
+		}, 1500);
+	}
+
+	private getDeferredFileTreeInclude(): HTMLLinkElement | null {
+		const includes = Array.from(document.querySelectorAll<HTMLLinkElement>("link[itemprop='include']"));
+		return includes.find((include) => (include.getAttribute("href") ?? "").toLowerCase().includes("file-tree")) ?? null;
+	}
+
+	private loadDeferredFileTreeInclude(): Promise<void> {
+		if (this.fileTreeInitPromise) return this.fileTreeInitPromise;
+		if (!this.getDeferredFileTreeInclude()) return Promise.resolve();
+
+		this.fileTreeInitPromise = (async () => {
+			const loadDeferredIncludes = (window as any).loadDeferredIncludes as (() => Promise<void>) | undefined;
+			if (loadDeferredIncludes) {
+				await loadDeferredIncludes();
+			} else {
+				const loadIncludes = (window as any).loadIncludes as (() => Promise<void>) | undefined;
+				await loadIncludes?.();
+			}
+
+			const fileTreeEl = document.querySelector("#file-explorer") as HTMLElement | null;
+			this.initFileTreeDeferred(fileTreeEl);
+		})().catch((e) => {
+			console.error("Failed to load deferred file tree:", e);
+			this.fileTreeInitPromise = undefined;
+		});
+
+		return this.fileTreeInitPromise;
 	}
 
 	private initOutlineTreeDeferred(outlineEl: HTMLElement) {

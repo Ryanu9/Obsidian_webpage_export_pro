@@ -1,17 +1,40 @@
 var _loadIncludesPromise = null;
+var _loadDeferredIncludesPromise = null;
 async function loadIncludes()
 {
 	if (_loadIncludesPromise) return _loadIncludesPromise;
-	_loadIncludesPromise = _loadIncludesImpl();
+	_loadIncludesPromise = _loadIncludesImpl({ includeDeferred: false, onlyDeferred: false });
 	return _loadIncludesPromise;
 }
-async function _loadIncludesImpl()
+
+async function loadDeferredIncludes()
+{
+	await loadIncludes();
+	if (_loadDeferredIncludesPromise) return _loadDeferredIncludesPromise;
+	_loadDeferredIncludesPromise = _loadIncludesImpl({ includeDeferred: true, onlyDeferred: true });
+	return _loadDeferredIncludesPromise;
+}
+
+function isDeferredInclude(includePath)
+{
+	return (includePath ?? "").toLowerCase().includes("file-tree");
+}
+
+async function _loadIncludesImpl(options = {})
 {
 	// replace include tags with the contents of the file
 	let includeTags = document.querySelectorAll("link[itemprop='include']");
 	for (const includeTag of includeTags)
 	{
-		let includePath = includeTag.getAttribute("href");
+		let includePath = includeTag.getAttribute("href") ?? "";
+		if (!includePath)
+		{
+			includeTag?.remove();
+			continue;
+		}
+		let deferred = isDeferredInclude(includePath);
+		if (deferred && !options.includeDeferred) continue;
+		if (!deferred && options.onlyDeferred) continue;
 
 		try
 		{
@@ -43,8 +66,6 @@ async function _loadIncludesImpl()
 			let docFrag = document.createRange().createContextualFragment(includeText);
 			includeTag.before(docFrag);
 			includeTag.remove();
-
-			console.log("Included text: " + includeText);
 
 			console.log("Included file: " + includePath);
 		}
