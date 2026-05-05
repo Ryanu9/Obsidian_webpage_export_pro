@@ -45,7 +45,7 @@ export default class HTMLExportPlugin extends Plugin {
 
 		this.addSettingTab(new SettingsPage(this));
 		await SettingsPage.loadSettings();
-		await AssetHandler.initialize();
+		await AssetHandler.initialize(this.manifest.id);
 
 		this.addRibbonIcon("folder-up", i18n.exportAsHTML, () => {
 			HTMLExporter.export(false);

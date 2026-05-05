@@ -18,7 +18,7 @@ export class HTMLExporter
 			return await modal.open();
 		}
 		
-		const files = Settings.exportOptions.filesToExport[0];
+		const files = Settings.exportOptions.filesToExport;
 		const path = overrideExportPath ?? new Path(Settings.exportOptions.exportPath);
 
 		if ((files.length == 0 && overrideFiles == undefined) || !path.exists || !path.isAbsolute || !path.isDirectory)

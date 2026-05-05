@@ -457,7 +457,7 @@ export class SettingsPage extends PluginSettingTab {
 			.setDesc(lang.includePluginCSS.description)
 
 		const pluginsList = new FlowList();
-		styleIdsList.generate(section);
+		pluginsList.generate(section);
 		this.getPluginIDs().forEach(async (plugin) => {
 			//@ts-ignore
 			const pluginManifest = app.plugins.manifests[plugin];
@@ -476,8 +476,8 @@ export class SettingsPage extends PluginSettingTab {
 
 			const isChecked = Settings.exportOptions.includePluginCss.contains(plugin);
 
-			styleIdsList.addItem(pluginManifest.name, plugin, isChecked, (value) => {
-				Settings.exportOptions.includePluginCss = styleIdsList.checkedList;
+			pluginsList.addItem(pluginManifest.name, plugin, isChecked, (value) => {
+				Settings.exportOptions.includePluginCss = pluginsList.checkedList;
 				SettingsPage.saveSettings();
 			});
 		});
